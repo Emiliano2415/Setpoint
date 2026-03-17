@@ -29,7 +29,7 @@ const securityHeaders = [
       // Canvas/WebGL context
       "connect-src 'self'",
       // Media
-      "media-src 'none'",
+      "media-src 'self'",
       // No iframes externos
       "frame-src 'none'",
     ].join("; "),

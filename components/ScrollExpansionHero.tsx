@@ -39,6 +39,16 @@ export default function ScrollExpansionHero({
     return () => window.removeEventListener('resize', check)
   }, [])
 
+  // Force video play for robust autoplay
+  useEffect(() => {
+    if (videoRef.current) {
+      // Browsers often need the defaultMuted set on the actual DOM element
+      videoRef.current.defaultMuted = true
+      // Catch error in case autoplay is blocked by strict policy before interaction
+      videoRef.current.play().catch((err) => console.log('Video autoplay delayed:', err))
+    }
+  }, [videoSrc])
+
   // Scroll hijacking
   useEffect(() => {
     const handleWheel = (e: WheelEvent) => {
@@ -197,22 +207,22 @@ export default function ScrollExpansionHero({
                   className="relative w-full h-full overflow-hidden"
                   style={{ borderRadius: isExpanded ? '0' : '24px', transition: 'border-radius 0.3s ease-out' }}
                 >
-                  {/* Video */}
                   <video
                     ref={videoRef}
                     src={videoSrc}
+                    poster={bgImageSrc}
                     autoPlay
                     muted
                     loop
                     playsInline
-                    preload="auto"
-                    className="w-full h-full object-cover"
                     disablePictureInPicture
+                    preload="auto"
+                    className="w-full h-full object-cover rounded-[inherit]"
                   />
 
-                  {/* Dark overlay on video — fades as it expands */}
+                  {/* Fallback dark overlay on video — fades as it expands */}
                   <motion.div
-                    className="absolute inset-0 bg-black/40 pointer-events-none"
+                    className="absolute inset-0 bg-black/40 pointer-events-none rounded-[inherit]"
                     style={{ opacity: overlayOpacity }}
                   />
                 </div>

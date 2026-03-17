@@ -6,7 +6,7 @@ import ScrollExpansionHero from './ScrollExpansionHero'
 export default function ScrollExpansionHeroWrapper({ children }: { children: ReactNode }) {
   return (
     <ScrollExpansionHero
-      videoSrc="/videostock.mp4"
+      videoSrc="/videostockpadel.mp4"
       bgImageSrc="/padel-top-down.jpg"
       title="Gestión Inteligente. Rendimiento Total."
       scrollHint="Scroll para descubrir Setpoint"
