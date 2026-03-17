@@ -30,9 +30,7 @@ body {
   font-family: var(--font-sans);
 }
 
-html {
-  scroll-behavior: smooth;
-}
+/* scroll-behavior: smooth removido — Lenis gestiona todo el smooth scroll */
 
 /* Glow utilities */
 .glow-lime {

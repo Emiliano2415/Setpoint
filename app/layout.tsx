@@ -5,9 +5,28 @@ import SceneBackground from '../components/SceneBackground'
 
 import SmoothScroll from '../components/SmoothScroll'
 
+const siteUrl = 'https://landing-one-swart.vercel.app'
+
 export const metadata: Metadata = {
   title: 'Setpoint — Gestión Inteligente. Rendimiento Total.',
   description: 'El sistema operativo para tu club de padel. Sincroniza pistas, bar y tienda en una única pantalla de alto rendimiento.',
+  keywords: ['padel', 'club de padel', 'software gestión padel', 'TPV padel', 'reservas pistas padel', 'setpoint'],
+  authors: [{ name: 'Setpoint' }],
+  robots: { index: true, follow: true },
+  alternates: { canonical: siteUrl },
+  openGraph: {
+    type: 'website',
+    url: siteUrl,
+    title: 'Setpoint — Gestión Inteligente. Rendimiento Total.',
+    description: 'El sistema operativo para tu club de padel. Sincroniza pistas, bar y tienda en una única pantalla de alto rendimiento.',
+    siteName: 'Setpoint',
+    locale: 'es_ES',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Setpoint — Gestión Inteligente. Rendimiento Total.',
+    description: 'El sistema operativo para tu club de padel. Sincroniza pistas, bar y tienda en una única pantalla.',
+  },
 }
 
 export default function RootLayout({

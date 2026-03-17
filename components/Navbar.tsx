@@ -33,19 +33,13 @@ export default function Navbar() {
 
     const observer = new IntersectionObserver(
       (entries) => {
-        // Find the visible entry with the highest intersection ratio
-        const visibleEntries = entries.filter(entry => entry.isIntersecting)
-        if (visibleEntries.length > 0) {
-          // Sort by intersection ratio (how much of it is on screen)
-          visibleEntries.sort((a, b) => b.intersectionRatio - a.intersectionRatio)
-          const visibleId = visibleEntries[0].target.id
-          setActiveHash(`#${visibleId}`)
-        }
+        const visible = entries.find(e => e.isIntersecting)
+        if (visible) setActiveHash(`#${visible.target.id}`)
       },
       {
         root: null,
-        rootMargin: '-20% 0px -40% 0px', // Trigger when section is cleanly in the middle of the screen
-        threshold: [0, 0.1, 0.2, 0.5],
+        rootMargin: '-20% 0px -40% 0px',
+        threshold: 0.3,
       }
     )
 

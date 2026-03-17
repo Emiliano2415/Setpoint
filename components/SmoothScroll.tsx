@@ -8,9 +8,10 @@ export default function SmoothScroll({ children }: { children: ReactNode }) {
     <ReactLenis
       root
       options={{
-        lerp: 0.05, // Lower value = smoother, 'heavier' feel
-        duration: 1.5, // Increase drag-out time
+        lerp: 0.08,
+        duration: 0.9,
         smoothWheel: true,
+        syncTouch: true,
       }}
     >
       {children}

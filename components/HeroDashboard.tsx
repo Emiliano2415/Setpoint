@@ -70,7 +70,7 @@ export default function HeroDashboard() {
       {/* Card — lift 3D sutil en hover */}
       <motion.div
         className="relative glass-panel overflow-hidden shadow-[-20px_40px_60px_rgba(108,242,13,0.1),0_0_40px_rgba(0,0,0,0.8)]"
-        style={{ transformStyle: "preserve-3d", perspective: 1200, transform: 'translateZ(0)' }}
+        style={{ transformStyle: "preserve-3d", perspective: 900, willChange: 'transform' }}
         variants={{
           hovered: {
             y: -8,

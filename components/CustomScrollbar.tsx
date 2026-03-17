@@ -13,6 +13,8 @@ export default function CustomScrollbar() {
   const dragStartScroll = useRef(0)
 
   useEffect(() => {
+    let rafId: number | null = null
+
     function update() {
       const doc = document.documentElement
       const scrollHeight = doc.scrollHeight
@@ -29,19 +31,25 @@ export default function CustomScrollbar() {
     }
 
     function onScroll() {
-      update()
-      setVisible(true)
-      if (hideTimer.current) clearTimeout(hideTimer.current)
-      hideTimer.current = setTimeout(() => setVisible(false), 1200)
+      // Throttle via rAF — at most 1 update per frame (~16ms)
+      if (rafId !== null) return
+      rafId = requestAnimationFrame(() => {
+        update()
+        setVisible(true)
+        if (hideTimer.current) clearTimeout(hideTimer.current)
+        hideTimer.current = setTimeout(() => setVisible(false), 1200)
+        rafId = null
+      })
     }
 
     update()
     window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('resize', update)
+    window.addEventListener('resize', update, { passive: true })
     return () => {
       window.removeEventListener('scroll', onScroll)
       window.removeEventListener('resize', update)
       if (hideTimer.current) clearTimeout(hideTimer.current)
+      if (rafId !== null) cancelAnimationFrame(rafId)
     }
   }, [])
 

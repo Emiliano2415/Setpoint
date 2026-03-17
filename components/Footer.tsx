@@ -1,5 +1,3 @@
-'use client'
-
 import { Volleyball } from 'lucide-react'
 import { FOOTER_LINKS } from '@/lib/constants'
 

@@ -15,6 +15,8 @@ export default function SceneBackground() {
         pointerEvents: 'none',
         zIndex: 0,
         overflow: 'hidden',
+        contain: 'layout style paint',
+        willChange: 'transform',
       }}
     >
       {/* Primary MeshGradient — darker lime palette, black-dominant */}
