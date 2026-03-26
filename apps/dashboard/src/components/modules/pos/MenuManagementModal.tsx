@@ -25,6 +25,7 @@ export function MenuManagementModal({ onClose }: Props) {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editPrice, setEditPrice] = useState('')
   const [showWizard, setShowWizard] = useState(false)
+  const [selectedCatId, setSelectedCatId] = useState<string | null>(null)
 
   const supabase = createClient()
 
@@ -36,7 +37,11 @@ export function MenuManagementModal({ onClose }: Props) {
     ])
     if (!prodsRes.error && prodsRes.data) setProducts(prodsRes.data as Producto[])
     if (!catsRes.error && catsRes.data) {
-      setCategories(catsRes.data as Categoria[])
+      const cats = catsRes.data as Categoria[]
+      setCategories(cats)
+      if (cats.length > 0 && selectedCatId === null) {
+        setSelectedCatId(cats[0].id)
+      }
     }
     setLoading(false)
   }
@@ -47,6 +52,15 @@ export function MenuManagementModal({ onClose }: Props) {
     try {
       await updateProducto(supabase, p.id, { activo: !p.activo })
       setProducts((prev) => prev.map((x) => x.id === p.id ? { ...x, activo: !x.activo } : x))
+    } catch {
+      toast.error('Error al actualizar')
+    }
+  }
+
+  async function toggleCocina(p: Producto) {
+    try {
+      await updateProducto(supabase, p.id, { requiere_cocina: !p.requiere_cocina })
+      setProducts((prev) => prev.map((x) => x.id === p.id ? { ...x, requiere_cocina: !x.requiere_cocina } : x))
     } catch {
       toast.error('Error al actualizar')
     }
@@ -66,6 +80,7 @@ export function MenuManagementModal({ onClose }: Props) {
   }
 
   const activeCount = products.filter((p) => p.activo).length
+  const filtered = selectedCatId ? products.filter((p) => p.categoria_id === selectedCatId) : products
 
   return (
     <div
@@ -80,124 +95,206 @@ export function MenuManagementModal({ onClose }: Props) {
         background: 'var(--color-bg2)',
         border: '1px solid var(--color-border)',
         borderRadius: '16px',
-        width: '560px',
-        maxHeight: '85vh',
+        width: '480px',
+        maxHeight: '80vh',
         display: 'flex', flexDirection: 'column',
         boxShadow: '0 24px 64px rgba(0,0,0,0.5)',
       }}>
         {/* Header */}
-        <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--color-border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
-          <div>
-            <div style={{ fontSize: '16px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              Gestión del Menú
+        <div style={{
+          padding: '16px 20px 0',
+          flexShrink: 0,
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+            <div>
+              <div style={{ fontSize: '15px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                Menú
+              </div>
+              <div style={{ fontSize: '11px', color: 'var(--color-muted)', marginTop: '1px' }}>
+                {activeCount} activos · {products.length} total
+              </div>
             </div>
-            <div style={{ fontSize: '11px', color: 'var(--color-muted)', marginTop: '2px' }}>
-              {activeCount} activos · {products.length} total
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <button
+                onClick={() => setShowWizard(true)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '4px',
+                  padding: '5px 10px', background: 'var(--color-lime)', color: 'var(--color-bg)',
+                  border: 'none', borderRadius: '7px', fontSize: '11px', fontWeight: 700,
+                  cursor: 'pointer', fontFamily: 'inherit',
+                }}
+              >
+                <Plus size={11} /> Agregar
+              </button>
+              <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--color-muted)', cursor: 'pointer', padding: '4px', lineHeight: 0 }}>
+                <X size={16} />
+              </button>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            <button
-              onClick={() => setShowWizard(true)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '4px',
-                padding: '6px 12px', background: 'var(--color-lime)', color: 'var(--color-bg)',
-                border: 'none', borderRadius: '8px', fontSize: '11px', fontWeight: 700,
-                cursor: 'pointer', fontFamily: 'inherit',
-              }}
-            >
-              <Plus size={12} /> Agregar
-            </button>
-            <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--color-muted)', cursor: 'pointer', padding: '4px' }}>
-              <X size={18} />
-            </button>
+
+          {/* Category filter tabs */}
+          <div style={{
+            display: 'flex', gap: '4px', overflowX: 'auto',
+            paddingBottom: '12px',
+            scrollbarWidth: 'none',
+          }}>
+            {categories.map((cat) => {
+              const count = products.filter((p) => p.categoria_id === cat.id)
+              const activeInCat = count.filter((p) => p.activo).length
+              const isActive = selectedCatId === cat.id
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCatId(cat.id)}
+                  style={{
+                    flexShrink: 0,
+                    padding: '5px 11px',
+                    borderRadius: '20px',
+                    border: isActive ? '1px solid var(--color-lime)' : '1px solid var(--color-border-subtle)',
+                    background: isActive ? 'rgba(108,242,13,0.12)' : 'transparent',
+                    color: isActive ? 'var(--color-lime)' : 'var(--color-muted)',
+                    fontSize: '11px', fontWeight: isActive ? 700 : 500,
+                    cursor: 'pointer', fontFamily: 'inherit',
+                    transition: 'all 0.15s',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {cat.nombre}
+                  <span style={{
+                    marginLeft: '5px',
+                    fontSize: '10px',
+                    opacity: 0.7,
+                    fontFamily: 'var(--font-mono)',
+                  }}>
+                    {activeInCat}/{count.length}
+                  </span>
+                </button>
+              )
+            })}
           </div>
+
+          <div style={{ height: '1px', background: 'var(--color-border-subtle)', marginLeft: '-20px', marginRight: '-20px' }} />
         </div>
 
         {/* Product list */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '4px 0 8px' }}>
           {loading ? (
-            <div style={{ padding: '24px', textAlign: 'center', color: 'var(--color-muted)', fontSize: '13px' }}>
+            <div style={{ padding: '32px', textAlign: 'center', color: 'var(--color-muted)', fontSize: '13px' }}>
               Cargando...
             </div>
+          ) : filtered.length === 0 ? (
+            <div style={{ padding: '32px', textAlign: 'center', color: 'var(--color-muted)', fontSize: '12px' }}>
+              Sin productos en esta categoría
+            </div>
           ) : (
-            products.map((p) => {
-              const catName = categories.find((c) => c.id === p.categoria_id)?.nombre ?? ''
-              return (
+            filtered.map((p) => (
+              <div
+                key={p.id}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '10px',
+                  padding: '7px 20px',
+                  transition: 'background 0.1s',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.03)')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+              >
+                {/* Toggle */}
                 <div
-                  key={p.id}
+                  onClick={() => toggleActivo(p)}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: '12px',
-                    padding: '10px 24px',
-                    borderBottom: '1px solid var(--color-border-subtle)',
-                    opacity: p.activo ? 1 : 0.5,
-                    transition: 'opacity 0.15s',
+                    width: '28px', height: '16px', borderRadius: '8px',
+                    background: p.activo ? 'var(--color-lime)' : 'var(--color-border)',
+                    position: 'relative', cursor: 'pointer', flexShrink: 0, transition: 'background 0.2s',
                   }}
                 >
-                  {/* Toggle activo */}
+                  <div style={{
+                    position: 'absolute', top: '2px',
+                    left: p.activo ? '14px' : '2px',
+                    width: '12px', height: '12px', borderRadius: '50%',
+                    background: p.activo ? 'var(--color-bg)' : 'var(--color-muted-dim)',
+                    transition: 'left 0.2s',
+                  }} />
+                </div>
+
+                {/* Cocina toggle */}
+                <div
+                  onClick={() => toggleCocina(p)}
+                  title="Requiere preparación en cocina"
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '4px',
+                    cursor: 'pointer', flexShrink: 0,
+                  }}
+                >
                   <div
-                    onClick={() => toggleActivo(p)}
                     style={{
-                      width: '32px', height: '18px', borderRadius: '9px',
-                      background: p.activo ? 'var(--color-lime)' : 'var(--color-border)',
-                      position: 'relative', cursor: 'pointer', flexShrink: 0, transition: 'background 0.2s',
+                      width: '28px', height: '16px', borderRadius: '8px',
+                      background: p.requiere_cocina ? '#F97316' : 'var(--color-border)',
+                      position: 'relative', transition: 'background 0.2s',
                     }}
                   >
                     <div style={{
                       position: 'absolute', top: '2px',
-                      left: p.activo ? '16px' : '2px',
-                      width: '14px', height: '14px', borderRadius: '50%',
-                      background: p.activo ? 'var(--color-bg)' : 'var(--color-muted)',
+                      left: p.requiere_cocina ? '14px' : '2px',
+                      width: '12px', height: '12px', borderRadius: '50%',
+                      background: p.requiere_cocina ? 'var(--color-bg)' : 'var(--color-muted-dim)',
                       transition: 'left 0.2s',
                     }} />
                   </div>
-
-                  {/* Info */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '13px', fontWeight: 600 }}>{p.nombre}</div>
-                    <div style={{ fontSize: '10px', color: 'var(--color-muted-dim)' }}>{catName}</div>
-                  </div>
-
-                  {/* Precio editable */}
-                  {editingId === p.id ? (
-                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                      <input
-                        type="number"
-                        value={editPrice}
-                        onChange={(e) => setEditPrice(e.target.value)}
-                        onKeyDown={(e) => { if (e.key === 'Enter') savePrice(p); if (e.key === 'Escape') setEditingId(null) }}
-                        autoFocus
-                        style={{
-                          width: '80px', padding: '4px 8px',
-                          background: 'var(--color-bg)',
-                          border: '1px solid var(--color-lime)',
-                          borderRadius: '6px', color: 'var(--color-text)',
-                          fontSize: '13px', fontFamily: 'var(--font-mono)',
-                          fontWeight: 700, outline: 'none',
-                        }}
-                      />
-                      <button onClick={() => savePrice(p)} style={{ ...smallConfirmBtn, padding: '4px 10px', fontSize: '11px' }}>✓</button>
-                      <button onClick={() => setEditingId(null)} style={{ ...smallCancelBtn, padding: '4px 10px', fontSize: '11px' }}>✕</button>
-                    </div>
-                  ) : (
-                    <div
-                      onClick={() => { setEditingId(p.id); setEditPrice(String(p.precio)) }}
-                      style={{
-                        fontFamily: 'var(--font-mono)', fontSize: '13px', fontWeight: 700,
-                        color: 'var(--color-text)', cursor: 'pointer',
-                        padding: '4px 8px', borderRadius: '6px',
-                        border: '1px solid transparent',
-                        transition: 'border-color 0.15s',
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--color-border)')}
-                      onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'transparent')}
-                      title="Clic para editar precio"
-                    >
-                      ${p.precio.toFixed(2)}
-                    </div>
-                  )}
+                  <span style={{ fontSize: '10px', color: p.requiere_cocina ? '#F97316' : 'var(--color-muted-dim)', fontWeight: 600 }}>
+                    🍳
+                  </span>
                 </div>
-              )
-            })
+
+                {/* Name */}
+                <div style={{
+                  flex: 1, minWidth: 0,
+                  fontSize: '13px', fontWeight: 500,
+                  color: p.activo ? 'var(--color-text)' : 'var(--color-muted)',
+                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  transition: 'color 0.15s',
+                }}>
+                  {p.nombre}
+                </div>
+
+                {/* Price (editable) */}
+                {editingId === p.id ? (
+                  <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
+                    <input
+                      type="number"
+                      value={editPrice}
+                      onChange={(e) => setEditPrice(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') savePrice(p); if (e.key === 'Escape') setEditingId(null) }}
+                      autoFocus
+                      style={{
+                        width: '72px', padding: '3px 7px',
+                        background: 'var(--color-bg)',
+                        border: '1px solid var(--color-lime)',
+                        borderRadius: '5px', color: 'var(--color-text)',
+                        fontSize: '12px', fontFamily: 'var(--font-mono)',
+                        fontWeight: 700, outline: 'none',
+                      }}
+                    />
+                    <button onClick={() => savePrice(p)} style={{ ...smallConfirmBtn }}>✓</button>
+                    <button onClick={() => setEditingId(null)} style={{ ...smallCancelBtn }}>✕</button>
+                  </div>
+                ) : (
+                  <div
+                    onClick={() => { setEditingId(p.id); setEditPrice(String(p.precio)) }}
+                    title="Clic para editar"
+                    style={{
+                      fontFamily: 'var(--font-mono)', fontSize: '12px', fontWeight: 600,
+                      color: p.activo ? 'var(--color-text)' : 'var(--color-muted)',
+                      cursor: 'pointer', padding: '2px 6px', borderRadius: '4px',
+                      border: '1px solid transparent', transition: 'border-color 0.15s',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--color-border)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'transparent')}
+                  >
+                    ${p.precio.toFixed(2)}
+                  </div>
+                )}
+              </div>
+            ))
           )}
         </div>
       </div>
@@ -214,16 +311,16 @@ export function MenuManagementModal({ onClose }: Props) {
 }
 
 const smallConfirmBtn: React.CSSProperties = {
-  padding: '6px 14px',
-  background: 'var(--color-lime)', border: 'none', borderRadius: '6px',
-  color: 'var(--color-bg)', fontSize: '12px', fontWeight: 700,
+  padding: '3px 8px',
+  background: 'var(--color-lime)', border: 'none', borderRadius: '5px',
+  color: 'var(--color-bg)', fontSize: '11px', fontWeight: 700,
   cursor: 'pointer', fontFamily: 'inherit',
 }
 
 const smallCancelBtn: React.CSSProperties = {
-  padding: '6px 14px',
+  padding: '3px 8px',
   background: 'var(--color-bg)',
-  border: '1px solid var(--color-border)', borderRadius: '6px',
-  color: 'var(--color-muted)', fontSize: '12px', fontWeight: 700,
+  border: '1px solid var(--color-border)', borderRadius: '5px',
+  color: 'var(--color-muted)', fontSize: '11px', fontWeight: 700,
   cursor: 'pointer', fontFamily: 'inherit',
 }
