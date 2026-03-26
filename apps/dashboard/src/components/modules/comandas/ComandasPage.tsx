@@ -9,6 +9,7 @@ import {
   type ComandaFromDB,
   type ComandaEstado,
 } from '@/lib/supabase/queries/comandas'
+import { getCajaActiva } from '@/lib/supabase/queries/caja'
 import { CobrarComandaModal } from './CobrarComandaModal'
 
 const CLUB_ID = 'a1000000-0000-0000-0000-000000000001'
@@ -47,12 +48,14 @@ interface ComandasPageProps {
   cajaId?: string
 }
 
-export function ComandasPage({ cajaId }: ComandasPageProps = {}) {
+export function ComandasPage({ cajaId: cajaIdProp }: ComandasPageProps = {}) {
   const [comandas, setComandas] = useState<ComandaFromDB[]>([])
   const [loading, setLoading] = useState(true)
   const [showAllDelivered, setShowAllDelivered] = useState(false)
   const [cobrarComanda, setCobrarComanda] = useState<ComandaFromDB | null>(null)
   const [, setTick] = useState(0)
+  const [cajaIdInternal, setCajaIdInternal] = useState<string | undefined>()
+  const cajaId = cajaIdProp ?? cajaIdInternal
   const supabase = useMemo(() => createClient(), [])
 
   const fetchComandas = useCallback(async () => {
@@ -64,6 +67,10 @@ export function ComandasPage({ cajaId }: ComandasPageProps = {}) {
     } finally {
       setLoading(false)
     }
+  }, [supabase])
+
+  useEffect(() => {
+    getCajaActiva(supabase, CLUB_ID).then((c) => setCajaIdInternal(c?.id))
   }, [supabase])
 
   useEffect(() => {
