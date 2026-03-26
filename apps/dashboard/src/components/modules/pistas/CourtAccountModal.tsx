@@ -11,6 +11,34 @@ import type { Court } from './PistasPage'
 import type { ReservaRow } from '@/lib/supabase/queries/pistas'
 import { CourtProductPickerModal } from './CourtProductPickerModal'
 
+// Issue 5 — moved TAX_RATE and CLUB_ID to module scope
+const TAX_RATE = 0.16
+const CLUB_ID = 'a1000000-0000-0000-0000-000000000001'
+
+// Issue 6 — moved statusColors and statusLabels to module scope
+const statusColors: Record<string, string> = {
+  ocupada: '#EF4444',
+  disponible: '#6CF20D',
+  reservada: '#6366F1',
+  mantenimiento: '#EAB308',
+}
+const statusLabels: Record<string, string> = {
+  ocupada: 'En Sesión',
+  disponible: 'Disponible',
+  reservada: 'Reservada',
+  mantenimiento: 'Mantenimiento',
+}
+
+// Issue 8 — extracted METODO_LABELS to module scope (was duplicated inside two map callbacks)
+const METODO_LABELS: Record<MetodoPago, string> = {
+  efectivo: '💵 Efectivo',
+  credito: '💳 Crédito',
+  debito: '🏦 Débito',
+  cortesia: '🎁 Cortesía',
+  cuenta_cliente: '👤 Cuenta',
+  bono: '🎟 Bono',
+}
+
 interface Props {
   court: Court
   reserva: ReservaRow | null
@@ -100,9 +128,6 @@ export function CourtAccountModal({ court, reserva, onClose, onRefresh, onReserv
     }
   }
 
-  const TAX_RATE = 0.16
-  const CLUB_ID = 'a1000000-0000-0000-0000-000000000001'
-
   const costoTiempo = court.timer !== undefined && reserva
     ? (court.timer / 3600) * reserva.precio
     : 0
@@ -113,19 +138,6 @@ export function CourtAccountModal({ court, reserva, onClose, onRefresh, onReserv
 
   const totalCanchaBase = costoTiempo
   const totalCanchaConConsumos = costoTiempo + (incluyeConsumos ? totalConsumos : 0)
-
-  const statusColors: Record<string, string> = {
-    ocupada: '#EF4444',
-    disponible: '#6CF20D',
-    reservada: '#6366F1',
-    mantenimiento: '#EAB308',
-  }
-  const statusLabels: Record<string, string> = {
-    ocupada: 'En Sesión',
-    disponible: 'Disponible',
-    reservada: 'Reservada',
-    mantenimiento: 'Mantenimiento',
-  }
 
   function addToTicket(product: Producto) {
     setTicketItems(prev => {
@@ -156,7 +168,8 @@ export function CourtAccountModal({ court, reserva, onClose, onRefresh, onReserv
 
   function buildCanchaItem(): CuentaItem | null {
     if (!reserva || court.timer === undefined) return null
-    const horas = parseFloat((court.timer / 3600).toFixed(4))
+    // Issue 1 — use court.timer / 3600 directly; avoids the toFixed(4) string round-trip
+    const horas = court.timer / 3600
     return {
       producto_id: reserva.pista_id,
       nombre: `Tiempo de cancha`,
@@ -190,17 +203,21 @@ export function CourtAccountModal({ court, reserva, onClose, onRefresh, onReserv
     }
   }
 
+  // Issue 2 — separate error handling for createCuenta and updateReservaEstado
   async function handlePagarCancha() {
     if (!reserva) return
     setCanchaPaying(true)
-    try {
-      const supabase = createClient()
-      const canchaItem = buildCanchaItem()
-      const items: CuentaItem[] = [
-        ...(canchaItem ? [canchaItem] : []),
-        ...(incluyeConsumos ? buildCuentaItems(ticketItems) : []),
-      ]
-      if (items.length > 0) {
+
+    const supabase = createClient()
+    const canchaItem = buildCanchaItem()
+    const items: CuentaItem[] = [
+      ...(canchaItem ? [canchaItem] : []),
+      ...(incluyeConsumos ? buildCuentaItems(ticketItems) : []),
+    ]
+
+    // 1. charge
+    if (items.length > 0) {
+      try {
         const { error } = await createCuenta(
           supabase,
           CLUB_ID,
@@ -211,7 +228,15 @@ export function CourtAccountModal({ court, reserva, onClose, onRefresh, onReserv
           cajaId,
         )
         if (error) throw error
+      } catch {
+        toast.error('Error al registrar el cobro')
+        setCanchaPaying(false)
+        return
       }
+    }
+
+    // 2. finalize session (payment already recorded — just try to update state)
+    try {
       await updateReservaEstado(supabase, reserva.id, 'finalizada')
       if (incluyeConsumos) setTicketItems([])
       setCanchaPayOpen(false)
@@ -219,8 +244,7 @@ export function CourtAccountModal({ court, reserva, onClose, onRefresh, onReserv
       onRefresh()
       onClose()
     } catch {
-      toast.error('Error al cobrar la cancha')
-    } finally {
+      toast.error('Cobro registrado pero no se pudo finalizar la sesión — ciérrala manualmente')
       setCanchaPaying(false)
     }
   }
@@ -235,15 +259,21 @@ export function CourtAccountModal({ court, reserva, onClose, onRefresh, onReserv
         }}
         onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
       >
-        <div style={{
-          background: 'var(--color-bg2)',
-          border: '1px solid var(--color-border)',
-          borderRadius: '16px',
-          width: '420px',
-          maxHeight: '90vh',
-          overflowY: 'auto',
-          boxShadow: '0 24px 64px rgba(0,0,0,0.5)',
-        }}>
+        {/* Issue 4 — added role="dialog", aria-modal, aria-label */}
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Cuenta de cancha"
+          style={{
+            background: 'var(--color-bg2)',
+            border: '1px solid var(--color-border)',
+            borderRadius: '16px',
+            width: '420px',
+            maxHeight: '90vh',
+            overflowY: 'auto',
+            boxShadow: '0 24px 64px rgba(0,0,0,0.5)',
+          }}
+        >
           {/* Header */}
           <div style={{
             padding: '20px 24px',
@@ -259,7 +289,8 @@ export function CourtAccountModal({ court, reserva, onClose, onRefresh, onReserv
                 ● {statusLabels[court.status]}
               </div>
             </div>
-            <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--color-muted)', cursor: 'pointer', padding: '4px' }}>
+            {/* Issue 7 — added type="button" */}
+            <button type="button" onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--color-muted)', cursor: 'pointer', padding: '4px' }}>
               <X size={18} />
             </button>
           </div>
@@ -273,7 +304,9 @@ export function CourtAccountModal({ court, reserva, onClose, onRefresh, onReserv
                   <div style={{ fontSize: '32px', marginBottom: '8px' }}>✓</div>
                   Esta cancha está disponible para reservar o iniciar sesión.
                 </div>
+                {/* Issue 7 — added type="button" */}
                 <button
+                  type="button"
                   onClick={() => { onClose(); onReservar?.() }}
                   style={primaryBtnStyle}
                 >
@@ -291,10 +324,11 @@ export function CourtAccountModal({ court, reserva, onClose, onRefresh, onReserv
                 {reserva.notas && <InfoRow label="Notas" value={reserva.notas} />}
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '8px' }}>
-                  <button onClick={handleCancelar} disabled={updating} style={dangerBtnStyle}>
+                  {/* Issue 7 — added type="button" */}
+                  <button type="button" onClick={handleCancelar} disabled={updating} style={dangerBtnStyle}>
                     Cancelar Reserva
                   </button>
-                  <button onClick={handleCheckin} disabled={updating} style={primaryBtnStyle}>
+                  <button type="button" onClick={handleCheckin} disabled={updating} style={primaryBtnStyle}>
                     {updating ? 'Procesando...' : '▶ Check-in Ahora'}
                   </button>
                 </div>
@@ -346,7 +380,9 @@ export function CourtAccountModal({ court, reserva, onClose, onRefresh, onReserv
                       <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: ticketItems.length > 0 ? 'var(--color-text)' : 'var(--color-muted-dim)' }}>
                         ${fmt(subtotalConsumos)} MXN
                       </span>
+                      {/* Issue 7 — added type="button" */}
                       <button
+                        type="button"
                         onClick={() => setPickerOpen(true)}
                         style={{
                           display: 'flex', alignItems: 'center', gap: '3px',
@@ -375,7 +411,9 @@ export function CourtAccountModal({ court, reserva, onClose, onRefresh, onReserv
                           fontSize: '12px',
                         }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+                            {/* Issue 7 — added type="button" */}
                             <button
+                              type="button"
                               onClick={() => updateQty(item.id, -1)}
                               style={{ background: 'none', border: 'none', color: 'var(--color-muted)', cursor: 'pointer', padding: '2px', lineHeight: 0 }}
                             >
@@ -384,7 +422,9 @@ export function CourtAccountModal({ court, reserva, onClose, onRefresh, onReserv
                             <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', fontWeight: 700, minWidth: '16px', textAlign: 'center' }}>
                               {item.qty}
                             </span>
+                            {/* Issue 7 — added type="button" */}
                             <button
+                              type="button"
                               onClick={() => updateQty(item.id, +1)}
                               style={{ background: 'none', border: 'none', color: 'var(--color-muted)', cursor: 'pointer', padding: '2px', lineHeight: 0 }}
                             >
@@ -397,7 +437,9 @@ export function CourtAccountModal({ court, reserva, onClose, onRefresh, onReserv
                           <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-muted)', flexShrink: 0 }}>
                             ${fmt(item.precio * item.qty)}
                           </span>
+                          {/* Issue 7 — added type="button" */}
                           <button
+                            type="button"
                             onClick={() => removeItem(item.id)}
                             style={{ background: 'none', border: 'none', color: 'var(--color-muted-dim)', cursor: 'pointer', padding: '2px', lineHeight: 0, flexShrink: 0 }}
                           >
@@ -406,7 +448,9 @@ export function CourtAccountModal({ court, reserva, onClose, onRefresh, onReserv
                         </div>
                       ))}
                       <div style={{ padding: '10px 14px' }}>
+                        {/* Issue 7 — added type="button" */}
                         <button
+                          type="button"
                           onClick={() => setConsumosPayOpen(true)}
                           style={{
                             width: '100%', padding: '8px',
@@ -446,10 +490,12 @@ export function CourtAccountModal({ court, reserva, onClose, onRefresh, onReserv
 
                 {/* Action buttons */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '4px' }}>
-                  <button onClick={handleFinalizar} disabled={updating} style={{ ...dangerBtnStyle, gridColumn: '1' }}>
+                  {/* Issue 7 — added type="button" */}
+                  <button type="button" onClick={handleFinalizar} disabled={updating} style={{ ...dangerBtnStyle, gridColumn: '1' }}>
                     {updating ? 'Procesando...' : '■ Finalizar'}
                   </button>
                   <button
+                    type="button"
                     onClick={() => { setIncluyeConsumos(false); setCanchaPayOpen(true) }}
                     disabled={updating}
                     style={{ ...primaryBtnStyle, gridColumn: '2' }}
@@ -484,12 +530,18 @@ export function CourtAccountModal({ court, reserva, onClose, onRefresh, onReserv
           }}
           onClick={(e) => { if (e.target === e.currentTarget) setConsumosPayOpen(false) }}
         >
-          <div style={{
-            background: 'var(--color-bg2)',
-            border: '1px solid var(--color-border)',
-            borderRadius: '14px', width: '360px', padding: '24px',
-            boxShadow: '0 24px 64px rgba(0,0,0,0.5)',
-          }}>
+          {/* Issue 4 — added role="dialog", aria-modal, aria-label */}
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Cobrar consumos"
+            style={{
+              background: 'var(--color-bg2)',
+              border: '1px solid var(--color-border)',
+              borderRadius: '14px', width: '360px', padding: '24px',
+              boxShadow: '0 24px 64px rgba(0,0,0,0.5)',
+            }}
+          >
             <div style={{ fontSize: '14px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>
               Cobrar consumos
             </div>
@@ -497,33 +549,35 @@ export function CourtAccountModal({ court, reserva, onClose, onRefresh, onReserv
               {ticketItems.length} producto{ticketItems.length !== 1 ? 's' : ''} · ${fmt(totalConsumos)} MXN (c/IVA)
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px', marginBottom: '20px' }}>
-              {(['efectivo', 'credito', 'debito', 'cortesia'] as MetodoPago[]).map(m => {
-                const labels: Record<MetodoPago, string> = { efectivo: '💵 Efectivo', credito: '💳 Crédito', debito: '🏦 Débito', cortesia: '🎁 Cortesía', cuenta_cliente: '👤 Cuenta', bono: '🎟 Bono' }
-                return (
-                  <button
-                    key={m}
-                    onClick={() => setConsumosMetodo(m)}
-                    style={{
-                      padding: '10px 8px', borderRadius: '8px', fontFamily: 'inherit',
-                      border: consumosMetodo === m ? '1.5px solid var(--color-lime)' : '1px solid var(--color-border)',
-                      background: consumosMetodo === m ? 'rgba(108,242,13,0.10)' : 'var(--color-bg)',
-                      color: consumosMetodo === m ? 'var(--color-lime)' : 'var(--color-muted)',
-                      fontSize: '12px', fontWeight: consumosMetodo === m ? 700 : 500, cursor: 'pointer',
-                    }}
-                  >
-                    {labels[m]}
-                  </button>
-                )
-              })}
+              {/* Issue 8 — using module-scope METODO_LABELS instead of inline object */}
+              {(['efectivo', 'credito', 'debito', 'cortesia'] as MetodoPago[]).map(m => (
+                <button
+                  type="button"
+                  key={m}
+                  onClick={() => setConsumosMetodo(m)}
+                  style={{
+                    padding: '10px 8px', borderRadius: '8px', fontFamily: 'inherit',
+                    border: consumosMetodo === m ? '1.5px solid var(--color-lime)' : '1px solid var(--color-border)',
+                    background: consumosMetodo === m ? 'rgba(108,242,13,0.10)' : 'var(--color-bg)',
+                    color: consumosMetodo === m ? 'var(--color-lime)' : 'var(--color-muted)',
+                    fontSize: '12px', fontWeight: consumosMetodo === m ? 700 : 500, cursor: 'pointer',
+                  }}
+                >
+                  {METODO_LABELS[m]}
+                </button>
+              ))}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+              {/* Issue 7 — added type="button" */}
               <button
+                type="button"
                 onClick={() => setConsumosPayOpen(false)}
                 style={{ padding: '11px', background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: '8px', color: 'var(--color-muted)', fontSize: '12px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}
               >
                 Cancelar
               </button>
               <button
+                type="button"
                 onClick={handlePagarConsumos}
                 disabled={consumosPaying}
                 style={{ padding: '11px', background: consumosPaying ? 'rgba(108,242,13,0.3)' : 'var(--color-lime)', border: 'none', borderRadius: '8px', color: 'var(--color-bg)', fontSize: '12px', fontWeight: 800, cursor: consumosPaying ? 'not-allowed' : 'pointer', fontFamily: 'inherit' }}
@@ -545,12 +599,18 @@ export function CourtAccountModal({ court, reserva, onClose, onRefresh, onReserv
           }}
           onClick={(e) => { if (e.target === e.currentTarget) setCanchaPayOpen(false) }}
         >
-          <div style={{
-            background: 'var(--color-bg2)',
-            border: '1px solid var(--color-border)',
-            borderRadius: '14px', width: '360px', padding: '24px',
-            boxShadow: '0 24px 64px rgba(0,0,0,0.5)',
-          }}>
+          {/* Issue 4 — added role="dialog", aria-modal, aria-label */}
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Cobrar cancha"
+            style={{
+              background: 'var(--color-bg2)',
+              border: '1px solid var(--color-border)',
+              borderRadius: '14px', width: '360px', padding: '24px',
+              boxShadow: '0 24px 64px rgba(0,0,0,0.5)',
+            }}
+          >
             <div style={{ fontSize: '14px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '16px' }}>
               Cobrar cancha
             </div>
@@ -610,33 +670,35 @@ export function CourtAccountModal({ court, reserva, onClose, onRefresh, onReserv
               </div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px', marginBottom: '20px' }}>
-              {(['efectivo', 'credito', 'debito', 'cortesia'] as MetodoPago[]).map(m => {
-                const labels: Record<MetodoPago, string> = { efectivo: '💵 Efectivo', credito: '💳 Crédito', debito: '🏦 Débito', cortesia: '🎁 Cortesía', cuenta_cliente: '👤 Cuenta', bono: '🎟 Bono' }
-                return (
-                  <button
-                    key={m}
-                    onClick={() => setCanchaMetodo(m)}
-                    style={{
-                      padding: '10px 8px', borderRadius: '8px', fontFamily: 'inherit',
-                      border: canchaMetodo === m ? '1.5px solid var(--color-lime)' : '1px solid var(--color-border)',
-                      background: canchaMetodo === m ? 'rgba(108,242,13,0.10)' : 'var(--color-bg)',
-                      color: canchaMetodo === m ? 'var(--color-lime)' : 'var(--color-muted)',
-                      fontSize: '12px', fontWeight: canchaMetodo === m ? 700 : 500, cursor: 'pointer',
-                    }}
-                  >
-                    {labels[m]}
-                  </button>
-                )
-              })}
+              {/* Issue 8 — using module-scope METODO_LABELS instead of inline object */}
+              {(['efectivo', 'credito', 'debito', 'cortesia'] as MetodoPago[]).map(m => (
+                <button
+                  type="button"
+                  key={m}
+                  onClick={() => setCanchaMetodo(m)}
+                  style={{
+                    padding: '10px 8px', borderRadius: '8px', fontFamily: 'inherit',
+                    border: canchaMetodo === m ? '1.5px solid var(--color-lime)' : '1px solid var(--color-border)',
+                    background: canchaMetodo === m ? 'rgba(108,242,13,0.10)' : 'var(--color-bg)',
+                    color: canchaMetodo === m ? 'var(--color-lime)' : 'var(--color-muted)',
+                    fontSize: '12px', fontWeight: canchaMetodo === m ? 700 : 500, cursor: 'pointer',
+                  }}
+                >
+                  {METODO_LABELS[m]}
+                </button>
+              ))}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+              {/* Issue 7 — added type="button" */}
               <button
+                type="button"
                 onClick={() => setCanchaPayOpen(false)}
                 style={{ padding: '11px', background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: '8px', color: 'var(--color-muted)', fontSize: '12px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}
               >
                 Cancelar
               </button>
               <button
+                type="button"
                 onClick={handlePagarCancha}
                 disabled={canchaPaying}
                 style={{ padding: '11px', background: canchaPaying ? 'rgba(108,242,13,0.3)' : 'var(--color-lime)', border: 'none', borderRadius: '8px', color: 'var(--color-bg)', fontSize: '12px', fontWeight: 800, cursor: canchaPaying ? 'not-allowed' : 'pointer', fontFamily: 'inherit' }}

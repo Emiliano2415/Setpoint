@@ -23,6 +23,7 @@ export function CourtProductPickerModal({ open, onAdd, onClose }: CourtProductPi
 
   useEffect(() => {
     if (!open) return
+    let ignore = false
     const supabase = createClient()
     setLoading(true)
     setSelectedCatId(null)
@@ -32,14 +33,20 @@ export function CourtProductPickerModal({ open, onAdd, onClose }: CourtProductPi
       getAllActiveProducts(supabase, CLUB_ID),
       getCategories(supabase, CLUB_ID),
     ]).then(([prodsRes, catsRes]) => {
+      if (ignore) return
       if (catsRes.error || prodsRes.error) throw catsRes.error ?? prodsRes.error
       const cats = (catsRes.data ?? []) as Categoria[]
       const prods = (prodsRes.data ?? []) as Producto[]
       setCategories(cats)
       setProducts(prods)
       if (cats.length > 0) setSelectedCatId(cats[0].id)
-    }).catch(() => toast.error('Error cargando productos'))
-      .finally(() => setLoading(false))
+    }).catch(() => {
+      if (ignore) return
+      toast.error('Error cargando productos')
+    }).finally(() => {
+      if (!ignore) setLoading(false)
+    })
+    return () => { ignore = true }
   }, [open])
 
   if (!open) return null
@@ -55,15 +62,19 @@ export function CourtProductPickerModal({ open, onAdd, onClose }: CourtProductPi
       }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div style={{
-        background: 'var(--color-bg2)',
-        border: '1px solid var(--color-border)',
-        borderRadius: '16px',
-        width: '420px',
-        maxHeight: '80vh',
-        display: 'flex', flexDirection: 'column',
-        boxShadow: '0 24px 64px rgba(0,0,0,0.5)',
-      }}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Agregar producto"
+        style={{
+          background: 'var(--color-bg2)',
+          border: '1px solid var(--color-border)',
+          borderRadius: '16px',
+          width: '420px',
+          maxHeight: '80vh',
+          display: 'flex', flexDirection: 'column',
+          boxShadow: '0 24px 64px rgba(0,0,0,0.5)',
+        }}>
         {/* Header */}
         <div style={{
           padding: '16px 20px 0',
@@ -73,7 +84,7 @@ export function CourtProductPickerModal({ open, onAdd, onClose }: CourtProductPi
             <div style={{ fontSize: '14px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               Agregar producto
             </div>
-            <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--color-muted)', cursor: 'pointer', padding: '4px', lineHeight: 0 }}>
+            <button type="button" onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--color-muted)', cursor: 'pointer', padding: '4px', lineHeight: 0 }}>
               <X size={16} />
             </button>
           </div>
@@ -84,6 +95,7 @@ export function CourtProductPickerModal({ open, onAdd, onClose }: CourtProductPi
               const isActive = selectedCatId === cat.id
               return (
                 <button
+                  type="button"
                   key={cat.id}
                   onClick={() => setSelectedCatId(cat.id)}
                   style={{
@@ -115,6 +127,7 @@ export function CourtProductPickerModal({ open, onAdd, onClose }: CourtProductPi
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', paddingTop: '8px' }}>
               {filtered.map(p => (
                 <button
+                  type="button"
                   key={p.id}
                   onClick={() => { onAdd(p); onClose() }}
                   style={{
