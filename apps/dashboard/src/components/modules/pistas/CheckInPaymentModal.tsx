@@ -110,13 +110,15 @@ export function CheckInPaymentModal({
     const efectivoNum = parseFloat(splitEfectivo) || 0
     const tarjeta = Math.max(0, total - efectivoNum)
     if (paying) return
+
+    // Build pagos before acquiring lock
+    const pagos: PagoInput[] = []
+    if (efectivoNum > 0) pagos.push({ metodo: 'efectivo', monto: Math.min(efectivoNum, total) })
+    if (tarjeta > 0) pagos.push({ metodo: 'credito', monto: tarjeta })
+    if (pagos.length === 0) return  // ← moved here, before setPaying
+
     setPaying(true)
     try {
-      const pagos: PagoInput[] = []
-      if (efectivoNum > 0) pagos.push({ metodo: 'efectivo', monto: Math.min(efectivoNum, total) })
-      if (tarjeta > 0) pagos.push({ metodo: 'credito', monto: tarjeta })
-      if (pagos.length === 0) return
-
       const items = [{ producto_id: reserva.id, nombre: pistaNombre, precio_unitario: total, cantidad: 1 }]
       const { error } = await createCuenta(supabase, CLUB_ID, items, pagos, undefined, 0, cajaId)
       if (error) throw error
@@ -151,8 +153,9 @@ export function CheckInPaymentModal({
       onSuccess()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Error al dividir cuenta')
-      setPaying(false)
       throw err
+    } finally {
+      setPaying(false)
     }
   }
 
@@ -185,7 +188,7 @@ export function CheckInPaymentModal({
           justifyContent: 'center',
         }}
         onClick={(e) => {
-          if (e.target === e.currentTarget) onCancel()
+          if (!paying && e.target === e.currentTarget) onCancel()
         }}
       >
         <div
