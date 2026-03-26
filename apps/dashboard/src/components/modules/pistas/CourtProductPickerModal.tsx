@@ -25,10 +25,14 @@ export function CourtProductPickerModal({ open, onAdd, onClose }: CourtProductPi
     if (!open) return
     const supabase = createClient()
     setLoading(true)
+    setSelectedCatId(null)
+    setCategories([])
+    setProducts([])
     Promise.all([
       getAllActiveProducts(supabase, CLUB_ID),
       getCategories(supabase, CLUB_ID),
     ]).then(([prodsRes, catsRes]) => {
+      if (catsRes.error || prodsRes.error) throw catsRes.error ?? prodsRes.error
       const cats = (catsRes.data ?? []) as Categoria[]
       const prods = (prodsRes.data ?? []) as Producto[]
       setCategories(cats)
