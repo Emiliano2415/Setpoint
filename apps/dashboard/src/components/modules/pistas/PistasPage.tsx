@@ -1,19 +1,17 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { CourtCard } from './CourtCard'
 import { PistasSidebar } from './PistasSidebar'
 import { ReservationModal } from './ReservationModal'
 import { CourtAccountModal } from './CourtAccountModal'
 import { Plus, Settings2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { getPistas, getTodayReservas, checkInWithPayment, updateReservaEstado } from '@/lib/supabase/queries/pistas'
+import { getPistas, getTodayReservas } from '@/lib/supabase/queries/pistas'
 import type { ReservaRow } from '@/lib/supabase/queries/pistas'
 import { getCajaActiva } from '@/lib/supabase/queries/caja'
-import type { MetodoPago } from '@/lib/supabase/queries/caja'
 import { CourtManagementModal } from './CourtManagementModal'
 import { CheckInPaymentModal } from './CheckInPaymentModal'
-import { toast } from 'sonner'
 
 const CLUB_ID = 'a1000000-0000-0000-0000-000000000001'
 
@@ -51,6 +49,7 @@ function calcElapsedSeconds(horaInicio: string): number {
 }
 
 export function PistasPage() {
+  const supabase = useMemo(() => createClient(), [])
   const [courts, setCourts] = useState<Court[]>([])
   const [reservas, setReservas] = useState<ReservaRow[]>([])
   const [loading, setLoading] = useState(true)
@@ -67,8 +66,6 @@ export function PistasPage() {
   } | null>(null)
 
   useEffect(() => {
-    const supabase = createClient()
-
     async function load() {
       try {
         const [pistas, todayReservas, caja] = await Promise.all([
@@ -177,34 +174,7 @@ export function PistasPage() {
     const court = courts.find((c) => c.id === reserva.pista_id)
     const pistaNombre = court?.name ?? reserva.pistas?.nombre ?? 'Cancha'
     const clienteNombre = reserva.clientes?.nombre ?? reserva.nombre_cliente ?? undefined
-
-    if (cajaActiva) {
-      setCheckInPendiente({ reserva, pistaNombre, clienteNombre })
-    } else {
-      toast.warning('No hay turno activo. El cobro de la cancha no se registrará en caja.')
-      const supabase = createClient()
-      updateReservaEstado(supabase, reserva.id, 'checkin')
-        .then(() => {
-          toast.success('¡Check-in realizado! Timer activo.')
-          refreshCourts()
-        })
-        .catch(() => toast.error('Error al hacer check-in'))
-    }
-  }
-
-  async function handleCheckInConfirm(metodo: MetodoPago) {
-    if (!checkInPendiente || !cajaActiva) return
-    const { reserva, pistaNombre, clienteNombre } = checkInPendiente
-    const concepto = `${pistaNombre}${clienteNombre ? ` - ${clienteNombre}` : ''} - ${reserva.hora_inicio.slice(0, 5)}`
-    try {
-      const supabase = createClient()
-      await checkInWithPayment(supabase, reserva.id, reserva.precio ?? 0, metodo, cajaActiva.id, concepto)
-      toast.success('¡Check-in realizado! Timer activo.')
-      setCheckInPendiente(null)
-      refreshCourts()
-    } catch {
-      toast.error('Error al hacer check-in')
-    }
+    setCheckInPendiente({ reserva, pistaNombre, clienteNombre })
   }
 
   if (loading) {
@@ -249,7 +219,9 @@ export function PistasPage() {
           reserva={checkInPendiente.reserva}
           pistaNombre={checkInPendiente.pistaNombre}
           clienteNombre={checkInPendiente.clienteNombre}
-          onConfirm={handleCheckInConfirm}
+          cajaId={cajaActiva?.id}
+          supabase={supabase}
+          onSuccess={() => { setCheckInPendiente(null); refreshCourts() }}
           onCancel={() => setCheckInPendiente(null)}
         />
       )}
