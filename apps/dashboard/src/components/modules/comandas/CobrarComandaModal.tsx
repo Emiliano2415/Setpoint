@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { X } from 'lucide-react'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
@@ -54,7 +54,6 @@ export function CobrarComandaModal({ comanda, cajaId, onClose, onSuccess }: Prop
   const [splitEfectivo, setSplitEfectivo] = useState('')
   const [splitAccountOpen, setSplitAccountOpen] = useState(false)
   const [paying, setPaying] = useState(false)
-  const splitEfectivoRef = useRef<HTMLInputElement>(null)
 
   const supabase = createClient()
 
@@ -141,6 +140,7 @@ export function CobrarComandaModal({ comanda, cajaId, onClose, onSuccess }: Prop
   }
 
   async function handleConfirmSplitAccount(splits: PersonSplit[]) {
+    if (splits.length === 0) return
     setPaying(true)
     let firstCuentaId: string | null = null
     try {
@@ -343,7 +343,6 @@ export function CobrarComandaModal({ comanda, cajaId, onClose, onSuccess }: Prop
                     Monto en Efectivo
                   </div>
                   <input
-                    ref={splitEfectivoRef}
                     type="number"
                     value={splitEfectivo}
                     onChange={(e) => setSplitEfectivo(e.target.value)}
