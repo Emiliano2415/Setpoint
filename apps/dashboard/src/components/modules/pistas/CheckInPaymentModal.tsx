@@ -74,7 +74,7 @@ export function CheckInPaymentModal({
 
   function selectMode(m: PayMode) {
     if (m === 'split-account') {
-      setSplitAccountOpen(true)
+      setSplitAccountOpen((prev) => !prev)
       return
     }
     setMode((prev) => (prev === m ? null : m))
