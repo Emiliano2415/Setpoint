@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase/client'
 import {
   getCategories,
   getProductsByCategory,
+  getAllActiveProducts,
 } from '@/lib/supabase/queries/pos'
 import type { Product, TicketItem } from '../pos/POSPage'
 import { updateReservaEstado } from '@/lib/supabase/queries/pistas'
@@ -79,7 +80,7 @@ export function CourtPOSModal({ open, court, reserva, onClose, onFinalize }: Cou
       if (data) {
         setDbCategories(data.map((c) => ({ id: c.id, label: c.nombre })))
       }
-    })
+    }).catch(() => toast.error('Error cargando categorías'))
   }, [open, supabase])
 
   // ── On category change: fetch products ────────────────────────────────────
@@ -90,25 +91,34 @@ export function CourtPOSModal({ open, court, reserva, onClose, onFinalize }: Cou
       return
     }
 
+    let ignore = false
     setLoadingProducts(true)
-    getProductsByCategory(supabase, CLUB_ID, activeCategory)
-      .then(({ data }) => {
-        if (data) {
-          const categoryName = dbCategories.find((c) => c.id === activeCategory)?.label ?? ''
-          const imgClass = IMG_CLASS_BY_CATEGORY[categoryName] ?? 'img-coffee'
-          setProducts(
-            data.map((p) => ({
-              id: p.id,
-              name: p.nombre,
-              category: categoryName,
-              price: p.precio,
-              imgClass,
-              requiere_cocina: p.requiere_cocina,
-            })),
-          )
-        }
-      })
-      .finally(() => setLoadingProducts(false))
+    setProducts([])
+
+    const fetchFn = activeCategory === '__all__'
+      ? getAllActiveProducts(supabase, CLUB_ID)
+      : getProductsByCategory(supabase, CLUB_ID, activeCategory)
+
+    fetchFn.then(({ data }) => {
+      if (ignore || !data) return
+      const catName = dbCategories.find((c) => c.id === activeCategory)?.label ?? ''
+      setProducts(
+        data.map((p) => ({
+          id: p.id,
+          name: p.nombre,
+          category: catName,
+          price: p.precio,
+          imgClass: IMG_CLASS_BY_CATEGORY[catName] ?? 'img-drink',
+          requiere_cocina: p.requiere_cocina ?? false,
+        })),
+      )
+    }).catch(() => {
+      if (!ignore) toast.error('Error cargando productos')
+    }).finally(() => {
+      if (!ignore) setLoadingProducts(false)
+    })
+
+    return () => { ignore = true }
   }, [open, activeCategory, supabase, dbCategories])
 
   // ── Derived values ────────────────────────────────────────────────────────
