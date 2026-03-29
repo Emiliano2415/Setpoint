@@ -10,6 +10,7 @@ import { toast } from 'sonner'
 import type { Court } from './PistasPage'
 import type { ReservaRow } from '@/lib/supabase/queries/pistas'
 import { CourtProductPickerModal } from './CourtProductPickerModal'
+import { CourtPOSModal } from './CourtPOSModal'
 
 // Issue 5 — moved TAX_RATE and CLUB_ID to module scope
 const TAX_RATE = 0.16
@@ -70,6 +71,7 @@ export function CourtAccountModal({ court, reserva, onClose, onRefresh, onReserv
   const [updating, setUpdating] = useState(false)
   const [ticketItems, setTicketItems] = useState<(Producto & { qty: number })[]>([])
   const [pickerOpen, setPickerOpen] = useState(false)
+  const [courtPOSOpen, setCourtPOSOpen] = useState(false)
   const [consumosPayOpen, setConsumosPayOpen] = useState(false)
   const [consumosMetodo, setConsumosMetodo] = useState<MetodoPago>('efectivo')
   const [consumosPaying, setConsumosPaying] = useState(false)
@@ -383,7 +385,7 @@ export function CourtAccountModal({ court, reserva, onClose, onRefresh, onReserv
                       {/* Issue 7 — added type="button" */}
                       <button
                         type="button"
-                        onClick={() => setPickerOpen(true)}
+                        onClick={() => setCourtPOSOpen(true)}
                         style={{
                           display: 'flex', alignItems: 'center', gap: '3px',
                           padding: '3px 8px', background: 'rgba(108,242,13,0.12)',
@@ -708,6 +710,20 @@ export function CourtAccountModal({ court, reserva, onClose, onRefresh, onReserv
             </div>
           </div>
         </div>
+      )}
+
+      {reserva && (
+        <CourtPOSModal
+          open={courtPOSOpen}
+          court={court}
+          reserva={reserva}
+          onClose={() => setCourtPOSOpen(false)}
+          onFinalize={() => {
+            setCourtPOSOpen(false)
+            onRefresh()
+            onClose()
+          }}
+        />
       )}
 
       <CourtProductPickerModal
