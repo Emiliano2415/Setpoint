@@ -11,8 +11,7 @@ import {
 } from '@/lib/supabase/queries/comandas'
 import { getCajaActiva } from '@/lib/supabase/queries/caja'
 import { CobrarComandaModal } from './CobrarComandaModal'
-
-const CLUB_ID = 'a1000000-0000-0000-0000-000000000001'
+import { useAppStore } from '@/store/useAppStore'
 const HIDE_AFTER_MS = 30 * 60 * 1000 // 30 minutos
 
 function isRecentlyDelivered(comanda: ComandaFromDB): boolean {
@@ -49,6 +48,7 @@ interface ComandasPageProps {
 }
 
 export function ComandasPage({ cajaId: cajaIdProp }: ComandasPageProps = {}) {
+  const clubId = useAppStore((s) => s.clubId)
   const [comandas, setComandas] = useState<ComandaFromDB[]>([])
   const [loading, setLoading] = useState(true)
   const [showAllDelivered, setShowAllDelivered] = useState(false)
@@ -59,24 +59,27 @@ export function ComandasPage({ cajaId: cajaIdProp }: ComandasPageProps = {}) {
   const supabase = useMemo(() => createClient(), [])
 
   const fetchComandas = useCallback(async () => {
+    if (!clubId) return
     try {
-      const data = await getComandas(supabase, CLUB_ID)
+      const data = await getComandas(supabase, clubId)
       setComandas(data)
     } catch (err) {
       console.error('Error cargando comandas:', err)
     } finally {
       setLoading(false)
     }
-  }, [supabase])
+  }, [supabase, clubId])
 
   useEffect(() => {
-    getCajaActiva(supabase, CLUB_ID).then((c) => setCajaIdInternal(c?.id))
-  }, [supabase])
+    if (!clubId) return
+    getCajaActiva(supabase, clubId).then((c) => setCajaIdInternal(c?.id))
+  }, [supabase, clubId])
 
   useEffect(() => {
+    if (!clubId) return
     fetchComandas()
 
-    const channel = subscribeToComandas(supabase, CLUB_ID, () => {
+    const channel = subscribeToComandas(supabase, clubId, () => {
       fetchComandas()
     })
 

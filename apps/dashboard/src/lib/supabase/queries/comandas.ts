@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { localDayStart, localDayEnd } from '@/lib/format'
 
 export type ComandaEstado = 'pendiente' | 'preparando' | 'listo' | 'entregado' | 'cobrado'
 
@@ -70,6 +71,8 @@ export async function createComanda(
     producto_id: item.producto_id,
     cantidad: item.cantidad,
     estado: 'pendiente',
+    nombre: item.nombre,
+    precio_unitario: item.precio_unitario,
   }))
 
   const { error: itemsError } = await supabase
@@ -100,9 +103,6 @@ export async function getComandas(
   supabase: SupabaseClient,
   clubId: string,
 ): Promise<ComandaFromDB[]> {
-  const d = new Date()
-  const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-
   const { data, error } = await supabase
     .from('comandas')
     .select(`
@@ -125,6 +125,8 @@ export async function getComandas(
         id,
         cantidad,
         estado,
+        nombre,
+        precio_unitario,
         producto_id (
           id,
           nombre,
@@ -140,8 +142,8 @@ export async function getComandas(
       )
     `)
     .eq('club_id', clubId)
-    .gte('created_at', `${today}T00:00:00.000Z`)
-    .lte('created_at', `${today}T23:59:59.999Z`)
+    .gte('created_at', localDayStart())
+    .lte('created_at', localDayEnd())
     .order('created_at', { ascending: true })
 
   if (error) throw error
@@ -187,6 +189,8 @@ export async function getConsumosPorReserva(
       comanda_items (
         id,
         cantidad,
+        nombre,
+        precio_unitario,
         cuenta_item_id (
           precio_unitario,
           producto_id (
@@ -204,6 +208,8 @@ export async function getConsumosPorReserva(
     comanda_items: {
       id: string
       cantidad: number
+      nombre: string | null
+      precio_unitario: number | null
       cuenta_item_id: { precio_unitario: number; producto_id: { nombre: string } | null } | null
     }[]
   }
@@ -213,9 +219,9 @@ export async function getConsumosPorReserva(
     for (const ci of comanda.comanda_items ?? []) {
       items.push({
         id: ci.id,
-        nombre: ci.cuenta_item_id?.producto_id?.nombre ?? 'Producto',
+        nombre: ci.cuenta_item_id?.producto_id?.nombre ?? ci.nombre ?? 'Producto',
         cantidad: ci.cantidad,
-        precio_unitario: ci.cuenta_item_id?.precio_unitario ?? 0,
+        precio_unitario: ci.cuenta_item_id?.precio_unitario ?? ci.precio_unitario ?? 0,
       })
     }
   }

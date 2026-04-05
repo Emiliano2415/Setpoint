@@ -11,8 +11,8 @@ import type { ComandaFromDB } from '@/lib/supabase/queries/comandas'
 import { updateComanda } from '@/lib/supabase/queries/comandas'
 import { SplitAccountModal, type PersonSplit } from '@/components/modules/pos/SplitAccountModal'
 import type { TicketItem } from '@/components/modules/pos/POSPage'
+import { useAppStore } from '@/store/useAppStore'
 
-const CLUB_ID = 'a1000000-0000-0000-0000-000000000001'
 const TAX_RATE = 0.16
 
 interface Props {
@@ -49,6 +49,7 @@ function fmtCurrency(n: number): string {
 }
 
 export function CobrarComandaModal({ comanda, cajaId, onClose, onSuccess }: Props) {
+  const clubId = useAppStore((s) => s.clubId)
   const [mode, setMode] = useState<PayMode | null>(null)
   const [selectedMetodo, setSelectedMetodo] = useState<MetodoPago | null>(null)
   const [splitEfectivo, setSplitEfectivo] = useState('')
@@ -105,7 +106,7 @@ export function CobrarComandaModal({ comanda, cajaId, onClose, onSuccess }: Prop
     if (!selectedMetodo || paying || mode !== 'single') return
     setPaying(true)
     try {
-      const { data, error } = await createCuenta(supabase, CLUB_ID, cuentaItems, selectedMetodo, undefined, 0, cajaId)
+      const { data, error } = await createCuenta(supabase, clubId ?? '', cuentaItems, selectedMetodo, undefined, 0, cajaId)
       if (error || !data) throw error ?? new Error('No se pudo crear la cuenta')
       await updateComanda(supabase, comanda.id, { cuenta_id: data.id, estado: 'cobrado' })
       toast.success('Cobrado ✓')
@@ -125,7 +126,7 @@ export function CobrarComandaModal({ comanda, cajaId, onClose, onSuccess }: Prop
       const pagos: PagoInput[] = []
       if (splitEfectivoNum > 0) pagos.push({ metodo: 'efectivo', monto: Math.min(splitEfectivoNum, total) })
       if (splitTarjeta > 0) pagos.push({ metodo: 'credito', monto: splitTarjeta })
-      const { data, error } = await createCuenta(supabase, CLUB_ID, cuentaItems, pagos, undefined, 0, cajaId)
+      const { data, error } = await createCuenta(supabase, clubId ?? '', cuentaItems, pagos, undefined, 0, cajaId)
       if (error || !data) throw error ?? new Error('No se pudo crear la cuenta')
       await updateComanda(supabase, comanda.id, { cuenta_id: data.id, estado: 'cobrado' })
       const cambioStr = splitCambio > 0 ? ` — Cambio: ${fmtCurrency(splitCambio)}` : ''
@@ -145,7 +146,7 @@ export function CobrarComandaModal({ comanda, cajaId, onClose, onSuccess }: Prop
     let firstCuentaId: string | null = null
     try {
       for (const split of splits) {
-        const { data, error } = await createCuenta(supabase, CLUB_ID, split.items, split.metodo, undefined, 0, cajaId)
+        const { data, error } = await createCuenta(supabase, clubId ?? '', split.items, split.metodo, undefined, 0, cajaId)
         if (error || !data) throw error ?? new Error('No se pudo crear la cuenta')
         if (!firstCuentaId) firstCuentaId = data.id
       }
