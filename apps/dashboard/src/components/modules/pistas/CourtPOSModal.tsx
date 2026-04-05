@@ -16,9 +16,10 @@ import type { Court } from './PistasPage'
 import type { ReservaRow } from '@/lib/supabase/queries/pistas'
 import { toast } from 'sonner'
 
+import { useAppStore } from '@/store/useAppStore'
+
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const CLUB_ID = 'a1000000-0000-0000-0000-000000000001'
 const EXT_CATEGORY_ID = '__ext__'
 
 const IMG_CLASS_BY_CATEGORY: Record<string, string> = {
@@ -58,6 +59,7 @@ interface CourtPOSModalProps {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function CourtPOSModal({ open, court, reserva, onClose, onFinalize }: CourtPOSModalProps) {
+  const clubId = useAppStore((s) => s.clubId)
   const supabase = useMemo(() => createClient(), [])
 
   const [dbCategories, setDbCategories] = useState<{ id: string; label: string }[]>([])
@@ -76,7 +78,7 @@ export function CourtPOSModal({ open, court, reserva, onClose, onFinalize }: Cou
     setTicketItems([])
     setFinalizeConfirm(false)
 
-    getCategories(supabase, CLUB_ID).then(({ data }) => {
+    getCategories(supabase, clubId ?? '').then(({ data }) => {
       if (data) {
         setDbCategories(data.map((c) => ({ id: c.id, label: c.nombre })))
       }
@@ -96,8 +98,8 @@ export function CourtPOSModal({ open, court, reserva, onClose, onFinalize }: Cou
     setProducts([])
 
     const fetchFn = activeCategory === '__all__'
-      ? getAllActiveProducts(supabase, CLUB_ID)
-      : getProductsByCategory(supabase, CLUB_ID, activeCategory)
+      ? getAllActiveProducts(supabase, clubId ?? '')
+      : getProductsByCategory(supabase, clubId ?? '', activeCategory)
 
     fetchFn.then(({ data }) => {
       if (ignore || !data) return

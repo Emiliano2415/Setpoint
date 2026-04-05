@@ -10,8 +10,7 @@ import type { Court } from './PistasPage'
 import type { ReservaRow } from '@/lib/supabase/queries/pistas'
 import { CourtPOSModal } from './CourtPOSModal'
 
-// Issue 5 — moved TAX_RATE and CLUB_ID to module scope
-const CLUB_ID = 'a1000000-0000-0000-0000-000000000001'
+import { useAppStore } from '@/store/useAppStore'
 
 // Issue 6 — moved statusColors and statusLabels to module scope
 const statusColors: Record<string, string> = {
@@ -65,6 +64,7 @@ function fmt(n: number): string {
 }
 
 export function CourtAccountModal({ court, reserva, onClose, onRefresh, onReservar, onCheckIn, cajaId }: Props) {
+  const clubId = useAppStore((s) => s.clubId)
   const [updating, setUpdating] = useState(false)
   const [courtPOSOpen, setCourtPOSOpen] = useState(false)
   const [canchaPayOpen, setCanchaPayOpen] = useState(false)
@@ -158,7 +158,7 @@ export function CourtAccountModal({ court, reserva, onClose, onRefresh, onReserv
       try {
         const { error } = await createCuenta(
           supabase,
-          CLUB_ID,
+          clubId ?? '',
           items,
           canchaMetodo,
           undefined,

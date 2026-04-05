@@ -11,14 +11,14 @@ import {
 import type { Producto, Categoria } from '@/lib/supabase/queries/pos'
 import { toast } from 'sonner'
 import { AddProductWizard } from './AddProductWizard'
-
-const CLUB_ID = 'a1000000-0000-0000-0000-000000000001'
+import { useAppStore } from '@/store/useAppStore'
 
 interface Props {
   onClose: () => void
 }
 
 export function MenuManagementModal({ onClose }: Props) {
+  const clubId = useAppStore((s) => s.clubId)
   const [products, setProducts] = useState<Producto[]>([])
   const [categories, setCategories] = useState<Categoria[]>([])
   const [loading, setLoading] = useState(true)
@@ -32,8 +32,8 @@ export function MenuManagementModal({ onClose }: Props) {
   async function load() {
     setLoading(true)
     const [prodsRes, catsRes] = await Promise.all([
-      getAllProducts(supabase, CLUB_ID),
-      getCategories(supabase, CLUB_ID),
+      getAllProducts(supabase, clubId ?? ''),
+      getCategories(supabase, clubId ?? ''),
     ])
     if (!prodsRes.error && prodsRes.data) setProducts(prodsRes.data as Producto[])
     if (!catsRes.error && catsRes.data) {
@@ -302,7 +302,7 @@ export function MenuManagementModal({ onClose }: Props) {
       <AddProductWizard
         open={showWizard}
         categories={categories}
-        clubId={CLUB_ID}
+        clubId={clubId ?? ''}
         onSuccess={() => { setShowWizard(false); load() }}
         onCancel={() => setShowWizard(false)}
       />

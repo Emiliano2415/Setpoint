@@ -9,8 +9,7 @@ import {
   type EmpleadoBasic,
 } from '@/lib/supabase/queries/caja'
 import { toast } from 'sonner'
-
-const CLUB_ID = 'a1000000-0000-0000-0000-000000000001'
+import { useAppStore } from '@/store/useAppStore'
 
 type TipoTurno = 'manana' | 'tarde' | 'noche'
 
@@ -27,6 +26,7 @@ function detectarTipo(): TipoTurno {
 }
 
 export function OpenShiftModal({ onClose, onSuccess }: Props) {
+  const clubId = useAppStore((s) => s.clubId)
   const [tipo, setTipo] = useState<TipoTurno>(detectarTipo())
   const [fondoInicial, setFondoInicial] = useState('2000')
   const [notas, setNotas] = useState('')
@@ -35,7 +35,7 @@ export function OpenShiftModal({ onClose, onSuccess }: Props) {
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    getEmpleadosActivos(createClient(), CLUB_ID)
+    getEmpleadosActivos(createClient(), clubId ?? '')
       .then((data) => {
         setEmpleados(data)
         if (data.length > 0) setEmpleadoId(data[0].id)
@@ -52,7 +52,7 @@ export function OpenShiftModal({ onClose, onSuccess }: Props) {
     try {
       const { cajaId } = await openCaja(
         createClient(),
-        CLUB_ID,
+        clubId ?? '',
         empleadoId,
         tipo,
         fondoNum,

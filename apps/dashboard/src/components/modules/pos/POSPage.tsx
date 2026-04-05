@@ -12,8 +12,7 @@ import {
   getProductsByCategory,
   getAllActiveProducts,
 } from '@/lib/supabase/queries/pos'
-
-const CLUB_ID = 'a1000000-0000-0000-0000-000000000001'
+import { useAppStore } from '@/store/useAppStore'
 
 // imgClass mapping — coincide con nombres de categorías en DB
 const IMG_CLASS_BY_CATEGORY: Record<string, string> = {
@@ -54,6 +53,7 @@ function resolveImgClass(categoryName: string): string {
 }
 
 export function POSPage() {
+  const clubId = useAppStore((s) => s.clubId)
   const [categories, setCategories] = useState<CategoryTab[]>([])
   const [activeCategory, setActiveCategory] = useState<string>(ALL_CATEGORY_ID)
   const [products, setProducts] = useState<Product[]>([])
@@ -69,7 +69,7 @@ export function POSPage() {
   useEffect(() => {
     async function fetchCategories() {
       setLoadingCategories(true)
-      const { data, error } = await getCategories(supabase, CLUB_ID)
+      const { data, error } = await getCategories(supabase, clubId ?? '')
       if (!error && data) {
         const tabs: CategoryTab[] = [
           { id: ALL_CATEGORY_ID, label: 'Todos' },
@@ -91,7 +91,7 @@ export function POSPage() {
       setLoadingProducts(true)
 
       if (activeCategory === ALL_CATEGORY_ID) {
-        const { data, error } = await getAllActiveProducts(supabase, CLUB_ID)
+        const { data, error } = await getAllActiveProducts(supabase, clubId ?? '')
         if (!error && data) {
           type RawProduct = { id: string; nombre: string; precio: number; categoria_id: string; descripcion?: string; requiere_cocina: boolean }
           const mapped: Product[] = (data as RawProduct[]).map((p) => {
@@ -109,7 +109,7 @@ export function POSPage() {
           setProducts(mapped)
         }
       } else {
-        const { data, error } = await getProductsByCategory(supabase, CLUB_ID, activeCategory)
+        const { data, error } = await getProductsByCategory(supabase, clubId ?? '', activeCategory)
         if (!error && data) {
           const catLabel =
             categories.find((c) => c.id === activeCategory)?.label ?? ''

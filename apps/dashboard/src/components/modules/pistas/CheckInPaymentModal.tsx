@@ -12,8 +12,7 @@ import type { PagoInput } from '@/lib/supabase/queries/pos'
 import { SplitAccountModal } from '@/components/modules/pos/SplitAccountModal'
 import type { PersonSplit } from '@/components/modules/pos/SplitAccountModal'
 import type { TicketItem } from '@/components/modules/pos/POSPage'
-
-const CLUB_ID = 'a1000000-0000-0000-0000-000000000001'
+import { useAppStore } from '@/store/useAppStore'
 
 type PayMode = 'single' | 'split-payment' | 'split-account'
 
@@ -55,6 +54,7 @@ export function CheckInPaymentModal({
   onSuccess,
   onCancel,
 }: CheckInPaymentModalProps) {
+  const clubId = useAppStore((s) => s.clubId)
   const [mode, setMode] = useState<PayMode | null>(null)
   const [selectedMetodo, setSelectedMetodo] = useState<MetodoPago | null>(null)
   const [splitEfectivo, setSplitEfectivo] = useState('')
@@ -120,7 +120,7 @@ export function CheckInPaymentModal({
     setPaying(true)
     try {
       const items = [{ producto_id: reserva.id, nombre: pistaNombre, precio_unitario: total, cantidad: 1 }]
-      const { error } = await createCuenta(supabase, CLUB_ID, items, pagos, undefined, 0, cajaId)
+      const { error } = await createCuenta(supabase, clubId ?? '', items, pagos, undefined, 0, cajaId)
       if (error) throw error
 
       await updateReservaEstado(supabase, reserva.id, 'checkin')
@@ -144,7 +144,7 @@ export function CheckInPaymentModal({
           precio_unitario: i.precio_unitario,
           cantidad: i.cantidad,
         }))
-        const { error } = await createCuenta(supabase, CLUB_ID, splitItems, split.metodo, undefined, 0, cajaId)
+        const { error } = await createCuenta(supabase, clubId ?? '', splitItems, split.metodo, undefined, 0, cajaId)
         if (error) throw error
       }
       await updateReservaEstado(supabase, reserva.id, 'checkin')

@@ -6,8 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { getAllActiveProducts, getCategories } from '@/lib/supabase/queries/pos'
 import type { Categoria, Producto } from '@/lib/supabase/queries/pos'
 import { toast } from 'sonner'
-
-const CLUB_ID = 'a1000000-0000-0000-0000-000000000001'
+import { useAppStore } from '@/store/useAppStore'
 
 export interface CourtProductPickerModalProps {
   open: boolean
@@ -16,6 +15,7 @@ export interface CourtProductPickerModalProps {
 }
 
 export function CourtProductPickerModal({ open, onAdd, onClose }: CourtProductPickerModalProps) {
+  const clubId = useAppStore((s) => s.clubId)
   const [categories, setCategories] = useState<Categoria[]>([])
   const [products, setProducts] = useState<Producto[]>([])
   const [selectedCatId, setSelectedCatId] = useState<string | null>(null)
@@ -30,8 +30,8 @@ export function CourtProductPickerModal({ open, onAdd, onClose }: CourtProductPi
     setCategories([])
     setProducts([])
     Promise.all([
-      getAllActiveProducts(supabase, CLUB_ID),
-      getCategories(supabase, CLUB_ID),
+      getAllActiveProducts(supabase, clubId ?? ''),
+      getCategories(supabase, clubId ?? ''),
     ]).then(([prodsRes, catsRes]) => {
       if (ignore) return
       if (catsRes.error || prodsRes.error) throw catsRes.error ?? prodsRes.error
