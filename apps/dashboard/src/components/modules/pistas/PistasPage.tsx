@@ -12,8 +12,7 @@ import type { ReservaRow } from '@/lib/supabase/queries/pistas'
 import { getCajaActiva } from '@/lib/supabase/queries/caja'
 import { CourtManagementModal } from './CourtManagementModal'
 import { CheckInPaymentModal } from './CheckInPaymentModal'
-
-const CLUB_ID = 'a1000000-0000-0000-0000-000000000001'
+import { useAppStore } from '@/store/useAppStore'
 
 // UI display states (mapped from DB enum)
 export type CourtStatus = 'ocupada' | 'disponible' | 'mantenimiento' | 'reservada'
@@ -49,6 +48,7 @@ function calcElapsedSeconds(horaInicio: string): number {
 }
 
 export function PistasPage() {
+  const clubId = useAppStore((s) => s.clubId)
   const supabase = useMemo(() => createClient(), [])
   const [courts, setCourts] = useState<Court[]>([])
   const [reservas, setReservas] = useState<ReservaRow[]>([])
@@ -69,9 +69,9 @@ export function PistasPage() {
     async function load() {
       try {
         const [pistas, todayReservas, caja] = await Promise.all([
-          getPistas(supabase, CLUB_ID),
-          getTodayReservas(supabase, CLUB_ID),
-          getCajaActiva(supabase, CLUB_ID).catch(() => null),
+          getPistas(supabase, clubId ?? ''),
+          getTodayReservas(supabase, clubId ?? ''),
+          getCajaActiva(supabase, clubId ?? '').catch(() => null),
         ])
 
         setCajaActiva(caja ? { id: caja.id } : null)
@@ -117,7 +117,7 @@ export function PistasPage() {
             name: p.nombre,
             status: p.en_mantenimiento ? 'mantenimiento' : 'disponible',
             task: p.nota_mantenimiento ?? 'En mantenimiento',
-            tarifa: p.en_mantenimiento ? 0 : 450,
+            tarifa: 0,
           }
         })
 

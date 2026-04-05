@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import type { TicketItem } from './POSPage'
 import { Minus, Plus } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
@@ -9,10 +9,10 @@ import { createComanda } from '@/lib/supabase/queries/comandas'
 import { SplitAccountModal, type PersonSplit } from './SplitAccountModal'
 import { getDescuentosActivos, type DescuentoRegla } from '@/lib/supabase/queries/descuentos'
 import { getCajaActiva } from '@/lib/supabase/queries/caja'
+import { useAppStore } from '@/store/useAppStore'
 import { toast } from 'sonner'
 
 const TAX_RATE = 0.16
-const CLUB_ID = 'a1000000-0000-0000-0000-000000000001'
 
 interface TicketPanelProps {
   items: TicketItem[]
@@ -25,22 +25,26 @@ interface TicketPanelProps {
 type PayMode = 'single' | 'split'
 
 export function TicketPanel({ items, onUpdateQty, onRemove, onClear, onHistoryOpen }: TicketPanelProps) {
+  const clubId = useAppStore((s) => s.clubId)
+  const supabase = useMemo(() => createClient(), [])
   const [discountRules, setDiscountRules] = useState<DescuentoRegla[]>([])
   const [activeRuleId, setActiveRuleId] = useState<string | null>(null)
   const [paying, setPaying] = useState(false)
   const [cajaId, setCajaId] = useState<string | null | undefined>()
 
   useEffect(() => {
-    getDescuentosActivos(createClient(), CLUB_ID)
+    if (!clubId) return
+    getDescuentosActivos(supabase, clubId)
       .then(setDiscountRules)
       .catch(() => {})
-  }, [])
+  }, [supabase, clubId])
 
   useEffect(() => {
-    getCajaActiva(createClient(), CLUB_ID)
+    if (!clubId) return
+    getCajaActiva(supabase, clubId)
       .then(c => setCajaId(c?.id ?? null))
       .catch(() => console.warn('[TicketPanel] No se pudo verificar caja activa'))
-  }, [])
+  }, [supabase, clubId])
   const [ticketId, setTicketId] = useState('#SP-0000')
   // Modal de pago simple
   const [payModal, setPayModal] = useState<{ open: boolean; metodo: MetodoPago }>({ open: false, metodo: 'efectivo' })
@@ -95,12 +99,20 @@ export function TicketPanel({ items, onUpdateQty, onRemove, onClear, onHistoryOp
 
   function openPayModal(metodo: MetodoPago) {
     if (items.length === 0) return
+    if (!cajaId) {
+      toast.error('No hay turno activo. Abre el turno en Caja antes de cobrar.')
+      return
+    }
     setRecibido('')
     setPayModal({ open: true, metodo })
   }
 
   function openSplitModal() {
     if (items.length === 0) return
+    if (!cajaId) {
+      toast.error('No hay turno activo. Abre el turno en Caja antes de cobrar.')
+      return
+    }
     setSplitOpen(true)
   }
 
@@ -124,8 +136,8 @@ export function TicketPanel({ items, onUpdateQty, onRemove, onClear, onHistoryOp
     if (itemsParaCocina.length === 0) return
     setEnviandoComanda(true)
     const { error } = await createComanda(
-      createClient(),
-      CLUB_ID,
+      supabase,
+      clubId ?? '',
       itemsParaCocina.map(i => ({
         producto_id: i.id,
         nombre: i.name,
@@ -148,7 +160,7 @@ export function TicketPanel({ items, onUpdateQty, onRemove, onClear, onHistoryOp
       return
     }
     setPaying(true)
-    const { error } = await createCuenta(createClient(), CLUB_ID, buildCuentaItems(), payModal.metodo, undefined, undefined, cajaId ?? undefined)
+    const { error } = await createCuenta(supabase, clubId ?? '', buildCuentaItems(), payModal.metodo, undefined, undefined, cajaId ?? undefined)
     setPaying(false)
     if (error) {
       toast.error('Error al procesar el pago')
@@ -170,7 +182,7 @@ export function TicketPanel({ items, onUpdateQty, onRemove, onClear, onHistoryOp
     if (splitTarjeta > 0) pagos.push({ metodo: 'credito', monto: splitTarjeta })
     if (pagos.length === 0) return
     setPaying(true)
-    const { error } = await createCuenta(createClient(), CLUB_ID, buildCuentaItems(), pagos, undefined, undefined, cajaId ?? undefined)
+    const { error } = await createCuenta(supabase, clubId ?? '', buildCuentaItems(), pagos, undefined, undefined, cajaId ?? undefined)
     setPaying(false)
     if (error) {
       toast.error('Error al procesar el pago')
@@ -183,13 +195,12 @@ export function TicketPanel({ items, onUpdateQty, onRemove, onClear, onHistoryOp
   }
 
   async function handleConfirmSplitAccount(splits: PersonSplit[]) {
-    const supabase = createClient()
     let allOk = true
     setPaying(true)
     for (const split of splits) {
       const { error } = await createCuenta(
         supabase,
-        CLUB_ID,
+        clubId ?? '',
         split.items,
         split.metodo,
         undefined,
