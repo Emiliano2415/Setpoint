@@ -66,12 +66,13 @@ export function PistasPage() {
   } | null>(null)
 
   useEffect(() => {
+    if (!clubId) return
     async function load() {
       try {
         const [pistas, todayReservas, caja] = await Promise.all([
-          getPistas(supabase, clubId ?? ''),
-          getTodayReservas(supabase, clubId ?? ''),
-          getCajaActiva(supabase, clubId ?? '').catch(() => null),
+          getPistas(supabase, clubId),
+          getTodayReservas(supabase, clubId),
+          getCajaActiva(supabase, clubId).catch(() => null),
         ])
 
         setCajaActiva(caja ? { id: caja.id } : null)

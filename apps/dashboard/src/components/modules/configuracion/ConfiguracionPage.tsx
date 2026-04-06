@@ -89,8 +89,9 @@ export function ConfiguracionPage() {
   const [noshowTolerancia, setNoshowTolerancia] = useState('15')
 
   useEffect(() => {
+    if (!clubId) return
     const supabase = createClient()
-    getClub(supabase, clubId ?? '')
+    getClub(supabase, clubId)
       .then((data) => {
         if (!data) return
         setClub(data)

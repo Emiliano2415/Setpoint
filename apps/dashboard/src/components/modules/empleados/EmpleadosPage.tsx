@@ -37,13 +37,14 @@ export function EmpleadosPage() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    if (!clubId) return
     const supabase = createClient()
 
     async function load() {
       try {
         const [empData, statsData] = await Promise.all([
-          getEmpleados(supabase, clubId ?? ''),
-          getEmpleadoStats(supabase, clubId ?? ''),
+          getEmpleados(supabase, clubId),
+          getEmpleadoStats(supabase, clubId),
         ])
         setEmpleados(empData)
         setStats(statsData)

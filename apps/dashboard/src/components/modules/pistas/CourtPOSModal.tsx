@@ -78,7 +78,8 @@ export function CourtPOSModal({ open, court, reserva, onClose, onFinalize }: Cou
     setTicketItems([])
     setFinalizeConfirm(false)
 
-    getCategories(supabase, clubId ?? '').then(({ data }) => {
+    if (!clubId) return
+    getCategories(supabase, clubId).then(({ data }) => {
       if (data) {
         setDbCategories(data.map((c) => ({ id: c.id, label: c.nombre })))
       }
@@ -97,9 +98,10 @@ export function CourtPOSModal({ open, court, reserva, onClose, onFinalize }: Cou
     setLoadingProducts(true)
     setProducts([])
 
+    if (!clubId) return
     const fetchFn = activeCategory === '__all__'
-      ? getAllActiveProducts(supabase, clubId ?? '')
-      : getProductsByCategory(supabase, clubId ?? '', activeCategory)
+      ? getAllActiveProducts(supabase, clubId)
+      : getProductsByCategory(supabase, clubId, activeCategory)
 
     fetchFn.then(({ data }) => {
       if (ignore || !data) return

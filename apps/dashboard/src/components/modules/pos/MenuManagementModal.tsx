@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { X, Plus } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import {
@@ -27,13 +27,14 @@ export function MenuManagementModal({ onClose }: Props) {
   const [showWizard, setShowWizard] = useState(false)
   const [selectedCatId, setSelectedCatId] = useState<string | null>(null)
 
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
 
   async function load() {
+    if (!clubId) return
     setLoading(true)
     const [prodsRes, catsRes] = await Promise.all([
-      getAllProducts(supabase, clubId ?? ''),
-      getCategories(supabase, clubId ?? ''),
+      getAllProducts(supabase, clubId),
+      getCategories(supabase, clubId),
     ])
     if (!prodsRes.error && prodsRes.data) setProducts(prodsRes.data as Producto[])
     if (!catsRes.error && catsRes.data) {

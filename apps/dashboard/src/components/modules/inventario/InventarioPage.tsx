@@ -98,13 +98,14 @@ export function InventarioPage() {
   function refresh() { setRefreshKey((k) => k + 1) }
 
   useEffect(() => {
+    if (!clubId) return
     const supabase = createClient()
 
     async function load() {
       const [productosRes, statsRes, movsRes] = await Promise.all([
-        getProductosConInactivos(supabase, clubId ?? ''),
-        getStockStats(supabase, clubId ?? ''),
-        getMovimientos(supabase, clubId ?? '', 100),
+        getProductosConInactivos(supabase, clubId),
+        getStockStats(supabase, clubId),
+        getMovimientos(supabase, clubId, 100),
       ])
 
       if (productosRes.data) {

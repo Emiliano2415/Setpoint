@@ -66,12 +66,13 @@ export function ClientesPage() {
   function refresh() { setRefreshKey((k) => k + 1) }
 
   useEffect(() => {
+    if (!clubId) return
     const supabase = createClient()
 
     async function load() {
       const [clientesRes, statsRes] = await Promise.all([
-        getClientes(supabase, clubId ?? ''),
-        getClienteStats(supabase, clubId ?? ''),
+        getClientes(supabase, clubId),
+        getClienteStats(supabase, clubId),
       ])
 
       if (clientesRes.data) {

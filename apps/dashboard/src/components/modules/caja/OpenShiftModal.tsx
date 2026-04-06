@@ -35,13 +35,14 @@ export function OpenShiftModal({ onClose, onSuccess }: Props) {
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    getEmpleadosActivos(createClient(), clubId ?? '')
+    if (!clubId) return
+    getEmpleadosActivos(createClient(), clubId)
       .then((data) => {
         setEmpleados(data)
         if (data.length > 0) setEmpleadoId(data[0].id)
       })
       .catch(() => toast.error('Error cargando empleados'))
-  }, [])
+  }, [clubId])
 
   const fondoNum = parseFloat(fondoInicial) || 0
   const isValid = empleadoId.length > 0 && fondoNum >= 0
@@ -52,7 +53,7 @@ export function OpenShiftModal({ onClose, onSuccess }: Props) {
     try {
       const { cajaId } = await openCaja(
         createClient(),
-        clubId ?? '',
+        clubId ?? '', // clubId is validated by isValid check above
         empleadoId,
         tipo,
         fondoNum,

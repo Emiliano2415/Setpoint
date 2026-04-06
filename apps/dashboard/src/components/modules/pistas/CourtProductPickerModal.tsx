@@ -22,7 +22,7 @@ export function CourtProductPickerModal({ open, onAdd, onClose }: CourtProductPi
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!open) return
+    if (!open || !clubId) return
     let ignore = false
     const supabase = createClient()
     setLoading(true)
@@ -30,8 +30,8 @@ export function CourtProductPickerModal({ open, onAdd, onClose }: CourtProductPi
     setCategories([])
     setProducts([])
     Promise.all([
-      getAllActiveProducts(supabase, clubId ?? ''),
-      getCategories(supabase, clubId ?? ''),
+      getAllActiveProducts(supabase, clubId),
+      getCategories(supabase, clubId),
     ]).then(([prodsRes, catsRes]) => {
       if (ignore) return
       if (catsRes.error || prodsRes.error) throw catsRes.error ?? prodsRes.error

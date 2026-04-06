@@ -111,18 +111,19 @@ export function HistorialPage() {
   const totalIngresos = totalVentas + totalCanchas
 
   useEffect(() => {
+    if (!clubId) return
     setLoading(true)
     const supabase = createClient()
     Promise.all([
-      getHistorialVentas(supabase, clubId ?? '', desde, hasta),
-      getHistorialCanchas(supabase, clubId ?? '', desde, hasta),
-      getHistorialMovimientos(supabase, clubId ?? '', desde, hasta),
+      getHistorialVentas(supabase, clubId, desde, hasta),
+      getHistorialCanchas(supabase, clubId, desde, hasta),
+      getHistorialMovimientos(supabase, clubId, desde, hasta),
     ]).then(([v, c, m]) => {
       setVentas(v)
       setCanchas(c)
       setMovimientos(m)
     }).catch(console.error).finally(() => setLoading(false))
-  }, [desde, hasta])
+  }, [clubId, desde, hasta])
 
   const kpiCards = [
     { label: 'Ventas POS', value: fmtMXN(totalVentas), sub: `${ventas.length} ticket${ventas.length !== 1 ? 's' : ''}`, color: 'var(--color-lime)' },

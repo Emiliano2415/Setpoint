@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { X, Clock, User, TrendingUp } from 'lucide-react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
@@ -28,20 +28,21 @@ export function ShiftHistoryPanel({ onClose }: Props) {
   const [loading, setLoading] = useState(true)
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
 
   useEffect(() => {
+    if (!clubId) return
     async function load() {
       setLoading(true)
       try {
-        const data = await getCierresCaja(supabase, clubId ?? '')
+        const data = await getCierresCaja(supabase, clubId)
         setCierres(data)
       } finally {
         setLoading(false)
       }
     }
     load()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [supabase, clubId])
 
   return (
     <div

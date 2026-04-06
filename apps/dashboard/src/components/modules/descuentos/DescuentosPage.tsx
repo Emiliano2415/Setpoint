@@ -22,13 +22,14 @@ export function DescuentosPage() {
   const [editingRegla, setEditingRegla] = useState<DescuentoRegla | undefined>(undefined)
 
   useEffect(() => {
+    if (!clubId) return
     setLoading(true)
     const supabase = createClient()
-    getDescuentosReglas(supabase, clubId ?? '')
+    getDescuentosReglas(supabase, clubId)
       .then(setReglas)
       .catch(() => toast.error('Error cargando reglas'))
       .finally(() => setLoading(false))
-  }, [refreshKey])
+  }, [clubId, refreshKey])
 
   async function handleToggle(regla: DescuentoRegla) {
     try {

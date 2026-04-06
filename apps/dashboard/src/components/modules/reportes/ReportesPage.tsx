@@ -46,14 +46,15 @@ export function ReportesPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (!clubId) return
     const supabase = createClient()
 
     async function load() {
       try {
         const [m, top, ocu] = await Promise.all([
-          getMetricasHoy(supabase, clubId ?? ''),
-          getTopProductos(supabase, clubId ?? '', 5),
-          getOcupacionPistas(supabase, clubId ?? ''),
+          getMetricasHoy(supabase, clubId),
+          getTopProductos(supabase, clubId, 5),
+          getOcupacionPistas(supabase, clubId),
         ])
         setMetricas(m)
         // Si top productos está vacío, usar los de métricas_diarias

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { X, Plus, ChevronUp, ChevronDown } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { getAllPistas, updatePista, createPista } from '@/lib/supabase/queries/pistas'
@@ -28,12 +28,13 @@ export function CourtManagementModal({ onClose, onRefresh }: Props) {
   const [newTipo, setNewTipo] = useState('Indoor')
   const [saving, setSaving] = useState(false)
 
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
 
   async function load() {
+    if (!clubId) return
     setLoading(true)
     try {
-      const data = await getAllPistas(supabase, clubId ?? '')
+      const data = await getAllPistas(supabase, clubId)
       setPistas(data)
     } catch {
       toast.error('Error al cargar canchas')
@@ -42,7 +43,7 @@ export function CourtManagementModal({ onClose, onRefresh }: Props) {
     }
   }
 
-  useEffect(() => { load() }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { load() }, [clubId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function toggleActiva(p: PistaRow) {
     try {

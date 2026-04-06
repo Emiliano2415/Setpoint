@@ -428,12 +428,13 @@ export function CajaPage() {
   }, [])
 
   useEffect(() => {
+    if (!clubId) return
     const supabase = createClient()
     async function load() {
       try {
         const [cajaData, cierresData] = await Promise.all([
-          getCajaActiva(supabase, clubId ?? ''),
-          getCierresCaja(supabase, clubId ?? ''),
+          getCajaActiva(supabase, clubId),
+          getCierresCaja(supabase, clubId),
         ])
         setCaja(cajaData)
         setCierres(cierresData)

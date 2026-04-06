@@ -25,12 +25,13 @@ export function TicketHistory({ onClose }: TicketHistoryProps) {
   const [expanded, setExpanded] = useState<string | null>(null)
 
   useEffect(() => {
+    if (!clubId) return
     const supabase = createClient()
-    getTicketsDelDia(supabase, clubId ?? '').then((data) => {
+    getTicketsDelDia(supabase, clubId).then((data) => {
       setTickets(data)
       setLoading(false)
     })
-  }, [])
+  }, [clubId])
 
   const totalDia = tickets.reduce((sum, t) => sum + t.total, 0)
 
