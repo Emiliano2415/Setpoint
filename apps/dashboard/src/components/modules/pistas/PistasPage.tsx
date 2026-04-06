@@ -12,6 +12,7 @@ import type { ReservaRow } from '@/lib/supabase/queries/pistas'
 import { getCajaActiva } from '@/lib/supabase/queries/caja'
 import { CourtManagementModal } from './CourtManagementModal'
 import { CheckInPaymentModal } from './CheckInPaymentModal'
+import { CancelacionReservaModal } from '../cancelaciones/CancelacionReservaModal'
 import { useAppStore } from '@/store/useAppStore'
 
 // UI display states (mapped from DB enum)
@@ -63,6 +64,10 @@ export function PistasPage() {
     reserva: ReservaRow
     pistaNombre: string
     clienteNombre?: string
+  } | null>(null)
+  const [cancelReserva, setCancelReserva] = useState<{
+    reserva: ReservaRow
+    pistaNombre: string
   } | null>(null)
 
   useEffect(() => {
@@ -226,6 +231,16 @@ export function PistasPage() {
           onCancel={() => setCheckInPendiente(null)}
         />
       )}
+      {cancelReserva && (
+        <CancelacionReservaModal
+          open={true}
+          reservaId={cancelReserva.reserva.id}
+          pistaName={cancelReserva.pistaNombre}
+          clienteNombre={cancelReserva.reserva.clientes?.nombre ?? cancelReserva.reserva.nombre_cliente ?? 'Sin cliente'}
+          onClose={() => setCancelReserva(null)}
+          onSuccess={() => { setCancelReserva(null); refreshCourts() }}
+        />
+      )}
 
       {/* Main grid */}
       <div style={{ padding: '24px', overflowY: 'auto', paddingBottom: '100px', position: 'relative' }}>
@@ -240,9 +255,17 @@ export function PistasPage() {
           </span>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px' }}>
-          {courts.map((court) => (
-            <CourtCard key={court.id} court={court} onClick={() => handleCourtClick(court)} />
-          ))}
+          {courts.map((court) => {
+            const reserva = getActiveReservaForCourt(court.id)
+            return (
+              <CourtCard
+                key={court.id}
+                court={court}
+                onClick={() => handleCourtClick(court)}
+                onCancelar={court.status === 'reservada' && reserva ? () => setCancelReserva({ reserva, pistaNombre: court.name }) : undefined}
+              />
+            )
+          })}
         </div>
 
         {/* Nueva Reservación fijo */}
