@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useAppStore } from '@/store/useAppStore'
+import { usePermiso } from '@/hooks/usePermiso'
 import { aprobarCancelacion } from '@/lib/supabase/queries/cancelaciones'
 import type { CancelacionRow } from '@/lib/supabase/queries/cancelaciones'
 import { createClient } from '@/lib/supabase/client'
@@ -9,16 +10,17 @@ import { toast } from 'sonner'
 
 interface Props {
   cancelacion: CancelacionRow | null
+  cajaId: string | null
   onAction: () => void
 }
 
-export function CancelacionDetalle({ cancelacion, onAction }: Props) {
+export function CancelacionDetalle({ cancelacion, cajaId, onAction }: Props) {
   const user = useAppStore((s) => s.user)
   const [rechazarMotivo, setRechazarMotivo] = useState('')
   const [showRechazo, setShowRechazo] = useState(false)
   const [saving, setSaving] = useState(false)
 
-  const isAdmin = user?.rol === 'admin' || user?.rol === 'propietario'
+  const puedeAprobar = usePermiso('aprobar_cancelacion')
 
   if (!cancelacion) {
     return (
@@ -29,10 +31,10 @@ export function CancelacionDetalle({ cancelacion, onAction }: Props) {
   }
 
   async function handleAprobar() {
-    if (!user?.id) return
+    if (!user?.empleadoId) return
     setSaving(true)
     try {
-      await aprobarCancelacion(createClient(), cancelacion!.id, user.id, null, false)
+      await aprobarCancelacion(createClient(), cancelacion!.id, user.empleadoId, cajaId, false)
       toast.success('Cancelación aprobada y reembolso registrado')
       onAction()
     } catch {
@@ -43,10 +45,10 @@ export function CancelacionDetalle({ cancelacion, onAction }: Props) {
   }
 
   async function handleRechazar() {
-    if (!user?.id || !rechazarMotivo.trim()) return
+    if (!user?.empleadoId || !rechazarMotivo.trim()) return
     setSaving(true)
     try {
-      await aprobarCancelacion(createClient(), cancelacion!.id, user.id, null, true, rechazarMotivo)
+      await aprobarCancelacion(createClient(), cancelacion!.id, user.empleadoId, cajaId, true, rechazarMotivo)
       toast.success('Cancelación rechazada')
       setShowRechazo(false)
       setRechazarMotivo('')
@@ -108,7 +110,18 @@ export function CancelacionDetalle({ cancelacion, onAction }: Props) {
           <Field label="Motivo rechazo" value={cancelacion.rechazado_motivo} />
         )}
 
-        {isAdmin && cancelacion.estado === 'pendiente' && !showRechazo && (
+        {puedeAprobar && cancelacion.estado === 'pendiente' && cancelacion.metodo_pago === 'efectivo' && !cajaId && (
+          <div style={{
+            padding: '10px 12px', borderRadius: '8px',
+            border: '1px solid rgba(234,179,8,0.3)',
+            background: 'rgba(234,179,8,0.06)',
+            fontSize: '12px', color: '#EAB308',
+          }}>
+            No hay caja abierta — el egreso no se registrará automáticamente
+          </div>
+        )}
+
+        {puedeAprobar && cancelacion.estado === 'pendiente' && !showRechazo && (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '8px' }}>
             <button
               onClick={handleAprobar}
@@ -137,7 +150,7 @@ export function CancelacionDetalle({ cancelacion, onAction }: Props) {
           </div>
         )}
 
-        {isAdmin && cancelacion.estado === 'pendiente' && showRechazo && (
+        {puedeAprobar && cancelacion.estado === 'pendiente' && showRechazo && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
             <input
               value={rechazarMotivo}
