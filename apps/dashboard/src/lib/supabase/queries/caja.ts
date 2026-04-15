@@ -274,3 +274,42 @@ export async function insertMovimientoCaja(
   if (error) throw error
   return created as MovimientoCaja
 }
+
+export interface ShiftReviewData {
+  transacciones: number
+  ventas_total: number
+  cancelaciones_solicitadas: number
+  cancelaciones_pendientes: number
+  movimientos_caja: { categoria: string | null; concepto: string; monto: number; tipo: string }[] | null
+}
+
+export interface ArqueoData {
+  por_categoria: { categoria: string | null; tipo: string; total: number }[] | null
+  total_ingresos_efectivo: number
+  total_egresos_efectivo: number
+  total_propinas: number
+}
+
+export async function getShiftReview(
+  supabase: SupabaseClient,
+  cajaId: string,
+  empleadoId: string,
+): Promise<ShiftReviewData> {
+  const { data, error } = await supabase.rpc('rpc_get_shift_review', {
+    p_caja_id: cajaId,
+    p_empleado_id: empleadoId,
+  })
+  if (error) throw error
+  return data as ShiftReviewData
+}
+
+export async function getArqueoTurno(
+  supabase: SupabaseClient,
+  cajaId: string,
+): Promise<ArqueoData> {
+  const { data, error } = await supabase.rpc('rpc_get_arqueo_turno', {
+    p_caja_id: cajaId,
+  })
+  if (error) throw error
+  return data as ArqueoData
+}
