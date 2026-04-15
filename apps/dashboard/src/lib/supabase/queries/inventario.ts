@@ -176,3 +176,27 @@ export async function getProductosConInactivos(supabase: SupabaseClient, clubId:
     .order('categoria_id', { ascending: true })
     .order('nombre', { ascending: true })
 }
+
+export interface ProductoBajoStock {
+  id: string
+  nombre: string
+  stock_actual: number
+  stock_minimo: number
+}
+
+export async function getProductosBajoStock(
+  supabase: SupabaseClient,
+  clubId: string,
+): Promise<ProductoBajoStock[]> {
+  const { data, error } = await supabase
+    .from('productos')
+    .select('id, nombre, stock_actual, stock_minimo')
+    .eq('club_id', clubId)
+    .eq('activo', true)
+    .eq('requiere_stock', true)
+    .order('stock_actual', { ascending: true })
+
+  if (error) throw error
+  const rows = (data ?? []) as ProductoBajoStock[]
+  return rows.filter((p) => p.stock_actual <= p.stock_minimo)
+}

@@ -56,7 +56,7 @@ export async function getProductsByCategory(
 ) {
   return supabase
     .from('productos')
-    .select('id, nombre, precio, categoria_id, descripcion, activo, requiere_cocina')
+    .select('id, nombre, precio, categoria_id, descripcion, activo, requiere_cocina, stock_actual, stock_minimo, requiere_stock')
     .eq('club_id', clubId)
     .eq('categoria_id', categoriaId)
     .eq('activo', true)
@@ -69,7 +69,7 @@ export async function getAllActiveProducts(
 ) {
   return supabase
     .from('productos')
-    .select('id, nombre, precio, categoria_id, descripcion, activo, requiere_cocina')
+    .select('id, nombre, precio, categoria_id, descripcion, activo, requiere_cocina, stock_actual, stock_minimo, requiere_stock')
     .eq('club_id', clubId)
     .eq('activo', true)
     .order('nombre', { ascending: true })

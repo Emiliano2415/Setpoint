@@ -39,6 +39,9 @@ export interface Product {
   price: number
   imgClass: string
   requiere_cocina: boolean
+  stock?: number | null
+  stockMinimo?: number | null
+  requiere_stock?: boolean
 }
 
 export type TicketItem = Product & { qty: number }
@@ -94,7 +97,7 @@ export function POSPage() {
       if (activeCategory === ALL_CATEGORY_ID) {
         const { data, error } = await getAllActiveProducts(supabase, clubId)
         if (!error && data) {
-          type RawProduct = { id: string; nombre: string; precio: number; categoria_id: string; descripcion?: string; requiere_cocina: boolean }
+          type RawProduct = { id: string; nombre: string; precio: number; categoria_id: string; descripcion?: string; requiere_cocina: boolean; stock_actual?: number | null; stock_minimo?: number | null; requiere_stock?: boolean }
           const mapped: Product[] = (data as RawProduct[]).map((p) => {
             const catNombre = categories.find((c) => c.id === p.categoria_id)?.label ?? ''
             return {
@@ -105,6 +108,9 @@ export function POSPage() {
               sub: p.descripcion ?? undefined,
               imgClass: resolveImgClass(catNombre),
               requiere_cocina: p.requiere_cocina,
+              stock: p.stock_actual ?? null,
+              stockMinimo: p.stock_minimo ?? null,
+              requiere_stock: p.requiere_stock ?? false,
             }
           })
           setProducts(mapped)
@@ -114,7 +120,8 @@ export function POSPage() {
         if (!error && data) {
           const catLabel =
             categories.find((c) => c.id === activeCategory)?.label ?? ''
-          const mapped: Product[] = data.map((p) => ({
+          type RawProduct = { id: string; nombre: string; precio: number; categoria_id: string; descripcion?: string | null; requiere_cocina: boolean; stock_actual?: number | null; stock_minimo?: number | null; requiere_stock?: boolean }
+          const mapped: Product[] = (data as RawProduct[]).map((p) => ({
             id: p.id,
             name: p.nombre,
             price: p.precio,
@@ -122,6 +129,9 @@ export function POSPage() {
             sub: p.descripcion ?? undefined,
             imgClass: resolveImgClass(catLabel),
             requiere_cocina: p.requiere_cocina,
+            stock: p.stock_actual ?? null,
+            stockMinimo: p.stock_minimo ?? null,
+            requiere_stock: p.requiere_stock ?? false,
           }))
           setProducts(mapped)
         }
