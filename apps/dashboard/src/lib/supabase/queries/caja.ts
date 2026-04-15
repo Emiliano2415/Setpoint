@@ -4,6 +4,16 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 
 export type CajaEstado = 'abierta' | 'cerrada' | 'revisada'
 export type MovimientoTipo = 'ingreso' | 'egreso' | 'fondo' | 'retiro'
+export type MovimientoCategoria =
+  | 'fondo_inicial'
+  | 'venta'
+  | 'cancha'
+  | 'reembolso'
+  | 'retiro'
+  | 'petty_cash'
+  | 'propina'
+  | 'ajuste'
+  | 'otro'
 export type MetodoPago = 'efectivo' | 'credito' | 'debito' | 'cuenta_cliente' | 'bono' | 'cortesia'
 
 export interface CajaActiva {
@@ -28,6 +38,7 @@ export interface CajaStats {
   totalEfectivo: number
   totalTarjeta: number
   totalPropinas: number
+  totalEgresos: number
   countEfectivo: number
   countTarjeta: number
 }
@@ -39,6 +50,7 @@ export interface MovimientoCaja {
   concepto: string
   monto: number
   metodo: MetodoPago | null
+  categoria: MovimientoCategoria | null
   created_at: string
 }
 
@@ -48,6 +60,7 @@ export interface InsertMovimientoData {
   concepto: string
   monto: number
   metodo?: MetodoPago | null
+  categoria?: MovimientoCategoria | null
 }
 
 // ─── Queries ─────────────────────────────────────────────────────────────────
@@ -85,10 +98,15 @@ export async function getCajaStats(
   let totalEfectivo = 0
   let totalTarjeta = 0
   let totalPropinas = 0
+  let totalEgresos = 0
   let countEfectivo = 0
   let countTarjeta = 0
 
   for (const m of movs) {
+    if (m.tipo === 'egreso') {
+      totalEgresos += m.monto
+      continue
+    }
     if (m.tipo !== 'ingreso') continue
 
     const esPropina = m.concepto.toLowerCase().includes('propina')
@@ -111,6 +129,7 @@ export async function getCajaStats(
     totalEfectivo,
     totalTarjeta,
     totalPropinas,
+    totalEgresos,
     countEfectivo,
     countTarjeta,
   }
