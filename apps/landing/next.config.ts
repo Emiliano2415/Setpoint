@@ -86,7 +86,7 @@ const nextConfig: NextConfig = {
     return [
       {
         // Aplica headers a todas las rutas de la landing (no a las del sistema)
-        source: `/((?!(?:${FUERA_DE_LA_LANDING})(?:/|$)).*)`,
+        source: `/((?!(?:${FUERA_DE_LA_LANDING})(?:[/.]|$)).*)`,
         headers: securityHeaders,
       },
     ];
@@ -96,6 +96,12 @@ const nextConfig: NextConfig = {
       ...RUTAS_SISTEMA.flatMap((ruta) => [
         { source: `/${ruta}`, destination: `${SISTEMA_URL}/${ruta}` },
         { source: `/${ruta}/:path+`, destination: `${SISTEMA_URL}/${ruta}/:path+` },
+        // Precarga de enlaces de Next: en Vercel llega como /ruta.segments/…
+        // Sin esto da 404 y cada cambio de módulo se carga sin precarga.
+        {
+          source: `/${ruta}.segments/:path+`,
+          destination: `${SISTEMA_URL}/${ruta}.segments/:path+`,
+        },
       ]),
       ...ARCHIVOS_SISTEMA.map((archivo) => ({
         source: `/${archivo}`,
