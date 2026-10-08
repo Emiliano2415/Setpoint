@@ -1,0 +1,22 @@
+node_modules/
+.turbo/
+.env
+.env.local
+.env*.local
+*.tsbuildinfo
+.neon
+
+# Salidas de compilación y de herramientas
+.next/
+.vercel/
+.playwright-mcp/
+
+# Notas personales y bóvedas de Obsidian (su configuración guarda claves locales)
+/Setpoint/
+/obsidian-setpoint/
+
+# Copia antigua de la landing con su propio repositorio; la versionada es apps/landing
+/landing/
+
+# Ajustes locales de cada persona
+.claude/settings.local.json

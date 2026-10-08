@@ -1,0 +1,18 @@
+# Lista blanca: a Vercel solo se sube lo necesario para construir apps/dashboard.
+# Todo lo demás de la raíz (notas, bóvedas de Obsidian, landing, base local,
+# archivos .env, capturas) se queda fuera.
+/*
+!/apps
+!/packages
+!/package.json
+!/package-lock.json
+!/turbo.json
+!/tsconfig.base.json
+
+# Dentro de lo permitido, tampoco se sube:
+.env*
+**/node_modules
+**/.next
+**/.turbo
+apps/dashboard/docs
+*.tsbuildinfo

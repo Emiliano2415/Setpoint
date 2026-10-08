@@ -1,0 +1,31 @@
+{
+  "name": "setpoint",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
+    "db:init": "node scripts/db.mjs init",
+    "db:start": "node scripts/db.mjs start",
+    "db:stop": "node scripts/db.mjs stop",
+    "db:status": "node scripts/db.mjs status",
+    "db:reset": "node scripts/db.mjs reset",
+    "db:psql": "node scripts/db.mjs psql",
+    "db:url": "node scripts/db.mjs url",
+    "api": "node scripts/local-api.mjs"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.3"
+  },
+  "packageManager": "npm@10.9.2",
+  "dependencies": {
+    "@neon/config": "^1.8.4",
+    "@neon/env": "^1.5.1"
+  }
+}

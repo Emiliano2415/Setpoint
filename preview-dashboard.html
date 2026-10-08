@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Setpoint — Dashboard Preview v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Fira+Code:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0D1109;
+    --bg2: #161C10;
+    --bg3: #1a2213;
+    --bg4: #1f2918;
+    --lime: #6CF20D;
+    --lime-5: rgba(108,242,13,0.05);
+    --lime-8: rgba(108,242,13,0.08);
+    --lime-10: rgba(108,242,13,0.1);
+    --lime-15: rgba(108,242,13,0.15);
+    --lime-20: rgba(108,242,13,0.2);
+    --lime-30: rgba(108,242,13,0.3);
+    --lime-60: rgba(108,242,13,0.6);
+    --text: #F1F5F9;
+    --text-secondary: #CBD5C4;
+    --muted: #8B9C7A;
+    --muted-dim: #5A6B4E;
+    --border: #28351C;
+    --border-subtle: #1e2a15;
+    --yellow: #EAB308;
+    --yellow-10: rgba(234,179,8,0.1);
+    --red: #EF4444;
+    --red-80: rgba(239,68,68,0.8);
+    --red-10: rgba(239,68,68,0.1);
+    --green: #22C55E;
+    --green-80: rgba(34,197,94,0.8);
+    --green-10: rgba(34,197,94,0.1);
+    --blue: #3B82F6;
+    --blue-10: rgba(59,130,246,0.1);
+    --orange: #F97316;
+    --orange-10: rgba(249,115,22,0.1);
+    --surface: rgba(22,28,16,0.6);
+    --surface-hover: rgba(22,28,16,0.8);
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; height: 100vh; }
+
+  /* ==================== LAYOUT ==================== */
+  .app { display: flex; height: 100vh; }
+
+  /* ==================== SIDEBAR ==================== */
+  .sidebar {
+    width: 220px;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    flex-shrink: 0;
+    overflow: hidden;
+    position: relative;
+    z-index: 20;
+  }
+
+  .sidebar-brand {
+    padding: 20px 20px 16px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .sidebar-brand-name {
+    font-size: 20px;
+    font-weight: 900;
+    letter-spacing: -0.5px;
+    color: var(--text);
+  }
+  .sidebar-brand-name span { color: var(--lime); }
+  .sidebar-brand-sub {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted-dim);
+    margin-top: 2px;
+  }
+
+  .sidebar-section {
+    padding: 16px 12px 8px;
+  }
+  .sidebar-section-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted-dim);
+    padding: 0 8px;
+    margin-bottom: 6px;
+  }
+
+  .nav-item {
+    width: 100%;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 12px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.15s;
+    color: var(--muted);
+    font-size: 13.5px;
+    font-weight: 500;
+    position: relative;
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.03); color: var(--text-secondary); }
+  .nav-item.active {
+    background: var(--lime-10);
+    color: var(--lime);
+    font-weight: 600;
+  }
+  .nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 6px;
+    bottom: 6px;
+    width: 3px;
+    background: var(--lime);
+    border-radius: 0 3px 3px 0;
+  }
+  .nav-item svg { width: 18px; height: 18px; flex-shrink: 0; opacity: 0.7; }
+  .nav-item.active svg { opacity: 1; }
+
+  .sidebar-spacer { flex: 1; }
+
+  .sidebar-user {
+    padding: 16px;
+    border-top: 1px solid var(--border-subtle);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .sidebar-avatar {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: var(--lime-10);
+    border: 2px solid var(--lime-20);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 700; color: var(--lime);
+  }
+  .sidebar-user-name { font-size: 13px; font-weight: 600; color: var(--text); }
+  .sidebar-user-role { font-size: 10px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+  .sidebar-logout {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--red-10);
+    color: var(--red);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: transparent;
+    margin-top: 4px;
+  }
+  .sidebar-logout:hover { background: var(--red-10); }
+  .sidebar-logout svg { width: 14px; height: 14px; }
+
+  .sidebar-config {
+    padding: 8px 12px 12px;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  /* ==================== MAIN AREA ==================== */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* ==================== TOPBAR ==================== */
+  .topbar {
+    height: 56px;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    gap: 16px;
+    flex-shrink: 0;
+  }
+  .topbar-title {
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -0.3px;
+    text-transform: uppercase;
+  }
+  .topbar-search {
+    flex: 1;
+    max-width: 500px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    color: var(--muted);
+    font-size: 13px;
+    margin-left: 16px;
+  }
+  .topbar-search svg { width: 15px; height: 15px; flex-shrink: 0; opacity: 0.5; }
+  .topbar-search input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-size: 13px;
+    font-family: inherit;
+    outline: none;
+  }
+  .topbar-search input::placeholder { color: var(--muted-dim); }
+  .topbar-spacer { flex: 1; }
+  .topbar-status {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: 500; color: var(--muted);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .topbar-status .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--lime);
+    animation: pulse-dot 2s infinite;
+  }
+  @keyframes pulse-dot { 0%,100%{opacity:1}50%{opacity:0.4} }
+
+  .topbar-clock {
+    font-family: 'Fira Code', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--lime);
+    letter-spacing: 1px;
+  }
+  .topbar-date {
+    font-size: 11px;
+    color: var(--muted);
+    text-align: right;
+    line-height: 1.2;
+  }
+  .topbar-icons { display: flex; gap: 8px; }
+  .topbar-icon {
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background 0.15s;
+    color: var(--muted);
+  }
+  .topbar-icon:hover { background: rgba(255,255,255,0.04); color: var(--text); }
+  .topbar-icon svg { width: 18px; height: 18px; }
+
+  .topbar-btn {
+    padding: 7px 16px;
+    background: var(--lime);
+    color: var(--bg);
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: var(--radius-sm);
+    border: none;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: filter 0.15s;
+  }
+  .topbar-btn:hover { filter: brightness(1.1); }
+
+  /* ==================== CONTENT ==================== */
+  .content { flex: 1; overflow-y: auto; padding: 0; }
+  .content::-webkit-scrollbar { width: 4px; }
+  .content::-webkit-scrollbar-track { background: transparent; }
+  .content::-webkit-scrollbar-thumb { background: var(--lime-20); border-radius: 4px; }
+
+  /* ==================== SHARED COMPONENTS ==================== */
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .badge-lime { background: var(--lime-10); color: var(--lime); }
+  .badge-yellow { background: var(--yellow-10); color: var(--yellow); }
+  .badge-red { background: var(--red-10); color: var(--red); }
+  .badge-blue { background: var(--blue-10); color: var(--blue); }
+  .badge-orange { background: var(--orange-10); color: var(--orange); }
+  .badge-muted { background: rgba(139,156,122,0.12); color: var(--muted); }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 9px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .btn-primary { background: var(--lime); color: var(--bg); font-weight: 700; }
+  .btn-primary:hover { filter: brightness(1.1); transform: scale(1.01); }
+  .btn-secondary { background: transparent; color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { border-color: var(--lime-30); background: rgba(255,255,255,0.03); }
+  .btn-ghost { background: transparent; color: var(--muted); }
+  .btn-ghost:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+  .btn svg { width: 14px; height: 14px; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    transition: border-color 0.2s;
+  }
+  .card:hover { border-color: var(--border); }
+  .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .card-title { font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+
+  .stat-card {
+    background: var(--bg);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    text-align: center;
+  }
+  .stat-value { font-family: 'Fira Code', monospace; font-size: 22px; font-weight: 700; color: var(--lime); }
+  .stat-label { font-size: 10px; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500; }
+
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-size: 10px; font-weight: 600; color: var(--muted-dim); text-transform: uppercase; letter-spacing: 0.8px; padding: 10px 14px; border-bottom: 1px solid var(--border); }
+  td { padding: 12px 14px; font-size: 13px; border-bottom: 1px solid var(--border-subtle); }
+  tr:hover td { background: rgba(255,255,255,0.015); }
+
+  .mono { font-family: 'Fira Code', monospace; }
+
+  .fade-in { animation: fadeIn 0.35s ease; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+
+  /* ==================== POS SPECIFIC ==================== */
+  .pos-layout { display: grid; grid-template-columns: 1fr 360px; gap: 0; height: calc(100vh - 56px); }
+  .pos-main { padding: 24px; overflow-y: auto; }
+  .pos-main::-webkit-scrollbar { width: 3px; }
+  .pos-main::-webkit-scrollbar-thumb { background: var(--lime-20); border-radius: 3px; }
+
+  .pos-tabs {
+    display: flex; gap: 8px; margin-bottom: 24px;
+  }
+  .pos-tab {
+    padding: 10px 20px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+  }
+  .pos-tab:hover { border-color: var(--lime-20); color: var(--text); }
+  .pos-tab.active { background: var(--lime); color: var(--bg); border-color: var(--lime); }
+
+  .product-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .product-card {
+    background: var(--bg);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.15s;
+    overflow: hidden;
+    position: relative;
+  }
+  .product-card:hover { border-color: var(--lime-20); transform: translateY(-2px); }
+  .product-card:active { transform: scale(0.98); }
+  .product-img {
+    width: 100%;
+    height: 140px;
+    background: var(--bg3);
+    object-fit: cover;
+    display: block;
+  }
+  .product-info { padding: 14px; }
+  .product-category {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted-dim);
+    margin-bottom: 4px;
+  }
+  .product-name { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 8px; line-height: 1.3; }
+  .product-price {
+    font-family: 'Fira Code', monospace;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--lime);
+  }
+  .product-price-currency { font-size: 11px; font-weight: 500; color: var(--muted); margin-left: 4px; }
+
+  /* Ticket Panel */
+  .ticket-panel {
+    background: var(--bg2);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  .ticket-header {
+    padding: 20px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .ticket-header-row { display: flex; justify-content: space-between; align-items: center; }
+  .ticket-title { font-size: 15px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+  .ticket-id { font-family: 'Fira Code', monospace; font-size: 12px; color: var(--muted); }
+  .ticket-client {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px;
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    margin-top: 12px;
+  }
+  .ticket-client-avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--lime-8);
+    border: 1px solid var(--lime-15);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--muted);
+  }
+  .ticket-client-avatar svg { width: 18px; height: 18px; }
+  .ticket-client-info { flex: 1; }
+  .ticket-client-name { font-size: 13px; font-weight: 600; }
+  .ticket-client-badge { font-size: 10px; font-weight: 700; color: var(--lime); }
+
+  .ticket-items {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 20px;
+  }
+  .ticket-items::-webkit-scrollbar { width: 3px; }
+  .ticket-items::-webkit-scrollbar-thumb { background: var(--lime-20); border-radius: 3px; }
+
+  .ticket-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .ticket-item-img {
+    width: 44px; height: 44px;
+    border-radius: var(--radius-sm);
+    background: var(--bg3);
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+  .ticket-item-details { flex: 1; min-width: 0; }
+  .ticket-item-name { font-size: 13px; font-weight: 600; }
+  .ticket-item-qty-controls {
+    display: flex; align-items: center; gap: 0; margin-top: 4px;
+  }
+  .qty-btn {
+    width: 24px; height: 24px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 14px; font-weight: 600;
+    cursor: pointer;
+    transition: all 0.1s;
+  }
+  .qty-btn:first-child { border-radius: 4px 0 0 4px; }
+  .qty-btn:last-child { border-radius: 0 4px 4px 0; }
+  .qty-btn:hover { background: var(--lime-10); border-color: var(--lime-20); }
+  .qty-value {
+    width: 28px; height: 24px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    font-family: 'Fira Code', monospace;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .ticket-item-price {
+    font-family: 'Fira Code', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .ticket-item-remove {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--lime);
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+  .ticket-item-remove:hover { color: var(--red); }
+
+  .ticket-footer {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+  }
+  .ticket-summary-row {
+    display: flex; justify-content: space-between;
+    font-size: 12px; color: var(--muted);
+    padding: 3px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .ticket-summary-row span:last-child { font-family: 'Fira Code', monospace; color: var(--text); }
+  .ticket-summary-row.discount { color: var(--lime); }
+  .ticket-summary-row.discount span:last-child { color: var(--lime); }
+  .ticket-total-row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 10px 0 0;
+    margin-top: 6px;
+    border-top: 1px solid var(--border);
+  }
+  .ticket-total-label { font-size: 14px; font-weight: 800; text-transform: uppercase; }
+  .ticket-total-value { font-family: 'Fira Code', monospace; font-size: 26px; font-weight: 700; color: var(--lime); }
+  .ticket-total-currency { font-size: 12px; font-weight: 500; color: var(--muted); margin-left: 4px; }
+
+  .ticket-payment {
+    padding: 0 20px 12px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .payment-btn {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    padding: 14px 8px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    color: var(--text);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .payment-btn:hover { border-color: var(--lime-20); background: var(--lime-5); }
+  .payment-btn svg { width: 20px; height: 20px; color: var(--text); }
+  .payment-btn-secondary {
+    padding: 10px 8px;
+    background: transparent;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+  }
+  .payment-btn-secondary:hover { color: var(--text); border-color: var(--border); }
+
+  .ticket-pay-btn {
+    margin: 0 20px 20px;
+    padding: 16px;
+    background: var(--lime);
+    color: var(--bg);
+    font-size: 15px;
+    font-weight: 800;
+    text-align: center;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    border: none;
+    transition: filter 0.15s;
+    font-family: inherit;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .ticket-pay-btn:hover { filter: brightness(1.08); }
+
+  /* ==================== PISTAS SPECIFIC ==================== */
+  .pistas-layout { display: grid; grid-template-columns: 1fr 320px; gap: 0; height: calc(100vh - 56px); }
+  .pistas-main { padding: 24px; overflow-y: auto; }
+  .pistas-main::-webkit-scrollbar { width: 3px; }
+  .pistas-main::-webkit-scrollbar-thumb { background: var(--lime-20); border-radius: 3px; }
+  .pistas-sidebar {
+    background: var(--bg2);
+    border-left: 1px solid var(--border);
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .pistas-sidebar::-webkit-scrollbar { width: 3px; }
+  .pistas-sidebar::-webkit-scrollbar-thumb { background: var(--lime-20); border-radius: 3px; }
+
+  .courts-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .court-card {
+    background: var(--bg);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 18px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .court-card:hover { border-color: var(--lime-20); }
+  .court-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+  .court-label { font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: var(--muted); }
+  .court-timer { font-family: 'Fira Code', monospace; font-size: 28px; font-weight: 700; color: var(--muted-dim); margin-bottom: 12px; letter-spacing: 2px; }
+  .court-timer.active { color: var(--lime); }
+  .court-timer.warning { color: var(--yellow); }
+  .court-timer.critical { color: var(--red); animation: pulse-dot 1s infinite; }
+
+  .court-info-block {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px;
+    background: var(--bg2);
+    border-radius: var(--radius-sm);
+    margin-bottom: 12px;
+  }
+  .court-info-icon {
+    width: 36px; height: 36px;
+    border-radius: var(--radius-sm);
+    background: var(--lime-8);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+  .court-info-icon svg { width: 18px; height: 18px; }
+  .court-info-icon.maintenance { background: var(--yellow-10); color: var(--yellow); }
+  .court-info-label { font-size: 10px; font-weight: 600; color: var(--muted-dim); text-transform: uppercase; letter-spacing: 0.5px; }
+  .court-info-value { font-size: 13px; font-weight: 600; color: var(--text); }
+
+  .court-footer {
+    display: flex; justify-content: space-between; align-items: center;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-subtle);
+  }
+  .court-tarifa {
+    font-size: 10px; font-weight: 600; color: var(--muted-dim); text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .court-tarifa-value {
+    font-family: 'Fira Code', monospace;
+    font-size: 13px; font-weight: 600; color: var(--text);
+  }
+  .court-action {
+    display: flex; align-items: center; gap: 4px;
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 11px; font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    border: none;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .court-action.detail { background: transparent; color: var(--muted); }
+  .court-action.detail:hover { color: var(--text); }
+  .court-action.reserve { background: var(--lime); color: var(--bg); }
+  .court-action.reserve:hover { filter: brightness(1.1); }
+  .court-action svg { width: 12px; height: 12px; }
+
+  .court-progress { height: 3px; background: var(--border-subtle); border-radius: 2px; overflow: hidden; margin-bottom: 12px; }
+  .court-progress-bar { height: 100%; border-radius: 2px; transition: width 0.3s; }
+
+  /* Pistas sidebar components */
+  .sidebar-section-title {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--muted);
+    margin-bottom: 12px;
+  }
+  .sidebar-section-title a { font-size: 10px; color: var(--muted-dim); text-decoration: none; cursor: pointer; }
+  .sidebar-section-title a:hover { color: var(--lime); }
+
+  .turno-card {
+    padding: 14px;
+    background: var(--bg);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    margin-bottom: 10px;
+    transition: border-color 0.15s;
+    cursor: pointer;
+  }
+  .turno-card:hover { border-color: var(--lime-20); }
+  .turno-card.active-turno { border-color: var(--lime-30); border-width: 1.5px; }
+  .turno-time { font-family: 'Fira Code', monospace; font-size: 14px; font-weight: 700; color: var(--lime); }
+  .turno-pista { font-size: 10px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-left: 8px; }
+  .turno-desc { font-size: 13px; font-weight: 700; margin-top: 6px; }
+  .turno-detail { font-size: 11px; color: var(--muted); margin-top: 3px; display: flex; align-items: center; gap: 4px; }
+  .turno-detail svg { width: 12px; height: 12px; }
+
+  .resumen-stat {
+    text-align: center;
+    padding: 16px;
+    background: var(--bg);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+  }
+  .resumen-stat-label { font-size: 10px; font-weight: 600; color: var(--lime); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .resumen-stat-value { font-family: 'Fira Code', monospace; font-size: 28px; font-weight: 700; color: var(--text); }
+  .resumen-stat-sub { font-size: 10px; color: var(--muted); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .system-status {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 16px;
+    background: var(--bg);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+  }
+  .system-status-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
+  .system-status-value {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 11px; font-weight: 700; color: var(--lime); text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .system-status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--lime); }
+
+  .new-reservation-btn {
+    width: 100%;
+    padding: 16px;
+    background: var(--lime);
+    color: var(--bg);
+    font-size: 14px;
+    font-weight: 800;
+    text-align: center;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    border: none;
+    font-family: inherit;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: fixed;
+    bottom: 24px;
+    left: 244px;
+    width: 420px;
+    box-shadow: 0 8px 32px rgba(108,242,13,0.2);
+    z-index: 10;
+    transition: filter 0.15s;
+  }
+  .new-reservation-btn:hover { filter: brightness(1.08); }
+  .new-reservation-btn svg { width: 18px; height: 18px; }
+
+  /* ==================== COMANDAS ==================== */
+  .comandas-layout { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 24px; height: calc(100vh - 56px); }
+  .comanda-column {
+    background: var(--bg);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .comanda-col-header {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .comanda-col-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .comanda-col-title { font-size: 13px; font-weight: 700; }
+  .comanda-col-count { font-size: 11px; color: var(--muted); margin-left: auto; font-family: 'Fira Code', monospace; }
+  .comanda-col-items { padding: 10px; flex: 1; overflow-y: auto; }
+  .comanda-col-items::-webkit-scrollbar { width: 3px; }
+  .comanda-col-items::-webkit-scrollbar-thumb { background: var(--lime-20); border-radius: 3px; }
+  .comanda-card {
+    background: var(--bg2);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 14px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .comanda-card:hover { border-color: var(--lime-20); }
+
+  /* ==================== PAGE SECTIONS ==================== */
+  .page-pad { padding: 24px; overflow-y: auto; height: calc(100vh - 56px); }
+  .page-pad::-webkit-scrollbar { width: 4px; }
+  .page-pad::-webkit-scrollbar-thumb { background: var(--lime-20); border-radius: 4px; }
+  .page-header { margin-bottom: 24px; }
+  .page-title { font-size: 22px; font-weight: 800; letter-spacing: -0.3px; }
+  .page-subtitle { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+  .form-group { margin-bottom: 14px; }
+  .form-label { font-size: 10px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; display: block; }
+  .form-input {
+    width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 9px 12px; color: var(--text); font-size: 13px; font-family: inherit; outline: none; transition: border-color 0.15s;
+  }
+  .form-input:focus { border-color: var(--lime-30); }
+  .form-hint { font-size: 10px; color: var(--muted-dim); margin-top: 3px; }
+
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border-subtle); }
+  .toggle-row:last-child { border-bottom: none; }
+  .toggle-info { display: flex; flex-direction: column; gap: 1px; }
+  .toggle-label { font-size: 13px; font-weight: 500; }
+  .toggle-desc { font-size: 11px; color: var(--muted-dim); }
+  .toggle { width: 38px; height: 20px; background: var(--border); border-radius: 10px; position: relative; cursor: pointer; transition: background 0.15s; flex-shrink: 0; }
+  .toggle.on { background: var(--lime); }
+  .toggle::after { content: ''; width: 16px; height: 16px; background: white; border-radius: 50%; position: absolute; top: 2px; left: 2px; transition: transform 0.15s; }
+  .toggle.on::after { transform: translateX(18px); }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+
+  .price-slot {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 12px; border-radius: var(--radius-sm); background: var(--bg); margin-bottom: 6px;
+    border: 1px solid transparent; transition: border-color 0.15s;
+  }
+  .price-slot:hover { border-color: var(--border); }
+  .price-slot-time { font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 6px; }
+  .price-slot-badge { font-size: 10px; color: var(--muted); }
+  .price-slot-value { font-family: 'Fira Code', monospace; font-size: 13px; font-weight: 600; color: var(--lime); }
+
+  /* Product images using CSS gradients as placeholders */
+  .img-coffee { background: linear-gradient(135deg, #8B7355 0%, #D4C5B2 50%, #A89279 100%); }
+  .img-water { background: linear-gradient(135deg, #7BA7BC 0%, #B8D8E8 50%, #9CC4D4 100%); }
+  .img-paddle { background: linear-gradient(135deg, #6B8F7B 0%, #A8C5B5 50%, #8BB5A0 100%); }
+  .img-balls { background: linear-gradient(135deg, #B5A67D 0%, #D4C9A8 50%, #C2B48E 100%); }
+  .img-food { background: linear-gradient(135deg, #C4956A 0%, #E8C9A8 50%, #D4AD85 100%); }
+  .img-drink { background: linear-gradient(135deg, #7B9CAF 0%, #B8D0E0 50%, #98B8CC 100%); }
+  .img-grip { background: linear-gradient(135deg, #8B8B8B 0%, #C4C4C4 50%, #A8A8A8 100%); }
+  .img-rental { background: linear-gradient(135deg, #7D9B6B 0%, #A8C596 50%, #8FB57D 100%); }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- ==================== SIDEBAR ==================== -->
+  <nav class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-name">SETPOINT<span>.</span></div>
+      <div class="sidebar-brand-sub">Padel Management System</div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="nav-item active" data-page="pos" onclick="switchPage('pos')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        Ventas (POS)
+      </div>
+      <div class="nav-item" data-page="pistas" onclick="switchPage('pistas')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="18" rx="2"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
+        Gestión de Pistas
+      </div>
+      <div class="nav-item" data-page="comandas" onclick="switchPage('comandas')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        Comandas (Bar)
+      </div>
+      <div class="nav-item" data-page="inventario" onclick="switchPage('inventario')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        Inventario
+      </div>
+      <div class="nav-item" data-page="clientes" onclick="switchPage('clientes')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Clientes (CRM)
+      </div>
+      <div class="nav-item" data-page="caja" onclick="switchPage('caja')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><circle cx="12" cy="12" r="4"/><path d="M2 8h20"/></svg>
+        Caja
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Administración</div>
+      <div class="nav-item" data-page="empleados" onclick="switchPage('empleados')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Personal
+      </div>
+      <div class="nav-item" data-page="reportes" onclick="switchPage('reportes')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Reportes
+      </div>
+    </div>
+
+    <div class="sidebar-spacer"></div>
+
+    <div class="sidebar-user">
+      <div class="sidebar-avatar">CR</div>
+      <div class="sidebar-user-name">Carlos Rodríguez</div>
+      <div class="sidebar-user-role">Administrador</div>
+      <button class="sidebar-logout" onclick="void(0)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Cerrar Sesión
+      </button>
+    </div>
+
+    <div class="sidebar-config">
+      <div class="nav-item" data-page="config" onclick="switchPage('config')" style="margin:0;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Configuración
+      </div>
+    </div>
+  </nav>
+
+  <!-- ==================== MAIN CONTENT ==================== -->
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <div class="content" id="pageContent"></div>
+  </div>
+</div>
+
+<script>
+// ==================== CLOCK ====================
+function updateClock() {
+  const now = new Date();
+  const clockEl = document.getElementById('topbarClock');
+  const dateEl = document.getElementById('topbarDate');
+  if (clockEl) clockEl.textContent = now.toLocaleTimeString('es-MX', { hour12: false });
+  if (dateEl) dateEl.textContent = now.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+setInterval(updateClock, 1000);
+
+// ==================== NAVIGATION ====================
+let currentPage = 'pos';
+let activeCategory = 'alimentos';
+
+function switchPage(page) {
+  currentPage = page;
+  document.querySelectorAll('.nav-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.page === page);
+  });
+  renderTopbar(page);
+  renderPage(page);
+}
+
+function renderTopbar(page) {
+  const topbar = document.getElementById('topbar');
+  const configs = {
+    pos: { title: 'Ventas (POS)', search: 'Search products, customers (F1)...', right: 'terminal' },
+    pistas: { title: 'Gestión de Pistas', search: 'Buscar reserva, socio o pista...', right: 'clock' },
+    comandas: { title: 'Comandas', search: 'Buscar comanda o pista...', right: 'terminal' },
+    inventario: { title: 'Inventario', search: 'Buscar producto...', right: 'terminal' },
+    clientes: { title: 'Clientes (CRM)', search: 'Buscar cliente por nombre o teléfono...', right: 'terminal' },
+    caja: { title: 'Caja y Finanzas', search: '', right: 'terminal' },
+    empleados: { title: 'Personal', search: 'Buscar empleado...', right: 'terminal' },
+    reportes: { title: 'Reportes y Analytics', search: '', right: 'terminal' },
+    config: { title: 'Configuración', search: '', right: 'terminal' },
+  };
+  const cfg = configs[page] || configs.pos;
+
+  let rightHTML = '';
+  if (cfg.right === 'clock') {
+    rightHTML = `
+      <div id="topbarClock" class="topbar-clock">23:14:20</div>
+      <div class="topbar-date"><span id="topbarDate">17 marzo, 2026</span></div>
+      <div class="topbar-icons">
+        <div class="topbar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
+        <div class="topbar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4"/></svg></div>
+      </div>`;
+  } else {
+    rightHTML = `
+      <div class="topbar-status"><span class="dot"></span>Terminal 01 Online</div>
+      <button class="topbar-btn">Nuevo Turno</button>`;
+  }
+
+  topbar.innerHTML = `
+    <span class="topbar-title">${cfg.title}</span>
+    ${cfg.search ? `<div class="topbar-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" placeholder="${cfg.search}" /></div>` : ''}
+    <div class="topbar-spacer"></div>
+    ${rightHTML}
+  `;
+  updateClock();
+}
+
+function renderPage(page) {
+  const container = document.getElementById('pageContent');
+  const pages = { pos: renderPOS, pistas: renderPistas, comandas: renderComandas, inventario: renderInventario, clientes: renderClientes, caja: renderCaja, empleados: renderEmpleados, reportes: renderReportes, config: renderConfig };
+  container.innerHTML = (pages[page] || (() => '<div class="page-pad fade-in"><p style="color:var(--muted)">Módulo en desarrollo</p></div>'))(page);
+}
+
+// ==================== POS ====================
+function renderPOS() {
+  const categories = [
+    { id: 'alimentos', label: 'Alimentos', products: [
+      { name: 'Espresso Doble', cat: 'Cafetería', sub: 'Hot', price: 45, img: 'img-coffee' },
+      { name: 'Agua Mineral 500ml', cat: 'Bebidas', sub: 'Hydration', price: 35, img: 'img-water' },
+      { name: 'Pala Babolat Viper', cat: 'Alquiler', sub: 'Padl', price: 200, img: 'img-paddle' },
+      { name: 'Bote Bolas Head Pro', cat: 'Bolas/Grips', sub: 'Consumable', price: 165, img: 'img-balls' },
+    ]},
+    { id: 'bebidas', label: 'Bebidas', products: [
+      { name: 'Café Americano', cat: 'Cafetería', sub: 'Hot', price: 38, img: 'img-coffee' },
+      { name: 'Jugo Natural', cat: 'Bebidas', sub: 'Fresh', price: 55, img: 'img-drink' },
+      { name: 'Isotónica 600ml', cat: 'Bebidas', sub: 'Sport', price: 50, img: 'img-drink' },
+      { name: 'Cerveza Corona', cat: 'Bebidas', sub: 'Alcohol', price: 65, img: 'img-drink' },
+    ]},
+    { id: 'alquiler', label: 'Alquiler de Equipo', products: [
+      { name: 'Pala Básica', cat: 'Alquiler', sub: 'Entry', price: 70, img: 'img-rental' },
+      { name: 'Pala Pro', cat: 'Alquiler', sub: 'Advanced', price: 120, img: 'img-paddle' },
+      { name: 'Kit Completo', cat: 'Alquiler', sub: 'Bundle', price: 180, img: 'img-rental' },
+      { name: 'Muñequeras x2', cat: 'Alquiler', sub: 'Accessory', price: 20, img: 'img-grip' },
+    ]},
+  ];
+
+  const cat = categories.find(c => c.id === activeCategory) || categories[0];
+
+  return `<div class="pos-layout fade-in">
+    <div class="pos-main">
+      <div class="pos-tabs">
+        ${categories.map(c => `<div class="pos-tab ${c.id === activeCategory ? 'active' : ''}" onclick="activeCategory='${c.id}';renderPage('pos')">${c.label}</div>`).join('')}
+      </div>
+      <div class="product-grid">
+        ${cat.products.map(p => `
+          <div class="product-card">
+            <div class="product-img ${p.img}"></div>
+            <div class="product-info">
+              <div class="product-category">${p.cat} / ${p.sub}</div>
+              <div class="product-name">${p.name}</div>
+              <div class="product-price">$ ${p.price.toFixed(2)}<span class="product-price-currency">MXN</span></div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    <div class="ticket-panel">
+      <div class="ticket-header">
+        <div class="ticket-header-row">
+          <span class="ticket-title">Current Ticket</span>
+          <span class="ticket-id">ID: #SP-8829</span>
+        </div>
+        <div class="ticket-client">
+          <div class="ticket-client-avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+          <div class="ticket-client-info">
+            <div class="ticket-client-name">Carlos Rodríguez</div>
+            <div class="ticket-client-badge">Member · Gold Plan</div>
+          </div>
+        </div>
+      </div>
+      <div class="ticket-items">
+        <div class="ticket-item">
+          <div class="ticket-item-img img-paddle"></div>
+          <div class="ticket-item-details">
+            <div class="ticket-item-name">Alquiler Pala Babolat</div>
+            <div class="ticket-item-qty-controls"><div class="qty-btn">-</div><div class="qty-value">1</div><div class="qty-btn">+</div></div>
+            <div class="ticket-item-remove">Remove</div>
+          </div>
+          <div class="ticket-item-price">$ 180.00 MXN</div>
+        </div>
+        <div class="ticket-item">
+          <div class="ticket-item-img img-water"></div>
+          <div class="ticket-item-details">
+            <div class="ticket-item-name">Agua Mineral 500ml</div>
+            <div class="ticket-item-qty-controls"><div class="qty-btn">-</div><div class="qty-value">2</div><div class="qty-btn">+</div></div>
+            <div class="ticket-item-remove">Remove</div>
+          </div>
+          <div class="ticket-item-price">$ 70.00 MXN</div>
+        </div>
+      </div>
+      <div class="ticket-footer">
+        <div class="ticket-summary-row"><span>Subtotal</span><span>$ 270.00 MXN</span></div>
+        <div class="ticket-summary-row"><span>Tax (16%)</span><span>$ 43.20 MXN</span></div>
+        <div class="ticket-summary-row discount"><span>Member Discount (10%)</span><span>-$ 27.00 MXN</span></div>
+        <div class="ticket-total-row">
+          <span class="ticket-total-label">Total</span>
+          <span><span class="ticket-total-value">$ 286.20</span><span class="ticket-total-currency">MXN</span></span>
+        </div>
+      </div>
+      <div class="ticket-payment">
+        <div class="payment-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><circle cx="12" cy="12" r="3"/></svg>Efectivo</div>
+        <div class="payment-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>Tarjeta</div>
+        <div class="payment-btn-secondary">Apply Discount</div>
+        <div class="payment-btn-secondary">Split Payment</div>
+      </div>
+      <button class="ticket-pay-btn">Pay $ 286.20 MXN</button>
+    </div>
+  </div>`;
+}
+
+// ==================== PISTAS ====================
+function renderPistas() {
+  const courts = [
+    { name: 'Pista 01', status: 'ocupada', badge: 'badge-red', timer: '45:12', timerClass: 'active', progress: 75, progressColor: 'var(--lime)', infoType: 'titular', infoLabel: 'Titular', infoValue: 'Carlos Rodríguez', tarifa: 450, action: 'detail' },
+    { name: 'Pista 02', status: 'disponible', badge: 'badge-lime', timer: '00:00', timerClass: '', progress: 0, progressColor: 'transparent', infoType: 'empty', infoLabel: 'Disponibilidad', infoValue: 'Sin asignar', tarifa: 450, action: 'reserve' },
+    { name: 'Pista 03', status: 'ocupada', badge: 'badge-red', timer: '12:35', timerClass: 'active', progress: 21, progressColor: 'var(--lime)', infoType: 'titular', infoLabel: 'Titular', infoValue: 'Alejandro Garza', tarifa: 450, action: 'detail' },
+    { name: 'Pista 04', status: 'mantenimiento', badge: 'badge-yellow', timer: '', timerClass: '', progress: 0, progressColor: 'transparent', infoType: 'maintenance', infoLabel: 'Tarea', infoValue: 'Cambio de Red', tarifa: 0, action: 'locked' },
+    { name: 'Pista 05', status: 'disponible', badge: 'badge-lime', timer: '00:00', timerClass: '', progress: 0, progressColor: 'transparent', infoType: 'empty', infoLabel: 'Disponibilidad', infoValue: 'Sin asignar', tarifa: 450, action: 'reserve' },
+    { name: 'Pista 06', status: 'ocupada', badge: 'badge-red', timer: '88:04', timerClass: 'critical', progress: 100, progressColor: 'var(--red)', infoType: 'titular', infoLabel: 'Titular', infoValue: 'Daniela Ortiz', tarifa: 450, action: 'detail' },
+    { name: 'Pista 07', status: 'disponible', badge: 'badge-lime', timer: '00:00', timerClass: '', progress: 0, progressColor: 'transparent', infoType: 'empty', infoLabel: 'Disponibilidad', infoValue: 'Sin asignar', tarifa: 450, action: 'reserve' },
+    { name: 'Pista 08', status: 'disponible', badge: 'badge-lime', timer: '00:00', timerClass: '', progress: 0, progressColor: 'transparent', infoType: 'empty', infoLabel: 'Disponibilidad', infoValue: 'Sin asignar', tarifa: 450, action: 'reserve' },
+  ];
+
+  return `<div class="pistas-layout fade-in">
+    <div class="pistas-main">
+      <div class="courts-grid">
+        ${courts.map(c => `
+          <div class="court-card">
+            <div class="court-header">
+              <span class="court-label">${c.name}</span>
+              <span class="badge ${c.badge}">${c.status === 'ocupada' ? '👤 Ocupada' : c.status === 'disponible' ? '✓ Disponible' : '🔧 Mantenimiento'}</span>
+            </div>
+            ${c.timer !== '' ? `<div class="court-timer ${c.timerClass}">${c.timer}</div>` : ''}
+            ${c.progress > 0 ? `<div class="court-progress"><div class="court-progress-bar" style="width:${c.progress}%;background:${c.progressColor}"></div></div>` : ''}
+            <div class="court-info-block">
+              <div class="court-info-icon ${c.infoType === 'maintenance' ? 'maintenance' : ''}">
+                ${c.infoType === 'maintenance'
+                  ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>'
+                  : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'}
+              </div>
+              <div>
+                <div class="court-info-label">${c.infoLabel}</div>
+                <div class="court-info-value">${c.infoValue}</div>
+              </div>
+            </div>
+            <div class="court-footer">
+              ${c.tarifa > 0 ? `<div><div class="court-tarifa">Tarifa</div><div class="court-tarifa-value">$ ${c.tarifa} MXN / HR</div></div>` : `<div><div class="court-tarifa">Estado</div><div class="court-tarifa-value" style="color:var(--yellow)">Bloqueado</div></div>`}
+              ${c.action === 'detail' ? `<button class="court-action detail">Detalle →</button>` : c.action === 'reserve' ? `<button class="court-action reserve"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Reservar</button>` : `<button class="court-action detail" style="opacity:0.4;cursor:default;">🔒</button>`}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+      <button class="new-reservation-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Nueva Reservación</button>
+    </div>
+    <div class="pistas-sidebar">
+      <div>
+        <div class="sidebar-section-title">Próximos Turnos <a>Ver Todos</a></div>
+        <div class="turno-card active-turno">
+          <div><span class="turno-time">16:00 - 17:30</span><span class="turno-pista">Pista 02</span></div>
+          <div class="turno-desc">Clase Privada - Pro</div>
+          <div class="turno-detail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Prof. Javier Mendéz</div>
+        </div>
+        <div class="turno-card">
+          <div><span class="turno-time">16:30 - 18:00</span><span class="turno-pista">Pista 06</span></div>
+          <div class="turno-desc">Partido Abierto</div>
+          <div class="turno-detail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> 4 Jugadores confirmados</div>
+        </div>
+        <div class="turno-card">
+          <div><span class="turno-time">18:00 - 19:30</span><span class="turno-pista">Pista 01</span></div>
+          <div class="turno-desc">Reserva Corporativa</div>
+          <div class="turno-detail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg> Tech Solutions SA</div>
+        </div>
+      </div>
+      <div>
+        <div class="sidebar-section-title">Resumen Diario</div>
+        <div class="grid-2" style="gap:10px;">
+          <div class="resumen-stat">
+            <div class="resumen-stat-label">Ocupación</div>
+            <div class="resumen-stat-value">82%</div>
+          </div>
+          <div class="resumen-stat">
+            <div class="resumen-stat-label">Ingresos</div>
+            <div class="resumen-stat-value" style="font-size:22px;">$<br>12.4k</div>
+            <div class="resumen-stat-sub">MXN Hoy</div>
+          </div>
+        </div>
+      </div>
+      <div class="system-status">
+        <span class="system-status-label">Estado del Sistema</span>
+        <span class="system-status-value"><span class="system-status-dot"></span> En Línea</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ==================== COMANDAS ====================
+function renderComandas() {
+  const cols = [
+    { title: 'Pendiente', color: 'var(--yellow)', items: [
+      { id: '#C-081', pista: 'Pista 3', time: '14:28', items: ['2x Cerveza Corona', '1x Bocadillo Jamón'] },
+      { id: '#C-082', pista: 'Pista 1', time: '14:31', items: ['1x Café Americano', '1x Agua Mineral'] },
+    ]},
+    { title: 'Preparando', color: 'var(--blue)', items: [
+      { id: '#C-079', pista: 'Pista 2', time: '14:15', items: ['3x Isotónica', '2x Bocadillo'] },
+    ]},
+    { title: 'Listo', color: 'var(--lime)', items: [
+      { id: '#C-078', pista: 'Pista 5', time: '14:10', items: ['1x Smoothie Tropical'] },
+    ]},
+    { title: 'Entregado', color: 'var(--muted)', items: [
+      { id: '#C-075', pista: 'Pista 4', time: '13:45', items: ['2x Agua', '1x Cerveza'] },
+      { id: '#C-074', pista: 'Pista 6', time: '13:30', items: ['1x Café Solo'] },
+    ]},
+  ];
+  return `<div class="comandas-layout fade-in">
+    ${cols.map(col => `
+      <div class="comanda-column">
+        <div class="comanda-col-header">
+          <span class="comanda-col-dot" style="background:${col.color}"></span>
+          <span class="comanda-col-title">${col.title}</span>
+          <span class="comanda-col-count">${col.items.length}</span>
+        </div>
+        <div class="comanda-col-items">
+          ${col.items.map(item => `
+            <div class="comanda-card">
+              <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+                <span class="mono" style="font-size:12px;font-weight:600;color:var(--lime);">${item.id}</span>
+                <span style="font-size:11px;color:var(--muted);">${item.time}</span>
+              </div>
+              <div style="font-size:12px;font-weight:700;margin-bottom:6px;">${item.pista}</div>
+              ${item.items.map(i => `<div style="font-size:12px;color:var(--muted);padding:2px 0;">• ${i}</div>`).join('')}
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `).join('')}
+  </div>`;
+}
+
+// ==================== INVENTARIO ====================
+function renderInventario() {
+  const items = [
+    { name: 'Bote Head Pro', sku: 'INS-001', cat: 'Insumos', stock: 23, min: 10, status: 'ok' },
+    { name: 'Agua Mineral 500ml', sku: 'BEB-003', cat: 'Bebidas', stock: 48, min: 20, status: 'ok' },
+    { name: 'Cerveza Corona', sku: 'BEB-007', cat: 'Bebidas', stock: 8, min: 12, status: 'low' },
+    { name: 'Overgrip x3', sku: 'INS-012', cat: 'Insumos', stock: 5, min: 8, status: 'low' },
+    { name: 'Pala Nivel 1 (Alquiler)', sku: 'ALQ-001', cat: 'Alquiler', stock: 5, min: 3, status: 'ok' },
+    { name: 'Bocadillo Jamón', sku: 'CAF-005', cat: 'Cafetería', stock: 2, min: 5, status: 'critical' },
+  ];
+  return `<div class="page-pad fade-in">
+    <div class="page-header"><div class="page-title">Tienda / Inventario</div><div class="page-subtitle">Control de stock, alertas y movimientos</div></div>
+    <div class="grid-3" style="margin-bottom:20px;">
+      <div class="stat-card"><div class="stat-value">91</div><div class="stat-label">Total productos</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:var(--yellow)">3</div><div class="stat-label">Stock bajo</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:var(--red)">1</div><div class="stat-label">Crítico</div></div>
+    </div>
+    <div class="card">
+      <table><thead><tr><th>Producto</th><th>SKU</th><th>Categoría</th><th>Stock</th><th>Mínimo</th><th>Estado</th></tr></thead>
+      <tbody>${items.map(i => `<tr>
+        <td style="font-weight:600;">${i.name}</td>
+        <td class="mono" style="font-size:11px;color:var(--muted);">${i.sku}</td>
+        <td><span class="badge badge-muted">${i.cat}</span></td>
+        <td class="mono" style="font-weight:600;">${i.stock}</td>
+        <td class="mono" style="color:var(--muted);">${i.min}</td>
+        <td><span class="badge ${i.status==='ok'?'badge-lime':i.status==='low'?'badge-yellow':'badge-red'}">${i.status==='ok'?'OK':i.status==='low'?'Bajo':'Crítico'}</span></td>
+      </tr>`).join('')}</tbody></table>
+    </div>
+  </div>`;
+}
+
+// ==================== CLIENTES ====================
+function renderClientes() {
+  const clients = [
+    { name: 'Carlos Rodríguez', email: 'carlos@email.com', phone: '+52 833 123 4567', cat: 'Gold', visits: 48, avg: '$420', last: '17 Mar', badge: 'badge-lime' },
+    { name: 'Alejandro Garza', email: 'alex.g@email.com', phone: '+52 833 234 5678', cat: 'Silver', visits: 24, avg: '$310', last: '16 Mar', badge: 'badge-blue' },
+    { name: 'Daniela Ortiz', email: 'dani.ortiz@email.com', phone: '+52 833 345 6789', cat: 'Regular', visits: 12, avg: '$280', last: '15 Mar', badge: 'badge-yellow' },
+    { name: 'Marco Torres', email: 'marco.t@email.com', phone: '+52 833 456 7890', cat: 'Nuevo', visits: 2, avg: '$350', last: '14 Mar', badge: 'badge-muted' },
+  ];
+  return `<div class="page-pad fade-in">
+    <div class="page-header"><div class="page-title">Clientes (CRM)</div><div class="page-subtitle">Fichas de cliente, socios y categorización automática</div></div>
+    <div class="grid-4" style="margin-bottom:20px;">
+      <div class="stat-card"><div class="stat-value">247</div><div class="stat-label">Total clientes</div></div>
+      <div class="stat-card"><div class="stat-value">38</div><div class="stat-label">Socios activos</div></div>
+      <div class="stat-card"><div class="stat-value">$352</div><div class="stat-label">Ticket medio</div></div>
+      <div class="stat-card"><div class="stat-value">12</div><div class="stat-label">Nuevos (mes)</div></div>
+    </div>
+    <div class="card">
+      <table><thead><tr><th>Cliente</th><th>Contacto</th><th>Categoría</th><th>Visitas</th><th>Ticket Medio</th><th>Última Visita</th></tr></thead>
+      <tbody>${clients.map(c => `<tr>
+        <td style="font-weight:600;">${c.name}</td>
+        <td><div style="font-size:12px;">${c.email}</div><div class="mono" style="font-size:11px;color:var(--muted);">${c.phone}</div></td>
+        <td><span class="badge ${c.badge}">${c.cat}</span></td>
+        <td class="mono" style="font-weight:600;">${c.visits}</td>
+        <td class="mono" style="color:var(--lime);font-weight:600;">${c.avg}</td>
+        <td style="color:var(--muted);font-size:12px;">${c.last}</td>
+      </tr>`).join('')}</tbody></table>
+    </div>
+  </div>`;
+}
+
+// ==================== CAJA ====================
+function renderCaja() {
+  return `<div class="page-pad fade-in">
+    <div class="page-header"><div class="page-title">Turno Actual — Tarde</div><div class="page-subtitle">Inicio: 14:00 · Fondo: $2,000.00 · Cajero: Carlos Rodríguez</div></div>
+    <div class="grid-4" style="margin-bottom:20px;">
+      <div class="stat-card"><div class="stat-value">$8,460</div><div class="stat-label">Ventas del turno</div></div>
+      <div class="stat-card"><div class="stat-value">$5,280</div><div class="stat-label">Efectivo</div></div>
+      <div class="stat-card"><div class="stat-value">$2,860</div><div class="stat-label">Tarjeta</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:var(--yellow)">$320</div><div class="stat-label">Propinas</div></div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Desglose por Método</span></div>
+        <div class="toggle-row"><div class="toggle-info"><span class="toggle-label">Efectivo</span><span class="toggle-desc">18 transacciones</span></div><span class="mono" style="font-weight:600;color:var(--lime);">$5,280</span></div>
+        <div class="toggle-row"><div class="toggle-info"><span class="toggle-label">Tarjeta Crédito</span><span class="toggle-desc">8 transacciones</span></div><span class="mono" style="font-weight:600;color:var(--lime);">$1,960</span></div>
+        <div class="toggle-row"><div class="toggle-info"><span class="toggle-label">Tarjeta Débito</span><span class="toggle-desc">4 transacciones</span></div><span class="mono" style="font-weight:600;color:var(--lime);">$900</span></div>
+        <div class="toggle-row"><div class="toggle-info"><span class="toggle-label">Cuenta Cliente</span><span class="toggle-desc">2 transacciones</span></div><span class="mono" style="font-weight:600;color:var(--blue);">$320</span></div>
+        <div class="toggle-row"><div class="toggle-info"><span class="toggle-label">Propinas</span><span class="toggle-desc">Separadas del ingreso</span></div><span class="mono" style="font-weight:600;color:var(--yellow);">$320</span></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Acciones del Turno</span></div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <button class="btn btn-primary" style="justify-content:center;padding:14px;">Cerrar Turno y Arqueo</button>
+          <button class="btn btn-secondary" style="justify-content:center;">Ver Historial de Cierres</button>
+          <button class="btn btn-secondary" style="justify-content:center;">Movimiento de Caja</button>
+          <button class="btn btn-ghost" style="justify-content:center;">Exportar Reporte</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ==================== EMPLEADOS ====================
+function renderEmpleados() {
+  const emps = [
+    { name: 'Carlos Rodríguez', role: 'Propietario', turno: 'Completo', status: 'Activo', last: 'Hoy, 08:00' },
+    { name: 'Ana Martínez', role: 'Admin', turno: 'Mañana', status: 'Activo', last: 'Hoy, 07:30' },
+    { name: 'Diego Herrera', role: 'Cajero', turno: 'Tarde', status: 'Activo', last: 'Hoy, 14:00' },
+    { name: 'Sofía López', role: 'Mesero', turno: 'Tarde', status: 'Activo', last: 'Hoy, 14:00' },
+    { name: 'María Torres', role: 'Cocina', turno: 'Completo', status: 'Activo', last: 'Hoy, 08:00' },
+    { name: 'Pedro Ramírez', role: 'Barra', turno: 'Noche', status: 'Inactivo', last: 'Ayer, 22:00' },
+  ];
+  const roleBadge = r => ({Propietario:'badge-lime',Admin:'badge-lime',Cajero:'badge-blue',Mesero:'badge-yellow',Cocina:'badge-orange',Barra:'badge-muted'})[r]||'badge-muted';
+  return `<div class="page-pad fade-in">
+    <div class="page-header"><div class="page-title">Personal y Turnos</div><div class="page-subtitle">Alta de empleados, roles, permisos y control de turnos</div></div>
+    <div class="grid-3" style="margin-bottom:20px;">
+      <div class="stat-card"><div class="stat-value">6</div><div class="stat-label">Total empleados</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:var(--green-80)">5</div><div class="stat-label">Activos hoy</div></div>
+      <div class="stat-card"><div class="stat-value">3</div><div class="stat-label">En turno</div></div>
+    </div>
+    <div class="card">
+      <table><thead><tr><th>Nombre</th><th>Rol</th><th>Turno</th><th>Estado</th><th>Último Acceso</th></tr></thead>
+      <tbody>${emps.map(e => `<tr>
+        <td style="font-weight:600;">${e.name}</td>
+        <td><span class="badge ${roleBadge(e.role)}">${e.role}</span></td>
+        <td>${e.turno}</td>
+        <td><span class="badge ${e.status==='Activo'?'badge-lime':'badge-red'}">${e.status}</span></td>
+        <td style="color:var(--muted);font-size:12px;">${e.last}</td>
+      </tr>`).join('')}</tbody></table>
+    </div>
+  </div>`;
+}
+
+// ==================== REPORTES ====================
+function renderReportes() {
+  return `<div class="page-pad fade-in">
+    <div class="page-header"><div class="page-title">Reportes y Analytics</div><div class="page-subtitle">KPIs del día — Lunes 17 Marzo 2026</div></div>
+    <div class="grid-4" style="margin-bottom:20px;">
+      <div class="stat-card"><div class="stat-value">$18,640</div><div class="stat-label">Ventas del día</div></div>
+      <div class="stat-card"><div class="stat-value">$382</div><div class="stat-label">Ticket medio</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:var(--blue)">82%</div><div class="stat-label">Ocupación pistas</div></div>
+      <div class="stat-card"><div class="stat-value">49</div><div class="stat-label">Transacciones</div></div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Top Productos</span><button class="btn btn-ghost" style="font-size:11px;">Ver Todos</button></div>
+        ${[['Cerveza Corona',42,'$2,730'],['Agua Mineral 500ml',38,'$1,330'],['Bocadillo Jamón',24,'$2,160'],['Isotónica 600ml',21,'$1,050'],['Café Americano',18,'$684']].map((p,i) => `
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border-subtle);">
+            <span class="mono" style="font-size:12px;color:var(--muted-dim);width:24px;">${i+1}.</span>
+            <span style="font-size:13px;font-weight:500;flex:1;">${p[0]}</span>
+            <span class="mono" style="font-size:12px;color:var(--muted);">${p[1]} uds</span>
+            <span class="mono" style="font-size:12px;color:var(--lime);font-weight:600;width:70px;text-align:right;">${p[2]}</span>
+          </div>
+        `).join('')}
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Ocupación por Pista</span></div>
+        ${[['Pista 01',85],['Pista 02',78],['Pista 03',92],['Pista 04',0],['Pista 05',62],['Pista 06',88],['Pista 07',45],['Pista 08',55]].map(p => {
+          const color = p[1] > 80 ? 'var(--lime)' : p[1] > 50 ? 'var(--yellow)' : p[1] === 0 ? 'var(--muted-dim)' : 'var(--red)';
+          const label = p[1] === 0 ? 'Mant.' : p[1]+'%';
+          return `<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border-subtle);">
+            <span style="font-size:12px;font-weight:500;width:60px;">${p[0]}</span>
+            <div style="flex:1;height:5px;background:var(--border-subtle);border-radius:3px;overflow:hidden;"><div style="width:${p[1]}%;height:100%;background:${color};border-radius:3px;"></div></div>
+            <span class="mono" style="font-size:12px;color:${color};width:40px;text-align:right;font-weight:600;">${label}</span>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+    <div style="margin-top:16px;display:flex;gap:8px;">
+      <button class="btn btn-secondary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Exportar PDF</button>
+      <button class="btn btn-secondary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Exportar Excel</button>
+    </div>
+  </div>`;
+}
+
+// ==================== CONFIG ====================
+function renderConfig() {
+  return `<div class="page-pad fade-in">
+    <div class="page-header"><div class="page-title">Configuración del Club</div><div class="page-subtitle">Parámetros generales, precios, fiscal y periféricos</div></div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Datos del Club</span></div>
+        <div class="form-group"><label class="form-label">Nombre</label><input class="form-input" value="Club Padel Setpoint" /></div>
+        <div class="form-group"><label class="form-label">Dirección</label><input class="form-input" value="Av. Revolución 1523, Col. Centro" /></div>
+        <div class="form-group"><label class="form-label">Teléfono</label><input class="form-input mono" value="+52 833 456 7890" /></div>
+        <div style="display:flex;gap:8px;margin-top:12px;">
+          <button class="btn btn-primary">Guardar</button>
+          <button class="btn btn-secondary">Cancelar</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Métodos de Pago</span></div>
+        <div class="toggle-row"><div class="toggle-info"><span class="toggle-label">Efectivo</span><span class="toggle-desc">Pagos en efectivo</span></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+        <div class="toggle-row"><div class="toggle-info"><span class="toggle-label">Tarjeta de Crédito</span><span class="toggle-desc">Terminal integrada</span></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+        <div class="toggle-row"><div class="toggle-info"><span class="toggle-label">Tarjeta de Débito</span><span class="toggle-desc">Contactless</span></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+        <div class="toggle-row"><div class="toggle-info"><span class="toggle-label">Cuenta Cliente</span><span class="toggle-desc">Cargo a cuenta abierta</span></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+        <div class="toggle-row"><div class="toggle-info"><span class="toggle-label">Bonos Prepagados</span><span class="toggle-desc">Horas prepagadas</span></div><div class="toggle" onclick="this.classList.toggle('on')"></div></div>
+      </div>
+    </div>
+    <div class="grid-2" style="margin-top:16px;">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Precios por Franja</span></div>
+        <div class="price-slot"><span class="price-slot-time">07:00 – 10:00</span><span class="price-slot-badge">Mañana</span><span class="price-slot-value">$280/h</span></div>
+        <div class="price-slot"><span class="price-slot-time">10:00 – 14:00</span><span class="price-slot-badge">Media</span><span class="price-slot-value">$350/h</span></div>
+        <div class="price-slot"><span class="price-slot-time">14:00 – 18:00</span><span class="price-slot-badge">Prime</span><span class="price-slot-value">$420/h</span></div>
+        <div class="price-slot"><span class="price-slot-time">18:00 – 22:00</span><span class="price-slot-badge">Noche</span><span class="price-slot-value">$450/h</span></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Parámetros del Sistema</span></div>
+        <div class="form-group"><label class="form-label">Tasa de IVA</label><input class="form-input mono" value="16%" /><div class="form-hint">Aplicado automáticamente a todos los productos</div></div>
+        <div class="form-group"><label class="form-label">Tolerancia de caja</label><input class="form-input mono" value="$50.00 MXN" /><div class="form-hint">Diferencia aceptable en arqueo</div></div>
+        <div class="form-group"><label class="form-label">Timer: Alerta previa</label><input class="form-input mono" value="15 min" /><div class="form-hint">Notificación antes de fin de reserva</div></div>
+        <div class="form-group"><label class="form-label">No-show: Tolerancia</label><input class="form-input mono" value="15 min" /><div class="form-hint">Espera antes de marcar no-show</div></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ==================== INIT ====================
+switchPage('pos');
+</script>
+</body>
+</html>
