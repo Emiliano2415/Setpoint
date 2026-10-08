@@ -103,8 +103,9 @@ export default function Navbar() {
 
         {/* Right — Actions */}
         <div className="flex items-center gap-2">
+          {/* <a> y no <Link>: /login lo sirve el sistema (otra app), ver next.config.ts */}
           <a
-            href="#"
+            href="/login"
             className="
               flex items-center gap-1.5
               border border-[rgba(108,242,13,0.12)] rounded-xl

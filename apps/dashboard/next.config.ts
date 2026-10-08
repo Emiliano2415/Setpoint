@@ -48,6 +48,10 @@ const securityHeaders = [
 ]
 
 const nextConfig: NextConfig = {
+  // El sistema se publica bajo el dominio de la landing (apps/landing reenvía
+  // aquí sus rutas). Con este prefijo los JS/CSS de ambas apps no chocan.
+  // Si cambia, hay que cambiarlo también en apps/landing/next.config.ts.
+  assetPrefix: '/sistema-static',
   turbopack: {
     // Raíz del monorepo, relativa a este archivo: una ruta fija de Windows
     // rompería la compilación en Vercel.
