@@ -92,26 +92,27 @@ const nextConfig: NextConfig = {
     ];
   },
   async rewrites() {
-    return [
-      ...RUTAS_SISTEMA.flatMap((ruta) => [
-        { source: `/${ruta}`, destination: `${SISTEMA_URL}/${ruta}` },
-        { source: `/${ruta}/:path+`, destination: `${SISTEMA_URL}/${ruta}/:path+` },
-        // Precarga de enlaces de Next: en Vercel llega como /ruta.segments/…
-        // Sin esto da 404 y cada cambio de módulo se carga sin precarga.
+    return {
+      // beforeFiles: la petición se reenvía tal cual llega. Más tarde Next ya la
+      // habría convertido a su forma interna (/ruta.rsc, /ruta.segments/…) y el
+      // sistema, al repetir esa conversión, respondería 404 a las precargas.
+      beforeFiles: [
+        ...RUTAS_SISTEMA.flatMap((ruta) => [
+          { source: `/${ruta}`, destination: `${SISTEMA_URL}/${ruta}` },
+          { source: `/${ruta}/:path+`, destination: `${SISTEMA_URL}/${ruta}/:path+` },
+        ]),
+        ...ARCHIVOS_SISTEMA.map((archivo) => ({
+          source: `/${archivo}`,
+          destination: `${SISTEMA_URL}/${archivo}`,
+        })),
         {
-          source: `/${ruta}.segments/:path+`,
-          destination: `${SISTEMA_URL}/${ruta}.segments/:path+`,
+          source: `/${ESTATICOS_SISTEMA}/:path+`,
+          destination: `${SISTEMA_URL}/${ESTATICOS_SISTEMA}/:path+`,
         },
-      ]),
-      ...ARCHIVOS_SISTEMA.map((archivo) => ({
-        source: `/${archivo}`,
-        destination: `${SISTEMA_URL}/${archivo}`,
-      })),
-      {
-        source: `/${ESTATICOS_SISTEMA}/:path+`,
-        destination: `${SISTEMA_URL}/${ESTATICOS_SISTEMA}/:path+`,
-      },
-    ];
+      ],
+      afterFiles: [],
+      fallback: [],
+    };
   },
 };
 
