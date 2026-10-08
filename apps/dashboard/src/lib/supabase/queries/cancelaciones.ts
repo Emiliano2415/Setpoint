@@ -1,4 +1,5 @@
-import type { SupabaseClient } from '@supabase/supabase-js'
+import type { SupabaseClient } from '@/lib/supabase/client'
+import { localDayStart, localDayEnd } from '@/lib/format'
 
 export type CancelacionEstado = 'ejecutada' | 'pendiente' | 'aprobada' | 'reembolsada' | 'rechazada'
 export type CancelacionTipo = 'pre_cobro' | 'post_cobro'
@@ -61,9 +62,12 @@ export async function getCancelaciones(
     .order('created_at', { ascending: false })
 
   if (tab === 'items') {
+    // Día local del club, no el día UTC: con límites UTC lo cancelado después
+    // de las 18:00 caía en "mañana" y no aparecía.
+    const dia = new Date(`${fecha}T12:00:00`)
     query = query.not('cuenta_item_id', 'is', null)
-    query = query.gte('created_at', `${fecha}T00:00:00.000Z`)
-    query = query.lte('created_at', `${fecha}T23:59:59.999Z`)
+    query = query.gte('created_at', localDayStart(dia))
+    query = query.lte('created_at', localDayEnd(dia))
   } else {
     query = query.not('reserva_id', 'is', null)
   }
@@ -77,8 +81,6 @@ export async function getCancelacionStats(
   supabase: SupabaseClient,
   clubId: string,
 ): Promise<CancelacionStats> {
-  const today = new Date().toISOString().split('T')[0]
-
   const { data, error } = await supabase
     .from('cancelaciones')
     .select('estado, created_at')
@@ -87,7 +89,13 @@ export async function getCancelacionStats(
   if (error) throw error
 
   const rows = data ?? []
-  const total_hoy = rows.filter(r => r.created_at.startsWith(today)).length
+  // "Hoy" es el día local del club, igual que en la lista
+  const inicio = new Date(localDayStart()).getTime()
+  const fin = new Date(localDayEnd()).getTime()
+  const total_hoy = rows.filter(r => {
+    const t = new Date(r.created_at).getTime()
+    return t >= inicio && t <= fin
+  }).length
   const pendientes_aprobacion = rows.filter(r => r.estado === 'pendiente').length
 
   return { total_hoy, pendientes_aprobacion }

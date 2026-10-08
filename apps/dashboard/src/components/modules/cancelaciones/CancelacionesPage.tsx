@@ -1,9 +1,11 @@
 'use client'
 
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback, useSyncExternalStore } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { poll } from '@/lib/poll'
 import { useAppStore } from '@/store/useAppStore'
 import { getCancelaciones, getCancelacionStats } from '@/lib/supabase/queries/cancelaciones'
+import { getCajaActiva } from '@/lib/supabase/queries/caja'
 import type { CancelacionRow, CancelacionStats } from '@/lib/supabase/queries/cancelaciones'
 import { CancelacionesList } from './CancelacionesList'
 import { CancelacionDetalle } from './CancelacionDetalle'
@@ -16,48 +18,54 @@ function todayLocal(): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
+const sinSuscripcion = () => () => {}
+
 export function CancelacionesPage() {
   const clubId = useAppStore((s) => s.clubId)
   const supabase = useMemo(() => createClient(), [])
 
   const [tab, setTab] = useState<Tab>('items')
+  // "Hoy" según el reloj del navegador. En el servidor queda vacío: allí el reloj
+  // va en UTC y después de las 18:00 ya marcaría el día siguiente.
+  const hoy = useSyncExternalStore(sinSuscripcion, todayLocal, () => '')
+  // Día que se consulta en "Ítems POS"; null = hoy. Permite revisar días anteriores
+  const [fechaElegida, setFechaElegida] = useState<string | null>(null)
+  const fecha = fechaElegida ?? hoy
   const [cancelaciones, setCancelaciones] = useState<CancelacionRow[]>([])
   const [stats, setStats] = useState<CancelacionStats>({ total_hoy: 0, pendientes_aprobacion: 0 })
   const [selected, setSelected] = useState<CancelacionRow | null>(null)
   const [loading, setLoading] = useState(true)
+  const [cajaId, setCajaId] = useState<string | null>(null)
 
   const reload = useCallback(async () => {
-    if (!clubId) return
+    if (!clubId || !fecha) return
     try {
-      const [rows, s] = await Promise.all([
-        getCancelaciones(supabase, clubId, tab, todayLocal()),
+      const [rows, s, caja] = await Promise.all([
+        getCancelaciones(supabase, clubId, tab, fecha),
         getCancelacionStats(supabase, clubId),
+        getCajaActiva(supabase, clubId).catch(() => null),
       ])
       setCancelaciones(rows)
       setStats(s)
+      setCajaId(caja?.id ?? null)
     } catch {
       toast.error('Error cargando cancelaciones')
     } finally {
       setLoading(false)
     }
-  }, [supabase, clubId, tab])
+  }, [supabase, clubId, tab, fecha])
 
   useEffect(() => {
     if (!clubId) return
     setLoading(true)
     reload()
-  }, [clubId, tab, reload])
+  }, [clubId, tab, fecha, reload])
 
-  // Realtime
+  // Refresco periódico (sustituye a la suscripción en tiempo real)
   useEffect(() => {
     if (!clubId) return
-    const channel = supabase
-      .channel('cancelaciones-rt')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'cancelaciones' }, reload)
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'reservas' }, reload)
-      .subscribe()
-    return () => { supabase.removeChannel(channel) }
-  }, [supabase, clubId, reload])
+    return poll(reload, 10_000)
+  }, [clubId, reload])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 56px)', overflow: 'hidden' }}>
@@ -75,6 +83,27 @@ export function CancelacionesPage() {
               )}
             </div>
           </div>
+          {tab === 'items' && (
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--color-muted)' }}>
+              Fecha
+              <input
+                type="date"
+                value={fecha}
+                max={hoy}
+                onChange={(e) => { setFechaElegida(e.target.value || null); setSelected(null) }}
+                style={{
+                  background: 'var(--color-bg2)',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: '8px',
+                  padding: '6px 10px',
+                  color: 'var(--color-text)',
+                  fontSize: '13px',
+                  fontFamily: 'inherit',
+                  colorScheme: 'dark',
+                }}
+              />
+            </label>
+          )}
         </div>
 
         {/* Tabs */}
@@ -110,6 +139,7 @@ export function CancelacionesPage() {
         <div style={{ borderLeft: '1px solid var(--color-border)', overflow: 'hidden' }}>
           <CancelacionDetalle
             cancelacion={selected}
+            cajaId={cajaId}
             onAction={reload}
           />
         </div>

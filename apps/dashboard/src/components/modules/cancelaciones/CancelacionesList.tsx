@@ -39,7 +39,9 @@ export function CancelacionesList({ rows, loading, selected, onSelect }: Props) 
       {rows.map((row) => {
         const badge = ESTADO_BADGE[row.estado] ?? ESTADO_BADGE.ejecutada
         const isSelected = selected?.id === row.id
-        const time = new Date(row.created_at).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
+        const creada = new Date(row.created_at)
+        // Con fecha: la pestaña de reservas mezcla días y la de ítems permite consultar días anteriores
+        const time = `${creada.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })} · ${creada.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}`
         const title = row.reservas
           ? `Reserva — ${row.reservas.pistas?.nombre ?? '—'}`
           : row.cuentas?.numero_ticket
