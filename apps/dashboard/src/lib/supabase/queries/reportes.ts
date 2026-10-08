@@ -1,4 +1,4 @@
-import type { SupabaseClient } from '@supabase/supabase-js'
+import type { SupabaseClient } from '@/lib/supabase/client'
 import { format } from 'date-fns'
 import { localDayStart, localDayEnd } from '@/lib/format'
 

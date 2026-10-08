@@ -5,6 +5,7 @@ import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { Plus, History, TrendingUp, Scissors } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { poll } from '@/lib/poll'
 import { getCajaActiva, getCajaStats, getCierresCaja, getMovimientosCaja } from '@/lib/supabase/queries/caja'
 import type { CajaActiva, CajaStats, CajaCierre, MovimientoCaja } from '@/lib/supabase/queries/caja'
 import { StatCard } from '@/components/ui/StatCard'
@@ -208,6 +209,7 @@ function CajaOpenView({
     { label: 'Efectivo', desc: `${stats.countEfectivo} transacciones`, value: fmtMoney(stats.totalEfectivo), color: undefined },
     { label: 'Tarjeta', desc: `${stats.countTarjeta} transacciones`, value: fmtMoney(stats.totalTarjeta), color: '#3B82F6' },
     { label: 'Propinas', desc: 'Separadas del ingreso', value: fmtMoney(stats.totalPropinas), color: '#EAB308' },
+    ...(stats.totalEgresos > 0 ? [{ label: 'Reembolsos', desc: 'Egresos por cancelaciones', value: `-${fmtMoney(stats.totalEgresos)}`, color: '#EF4444' }] : []),
   ]
 
   return (
@@ -259,6 +261,9 @@ function CajaOpenView({
         <StatCard value={fmtMoney(stats.totalEfectivo)} label="Efectivo" />
         <StatCard value={fmtMoney(stats.totalTarjeta)} label="Tarjeta" />
         <StatCard value={fmtMoney(stats.totalPropinas)} label="Propinas" valueColor="#EAB308" />
+        {stats.totalEgresos > 0 && (
+          <StatCard value={`-${fmtMoney(stats.totalEgresos)}`} label="Reembolsos" valueColor="#EF4444" />
+        )}
       </div>
 
       {/* Grid inferior */}
@@ -429,12 +434,13 @@ export function CajaPage() {
 
   useEffect(() => {
     if (!clubId) return
+    const id = clubId
     const supabase = createClient()
     async function load() {
       try {
         const [cajaData, cierresData] = await Promise.all([
-          getCajaActiva(supabase, clubId),
-          getCierresCaja(supabase, clubId),
+          getCajaActiva(supabase, id),
+          getCierresCaja(supabase, id),
         ])
         setCaja(cajaData)
         setCierres(cierresData)
@@ -452,7 +458,21 @@ export function CajaPage() {
       }
     }
     load()
-  }, [refreshKey])
+  }, [clubId, refreshKey])
+
+  useEffect(() => {
+    if (!clubId || !caja) return
+    const supabase = createClient()
+    return poll(() => {
+      Promise.all([
+        getCajaStats(supabase, caja.id),
+        getMovimientosCaja(supabase, caja.id),
+      ]).then(([s, m]) => {
+        setStats(s)
+        setMovimientos(m)
+      }).catch(console.error)
+    }, 10_000)
+  }, [clubId, caja])
 
   function reload() {
     setCaja(undefined)
@@ -492,7 +512,7 @@ export function CajaPage() {
       ) : (
         <CajaOpenView
           caja={caja}
-          stats={stats ?? { totalVentas: 0, totalEfectivo: 0, totalTarjeta: 0, totalPropinas: 0, countEfectivo: 0, countTarjeta: 0 }}
+          stats={stats ?? { totalVentas: 0, totalEfectivo: 0, totalTarjeta: 0, totalPropinas: 0, totalEgresos: 0, countEfectivo: 0, countTarjeta: 0 }}
           movimientos={movimientos}
           onReload={reload}
         />

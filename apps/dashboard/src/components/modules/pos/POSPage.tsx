@@ -71,9 +71,10 @@ export function POSPage() {
   // Load categories when clubId is available
   useEffect(() => {
     if (!clubId) return
+    const id = clubId
     async function fetchCategories() {
       setLoadingCategories(true)
-      const { data, error } = await getCategories(supabase, clubId)
+      const { data, error } = await getCategories(supabase, id)
       if (!error && data) {
         const tabs: CategoryTab[] = [
           { id: ALL_CATEGORY_ID, label: 'Todos' },
@@ -90,12 +91,13 @@ export function POSPage() {
   // Load products when activeCategory changes (wait for categories to be ready)
   useEffect(() => {
     if (!clubId || categories.length === 0) return
+    const id = clubId
 
     async function fetchProducts() {
       setLoadingProducts(true)
 
       if (activeCategory === ALL_CATEGORY_ID) {
-        const { data, error } = await getAllActiveProducts(supabase, clubId)
+        const { data, error } = await getAllActiveProducts(supabase, id)
         if (!error && data) {
           type RawProduct = { id: string; nombre: string; precio: number; categoria_id: string; descripcion?: string; requiere_cocina: boolean; stock_actual?: number | null; stock_minimo?: number | null; requiere_stock?: boolean }
           const mapped: Product[] = (data as RawProduct[]).map((p) => {
@@ -116,7 +118,7 @@ export function POSPage() {
           setProducts(mapped)
         }
       } else {
-        const { data, error } = await getProductsByCategory(supabase, clubId, activeCategory)
+        const { data, error } = await getProductsByCategory(supabase, id, activeCategory)
         if (!error && data) {
           const catLabel =
             categories.find((c) => c.id === activeCategory)?.label ?? ''

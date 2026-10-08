@@ -47,14 +47,15 @@ export function ReportesPage() {
 
   useEffect(() => {
     if (!clubId) return
+    const id = clubId
     const supabase = createClient()
 
     async function load() {
       try {
         const [m, top, ocu] = await Promise.all([
-          getMetricasHoy(supabase, clubId),
-          getTopProductos(supabase, clubId, 5),
-          getOcupacionPistas(supabase, clubId),
+          getMetricasHoy(supabase, id),
+          getTopProductos(supabase, id, 5),
+          getOcupacionPistas(supabase, id),
         ])
         setMetricas(m)
         // Si top productos está vacío, usar los de métricas_diarias
@@ -68,7 +69,7 @@ export function ReportesPage() {
     }
 
     load()
-  }, [])
+  }, [clubId])
 
   const fechaLabel = format(new Date(), "EEEE d MMMM yyyy", { locale: es })
   const fechaCap = fechaLabel.charAt(0).toUpperCase() + fechaLabel.slice(1)

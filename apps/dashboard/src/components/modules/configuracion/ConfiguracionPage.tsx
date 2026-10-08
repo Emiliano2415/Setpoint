@@ -111,7 +111,7 @@ export function ConfiguracionPage() {
         toast.error('Error al cargar la configuración')
       })
       .finally(() => setLoading(false))
-  }, [])
+  }, [clubId])
 
   async function handleGuardar() {
     if (!club) return

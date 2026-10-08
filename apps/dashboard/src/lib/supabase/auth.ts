@@ -1,4 +1,4 @@
-import type { SupabaseClient } from '@supabase/supabase-js'
+import type { SupabaseClient } from '@/lib/supabase/client'
 
 export type UserRole = 'propietario' | 'admin' | 'cajero' | 'mesero' | 'cocina' | 'barra'
 
@@ -28,16 +28,16 @@ export async function requireRole(
     throw new UnauthorizedError('Sesión no válida')
   }
 
-  const clubId = user.app_metadata?.club_id as string | undefined
+  const { data: empleado } = await supabase
+    .from('empleados')
+    .select('rol, club_id')
+    .eq('auth_user_id', user.id)
+    .single()
+
+  const clubId = empleado?.club_id as string | undefined
   if (!clubId) {
     throw new UnauthorizedError('Usuario sin club asignado')
   }
-
-  const { data: empleado } = await supabase
-    .from('empleados')
-    .select('rol')
-    .eq('auth_user_id', user.id)
-    .single()
 
   const rol = empleado?.rol as UserRole | undefined
   if (!rol || !allowedRoles.includes(rol)) {

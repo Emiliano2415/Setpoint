@@ -67,12 +67,13 @@ export function ClientesPage() {
 
   useEffect(() => {
     if (!clubId) return
+    const id = clubId
     const supabase = createClient()
 
     async function load() {
       const [clientesRes, statsRes] = await Promise.all([
-        getClientes(supabase, clubId),
-        getClienteStats(supabase, clubId),
+        getClientes(supabase, id),
+        getClienteStats(supabase, id),
       ])
 
       if (clientesRes.data) {
@@ -89,7 +90,7 @@ export function ClientesPage() {
 
     load()
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [refreshKey])
+  }, [clubId, refreshKey])
 
   const clientesFiltrados =
     filtro === 'todos' ? clientes : clientes.filter((c) => c.categoria === filtro)

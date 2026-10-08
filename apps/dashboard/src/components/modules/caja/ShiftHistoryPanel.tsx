@@ -32,10 +32,11 @@ export function ShiftHistoryPanel({ onClose }: Props) {
 
   useEffect(() => {
     if (!clubId) return
+    const id = clubId
     async function load() {
       setLoading(true)
       try {
-        const data = await getCierresCaja(supabase, clubId)
+        const data = await getCierresCaja(supabase, id)
         setCierres(data)
       } finally {
         setLoading(false)

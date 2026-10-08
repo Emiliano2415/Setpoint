@@ -99,13 +99,14 @@ export function InventarioPage() {
 
   useEffect(() => {
     if (!clubId) return
+    const id = clubId
     const supabase = createClient()
 
     async function load() {
       const [productosRes, statsRes, movsRes] = await Promise.all([
-        getProductosConInactivos(supabase, clubId),
-        getStockStats(supabase, clubId),
-        getMovimientos(supabase, clubId, 100),
+        getProductosConInactivos(supabase, id),
+        getStockStats(supabase, id),
+        getMovimientos(supabase, id, 100),
       ])
 
       if (productosRes.data) {
@@ -154,7 +155,7 @@ export function InventarioPage() {
 
     load()
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [refreshKey])
+  }, [clubId, refreshKey])
 
   async function toggleActivo(producto: ProductoRow) {
     try {

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { X } from 'lucide-react'
 import { toast } from 'sonner'
-import type { SupabaseClient } from '@supabase/supabase-js'
+import type { SupabaseClient } from '@/lib/supabase/client'
 import type { MetodoPago } from '@/lib/supabase/queries/caja'
 import type { ReservaRow } from '@/lib/supabase/queries/pistas'
 import { checkInWithPayment, updateReservaEstado } from '@/lib/supabase/queries/pistas'

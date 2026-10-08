@@ -4,6 +4,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import { Search, Bell, Settings } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { poll } from '@/lib/poll'
 import { getProductosBajoStock } from '@/lib/supabase/queries/inventario'
 import { useAppStore } from '@/store/useAppStore'
 
@@ -78,12 +79,8 @@ export function TopBar() {
   useEffect(() => {
     loadStock()
     if (!clubId) return
-    const channel = supabase
-      .channel('topbar-stock-rt')
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'productos' }, loadStock)
-      .subscribe()
-    return () => { supabase.removeChannel(channel) }
-  }, [supabase, clubId, loadStock])
+    return poll(loadStock, 30_000)
+  }, [clubId, loadStock])
 
   function handleNuevoTurno() {
     if (pathname.startsWith('/caja')) {

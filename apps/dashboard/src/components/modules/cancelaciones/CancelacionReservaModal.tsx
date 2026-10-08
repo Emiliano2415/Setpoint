@@ -25,10 +25,10 @@ export function CancelacionReservaModal({ open, reservaId, clienteNombre, pistaN
   if (!open) return null
 
   async function handleCancelar() {
-    if (!motivo.trim() || !clubId || !user?.id) return
+    if (!motivo.trim() || !clubId || !user?.empleadoId) return
     setSaving(true)
     try {
-      await cancelarReserva(createClient(), clubId, reservaId, motivo, user.id)
+      await cancelarReserva(createClient(), clubId, reservaId, motivo, user.empleadoId)
       toast.success('Reserva cancelada')
       setMotivo('')
       onSuccess()

@@ -1,5 +1,6 @@
-import type { SupabaseClient } from '@supabase/supabase-js'
+import type { SupabaseClient } from '@/lib/supabase/client'
 import { localDayStart, localDayEnd } from '@/lib/format'
+import { poll } from '@/lib/poll'
 
 export type ComandaEstado = 'pendiente' | 'preparando' | 'listo' | 'entregado' | 'cobrado'
 
@@ -228,34 +229,14 @@ export async function getConsumosPorReserva(
   return items
 }
 
+/**
+ * Avisa periódicamente para que el tablero de comandas se vuelva a cargar.
+ * Antes era una suscripción en tiempo real; Neon no ofrece ese servicio.
+ */
 export function subscribeToComandas(
-  supabase: SupabaseClient,
-  clubId: string,
+  _supabase: SupabaseClient,
+  _clubId: string,
   callback: () => void,
 ) {
-  const channel = supabase
-    .channel(`comandas:club:${clubId}`)
-    .on(
-      'postgres_changes',
-      {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'comandas',
-        filter: `club_id=eq.${clubId}`,
-      },
-      () => callback(),
-    )
-    .on(
-      'postgres_changes',
-      {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'comandas',
-        filter: `club_id=eq.${clubId}`,
-      },
-      () => callback(),
-    )
-    .subscribe()
-
-  return channel
+  return { unsubscribe: poll(callback, 5_000) }
 }

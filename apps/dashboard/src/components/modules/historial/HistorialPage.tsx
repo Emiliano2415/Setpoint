@@ -10,11 +10,14 @@ import {
   getHistorialVentas,
   getHistorialCanchas,
   getHistorialMovimientos,
+  getReembolsosPeriodo,
   type VentaPOS,
   type RentaCancha,
   type MovimientoCajaHistorial,
 } from '@/lib/supabase/queries/historial'
+import { solicitarCancelacionPostCobro } from '@/lib/supabase/queries/cancelaciones'
 import { useAppStore } from '@/store/useAppStore'
+import { toast } from 'sonner'
 
 function fmtHora(iso: string): string {
   return new Date(iso).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
@@ -90,6 +93,7 @@ function navCursor(cursor: Date, periodo: Periodo, dir: 'prev' | 'next'): Date {
 
 export function HistorialPage() {
   const clubId = useAppStore((s) => s.clubId)
+  const user = useAppStore((s) => s.user)
   const [periodo, setPeriodo] = useState<Periodo>('dia')
   const [cursor, setCursor] = useState(new Date())
   const [tab, setTab] = useState<Tab>('ventas')
@@ -98,6 +102,25 @@ export function HistorialPage() {
   const [movimientos, setMovimientos] = useState<MovimientoCajaHistorial[]>([])
   const [loading, setLoading] = useState(true)
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [totalReembolsos, setTotalReembolsos] = useState(0)
+  const [cancelItem, setCancelItem] = useState<{ cuentaItemId: string; nombre: string; metodo: string } | null>(null)
+  const [cancelMotivo, setCancelMotivo] = useState('')
+  const [cancelSaving, setCancelSaving] = useState(false)
+
+  async function handleSolicitarCancelacion() {
+    if (!cancelItem || !cancelMotivo.trim() || !clubId || !user?.empleadoId) return
+    setCancelSaving(true)
+    try {
+      await solicitarCancelacionPostCobro(createClient(), clubId, cancelItem.cuentaItemId, cancelMotivo, user.empleadoId, cancelItem.metodo)
+      toast.success('Solicitud de cancelación registrada')
+      setCancelItem(null)
+      setCancelMotivo('')
+    } catch {
+      toast.error('Error al solicitar la cancelación')
+    } finally {
+      setCancelSaving(false)
+    }
+  }
 
   const { desde, hasta, label } = useMemo(() => getRango(periodo, cursor), [periodo, cursor])
   const labelCap = label.charAt(0).toUpperCase() + label.slice(1)
@@ -108,7 +131,7 @@ export function HistorialPage() {
   const netoCaja = movimientos.reduce((s, m) => {
     return (m.tipo === 'ingreso' || m.tipo === 'fondo') ? s + m.monto : s - m.monto
   }, 0)
-  const totalIngresos = totalVentas + totalCanchas
+  const totalIngresos = totalVentas + totalCanchas - totalReembolsos
 
   useEffect(() => {
     if (!clubId) return
@@ -118,10 +141,12 @@ export function HistorialPage() {
       getHistorialVentas(supabase, clubId, desde, hasta),
       getHistorialCanchas(supabase, clubId, desde, hasta),
       getHistorialMovimientos(supabase, clubId, desde, hasta),
-    ]).then(([v, c, m]) => {
+      getReembolsosPeriodo(supabase, clubId, desde, hasta),
+    ]).then(([v, c, m, r]) => {
       setVentas(v)
       setCanchas(c)
       setMovimientos(m)
+      setTotalReembolsos(r)
     }).catch(console.error).finally(() => setLoading(false))
   }, [clubId, desde, hasta])
 
@@ -129,11 +154,60 @@ export function HistorialPage() {
     { label: 'Ventas POS', value: fmtMXN(totalVentas), sub: `${ventas.length} ticket${ventas.length !== 1 ? 's' : ''}`, color: 'var(--color-lime)' },
     { label: 'Canchas', value: fmtMXN(totalCanchas), sub: `${canchas.length} renta${canchas.length !== 1 ? 's' : ''}`, color: '#60a5fa' },
     { label: 'Mov. Caja', value: (netoCaja < 0 ? '-' : '') + fmtMXN(Math.abs(netoCaja)), sub: `${movimientos.length} movimiento${movimientos.length !== 1 ? 's' : ''}`, color: netoCaja >= 0 ? 'var(--color-lime)' : '#ef4444' },
-    { label: 'Total Ingresos', value: fmtMXN(totalIngresos), sub: 'Ventas + Canchas', color: '#EAB308' },
+    ...(totalReembolsos > 0 ? [{ label: 'Reembolsos', value: `-${fmtMXN(totalReembolsos)}`, sub: 'Cancelaciones aprobadas', color: '#EF4444' }] : []),
+    { label: 'Total Ingresos', value: fmtMXN(totalIngresos), sub: 'Ventas + Canchas - Reembolsos', color: '#EAB308' },
   ]
 
   return (
     <div style={{ padding: '24px', overflowY: 'auto', height: 'calc(100vh - 56px)' }}>
+      {/* Post-cobro cancellation modal */}
+      {cancelItem && (
+        <div
+          style={{ position: 'fixed', inset: 0, zIndex: 1200, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          onClick={(e) => { if (e.target === e.currentTarget) { setCancelItem(null); setCancelMotivo('') } }}
+        >
+          <div style={{ background: 'var(--color-bg2)', border: '1px solid var(--color-border)', borderRadius: '16px', width: '400px', boxShadow: '0 24px 64px rgba(0,0,0,0.5)' }}>
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--color-border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <div style={{ fontSize: '14px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Solicitar Cancelación</div>
+                <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginTop: '2px' }}>{cancelItem.nombre}</div>
+              </div>
+              <button onClick={() => { setCancelItem(null); setCancelMotivo('') }} style={{ background: 'none', border: 'none', color: 'var(--color-muted)', cursor: 'pointer', fontSize: '18px', lineHeight: 1 }}>×</button>
+            </div>
+            <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ padding: '10px 12px', background: 'rgba(249,115,22,0.08)', border: '1px solid rgba(249,115,22,0.2)', borderRadius: '8px', fontSize: '12px', color: '#F97316' }}>
+                Cancelación post-cobro — requiere aprobación de admin
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '10px', fontWeight: 700, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>
+                  Motivo *
+                </label>
+                <input
+                  value={cancelMotivo}
+                  onChange={(e) => setCancelMotivo(e.target.value)}
+                  placeholder="Ej: Cliente solicitó devolución..."
+                  style={{ width: '100%', padding: '10px 12px', background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: '8px', color: 'var(--color-text)', fontSize: '13px', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' }}
+                />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <button
+                  onClick={() => { setCancelItem(null); setCancelMotivo('') }}
+                  style={{ padding: '11px', background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: '10px', color: 'var(--color-muted)', fontSize: '13px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleSolicitarCancelacion}
+                  disabled={cancelSaving || !cancelMotivo.trim()}
+                  style={{ padding: '11px', borderRadius: '10px', border: 'none', background: cancelSaving || !cancelMotivo.trim() ? 'rgba(239,68,68,0.3)' : '#EF4444', color: '#fff', fontSize: '13px', fontWeight: 700, cursor: cancelSaving || !cancelMotivo.trim() ? 'not-allowed' : 'pointer', fontFamily: 'inherit' }}
+                >
+                  {cancelSaving ? 'Enviando...' : 'Solicitar'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '20px' }}>
@@ -263,12 +337,38 @@ export function HistorialPage() {
                   {isExp && (
                     <div style={{ borderTop: '1px solid var(--color-border-subtle)', padding: '12px 16px', background: 'rgba(0,0,0,0.1)' }}>
                       <div style={{ marginBottom: '10px' }}>
-                        {v.items.map((item, i) => (
-                          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--color-muted)', padding: '3px 0' }}>
-                            <span>{item.cantidad}x {item.nombre}</span>
-                            <span style={{ fontFamily: 'var(--font-mono)' }}>{fmtMonto(item.subtotal)}</span>
-                          </div>
-                        ))}
+                        {v.items.map((item, i) => {
+                          const isCancelled = item.estado === 'cancelado'
+                          return (
+                            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', color: 'var(--color-muted)', padding: '3px 0', opacity: isCancelled ? 0.5 : 1, textDecoration: isCancelled ? 'line-through' : 'none' }}>
+                              <span>
+                                {item.cantidad}x {item.nombre}
+                                {isCancelled && (
+                                  <span style={{ marginLeft: '6px', fontSize: '9px', fontWeight: 700, padding: '1px 5px', borderRadius: '4px', background: 'rgba(239,68,68,0.12)', color: '#EF4444', textDecoration: 'none', display: 'inline-block' }}>
+                                    CANCELADO
+                                  </span>
+                                )}
+                              </span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span style={{ fontFamily: 'var(--font-mono)' }}>{fmtMonto(item.subtotal)}</span>
+                                {!isCancelled && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      setCancelItem({ cuentaItemId: item.id, nombre: item.nombre, metodo: v.metodos_pago[0]?.metodo ?? 'efectivo' })
+                                      setCancelMotivo('')
+                                    }}
+                                    style={{ padding: '2px 7px', background: 'transparent', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '5px', color: '#EF4444', fontSize: '10px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.3px' }}
+                                    onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(239,68,68,0.08)')}
+                                    onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                                  >
+                                    Cancelar
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          )
+                        })}
                       </div>
                       <div style={{ borderTop: '1px solid var(--color-border-subtle)', paddingTop: '8px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 16px', fontSize: '11px', color: 'var(--color-muted)' }}>
                         <span>Subtotal</span><span style={{ textAlign: 'right', fontFamily: 'var(--font-mono)' }}>{fmtMonto(v.subtotal)}</span>

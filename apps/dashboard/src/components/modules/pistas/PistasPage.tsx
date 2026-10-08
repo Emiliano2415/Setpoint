@@ -72,12 +72,13 @@ export function PistasPage() {
 
   useEffect(() => {
     if (!clubId) return
+    const id = clubId
     async function load() {
       try {
         const [pistas, todayReservas, caja] = await Promise.all([
-          getPistas(supabase, clubId),
-          getTodayReservas(supabase, clubId),
-          getCajaActiva(supabase, clubId).catch(() => null),
+          getPistas(supabase, id),
+          getTodayReservas(supabase, id),
+          getCajaActiva(supabase, id).catch(() => null),
         ])
 
         setCajaActiva(caja ? { id: caja.id } : null)
@@ -137,7 +138,7 @@ export function PistasPage() {
 
     load()
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [refreshKey])
+  }, [clubId, refreshKey])
 
   // Tick timer every second for occupied courts
   useEffect(() => {

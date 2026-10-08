@@ -1,4 +1,21 @@
+import path from 'node:path'
 import type { NextConfig } from 'next'
+
+// Orígenes del backend (Neon Auth y Neon Data API), para que la CSP no
+// bloquee las peticiones que el navegador les hace directamente.
+function origin(url: string | undefined): string {
+  try {
+    return new URL(url ?? '').origin
+  } catch {
+    return ''
+  }
+}
+const backendOrigins = [
+  origin(process.env.NEXT_PUBLIC_NEON_AUTH_URL),
+  origin(process.env.NEXT_PUBLIC_NEON_DATA_API_URL),
+]
+  .filter(Boolean)
+  .join(' ')
 
 const securityHeaders = [
   { key: 'X-Frame-Options', value: 'DENY' },
@@ -24,7 +41,7 @@ const securityHeaders = [
       "font-src 'self' https://fonts.gstatic.com data:",
       "img-src 'self' data: blob: https:",
       "worker-src 'self' blob:",
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://fonts.googleapis.com https://fonts.gstatic.com",
+      `connect-src 'self' ${backendOrigins} https://fonts.googleapis.com https://fonts.gstatic.com`,
       "frame-src 'none'",
     ].join('; '),
   },
@@ -32,7 +49,9 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   turbopack: {
-    root: 'c:/Users/ear21/OneDrive/Documents/Padel',
+    // Raíz del monorepo, relativa a este archivo: una ruta fija de Windows
+    // rompería la compilación en Vercel.
+    root: path.join(__dirname, '..', '..'),
   },
   async headers() {
     return [

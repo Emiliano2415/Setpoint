@@ -38,13 +38,14 @@ export function EmpleadosPage() {
 
   useEffect(() => {
     if (!clubId) return
+    const id = clubId
     const supabase = createClient()
 
     async function load() {
       try {
         const [empData, statsData] = await Promise.all([
-          getEmpleados(supabase, clubId),
-          getEmpleadoStats(supabase, clubId),
+          getEmpleados(supabase, id),
+          getEmpleadoStats(supabase, id),
         ])
         setEmpleados(empData)
         setStats(statsData)
@@ -56,7 +57,7 @@ export function EmpleadosPage() {
     }
 
     load()
-  }, [])
+  }, [clubId])
 
   if (loading) {
     return (

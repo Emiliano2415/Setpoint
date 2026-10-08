@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X } from 'lucide-react'
+import { X, Sunrise, Sun, Moon } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import {
   openCaja,
@@ -67,10 +68,10 @@ export function OpenShiftModal({ onClose, onSuccess }: Props) {
     }
   }
 
-  const tipoOpts: { value: TipoTurno; label: string; emoji: string }[] = [
-    { value: 'manana', label: 'Mañana', emoji: '🌅' },
-    { value: 'tarde', label: 'Tarde', emoji: '☀️' },
-    { value: 'noche', label: 'Noche', emoji: '🌙' },
+  const tipoOpts: { value: TipoTurno; label: string; Icon: LucideIcon }[] = [
+    { value: 'manana', label: 'Mañana', Icon: Sunrise },
+    { value: 'tarde', label: 'Tarde', Icon: Sun },
+    { value: 'noche', label: 'Noche', Icon: Moon },
   ]
 
   return (
@@ -113,23 +114,24 @@ export function OpenShiftModal({ onClose, onSuccess }: Props) {
           <div>
             <label style={labelStyle}>Tipo de Turno</label>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
-              {tipoOpts.map((opt) => (
+              {tipoOpts.map(({ value, label, Icon }) => (
                 <button
-                  key={opt.value}
-                  onClick={() => setTipo(opt.value)}
+                  key={value}
+                  onClick={() => setTipo(value)}
                   style={{
                     padding: '12px 8px',
                     borderRadius: '10px',
-                    border: `1px solid ${tipo === opt.value ? 'rgba(108,242,13,0.4)' : 'var(--color-border)'}`,
-                    background: tipo === opt.value ? 'rgba(108,242,13,0.08)' : 'var(--color-bg)',
-                    color: tipo === opt.value ? 'var(--color-lime)' : 'var(--color-muted)',
+                    border: `1px solid ${tipo === value ? 'rgba(108,242,13,0.4)' : 'var(--color-border)'}`,
+                    background: tipo === value ? 'rgba(108,242,13,0.08)' : 'var(--color-bg)',
+                    color: tipo === value ? 'var(--color-lime)' : 'var(--color-muted)',
                     fontSize: '13px', fontWeight: 700, cursor: 'pointer',
                     fontFamily: 'inherit', transition: 'all 0.15s',
                     textAlign: 'center',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px',
                   }}
                 >
-                  <div style={{ fontSize: '18px', marginBottom: '4px' }}>{opt.emoji}</div>
-                  {opt.label}
+                  <Icon size={20} />
+                  {label}
                 </button>
               ))}
             </div>
