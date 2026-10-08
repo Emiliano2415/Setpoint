@@ -1,0 +1,10 @@
+{
+  "name": "Setpoint PMS",
+  "short_name": "Setpoint",
+  "description": "Padel Management System",
+  "start_url": "/pos",
+  "display": "standalone",
+  "background_color": "#0D1109",
+  "theme_color": "#6CF20D",
+  "icons": []
+}

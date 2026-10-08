@@ -1,0 +1,1 @@
+ALTER TABLE productos ADD COLUMN IF NOT EXISTS requiere_cocina BOOLEAN NOT NULL DEFAULT false;
