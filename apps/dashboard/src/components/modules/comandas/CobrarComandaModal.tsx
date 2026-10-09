@@ -58,6 +58,13 @@ export function CobrarComandaModal({ comanda, cajaId, onClose, onSuccess }: Prop
 
   const supabase = createClient()
 
+  // Cobrar no saca la comanda de la cola de cocina: solo lo ya entregado pasa a
+  // "cobrado". El resto sigue su preparación, ya ligado a la cuenta.
+  const trasCobrar = (cuentaId: string) =>
+    comanda.estado === 'entregado'
+      ? { cuenta_id: cuentaId, estado: 'cobrado' as const }
+      : { cuenta_id: cuentaId }
+
   const items = comanda.comanda_items ?? []
 
   const lineItems = items.map((ci) => ({
@@ -108,7 +115,7 @@ export function CobrarComandaModal({ comanda, cajaId, onClose, onSuccess }: Prop
     try {
       const { data, error } = await createCuenta(supabase, clubId ?? '', cuentaItems, selectedMetodo, undefined, 0, cajaId)
       if (error || !data) throw error ?? new Error('No se pudo crear la cuenta')
-      await updateComanda(supabase, comanda.id, { cuenta_id: data.id, estado: 'cobrado' })
+      await updateComanda(supabase, comanda.id, trasCobrar(data.id))
       toast.success('Cobrado ✓')
       onSuccess()
       onClose()
@@ -128,7 +135,7 @@ export function CobrarComandaModal({ comanda, cajaId, onClose, onSuccess }: Prop
       if (splitTarjeta > 0) pagos.push({ metodo: 'credito', monto: splitTarjeta })
       const { data, error } = await createCuenta(supabase, clubId ?? '', cuentaItems, pagos, undefined, 0, cajaId)
       if (error || !data) throw error ?? new Error('No se pudo crear la cuenta')
-      await updateComanda(supabase, comanda.id, { cuenta_id: data.id, estado: 'cobrado' })
+      await updateComanda(supabase, comanda.id, trasCobrar(data.id))
       const cambioStr = splitCambio > 0 ? ` — Cambio: ${fmtCurrency(splitCambio)}` : ''
       toast.success(`Pago dividido ✓${cambioStr}`)
       onSuccess()
@@ -150,7 +157,7 @@ export function CobrarComandaModal({ comanda, cajaId, onClose, onSuccess }: Prop
         if (error || !data) throw error ?? new Error('No se pudo crear la cuenta')
         if (!firstCuentaId) firstCuentaId = data.id
       }
-      await updateComanda(supabase, comanda.id, { cuenta_id: firstCuentaId!, estado: 'cobrado' })
+      await updateComanda(supabase, comanda.id, trasCobrar(firstCuentaId!))
       toast.success(`Cuenta dividida entre ${splits.length} persona${splits.length !== 1 ? 's' : ''} ✓`)
       onSuccess()
       onClose()

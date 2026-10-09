@@ -5,7 +5,7 @@ import type { TicketItem } from './POSPage'
 import { Minus, Plus } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { createCuenta, type MetodoPago, type PagoInput } from '@/lib/supabase/queries/pos'
-import { createComanda } from '@/lib/supabase/queries/comandas'
+import { createComanda, updateComanda } from '@/lib/supabase/queries/comandas'
 import { SplitAccountModal, type PersonSplit } from './SplitAccountModal'
 import { getDescuentosActivos, type DescuentoRegla } from '@/lib/supabase/queries/descuentos'
 import { getCajaActiva } from '@/lib/supabase/queries/caja'
@@ -50,7 +50,9 @@ export function TicketPanel({ items, onUpdateQty, onRemove, onClear, onHistoryOp
   const [payModal, setPayModal] = useState<{ open: boolean; metodo: MetodoPago }>({ open: false, metodo: 'efectivo' })
   const [recibido, setRecibido] = useState('')
   const recibidoRef = useRef<HTMLInputElement>(null)
-  const [comandaEnviada, setComandaEnviada] = useState(false)
+  // Lo que este ticket ya mandó a cocina: cantidad por producto y las comandas creadas
+  const [enviado, setEnviado] = useState<Record<string, number>>({})
+  const [comandaIds, setComandaIds] = useState<string[]>([])
   const [enviandoComanda, setEnviandoComanda] = useState(false)
   // Modal de pago dividido
   const [splitOpen, setSplitOpen] = useState(false)
@@ -87,6 +89,16 @@ export function TicketPanel({ items, onUpdateQty, onRemove, onClear, onHistoryOp
   const tax = base * TAX_RATE
   const total = base + tax
   const itemsParaCocina = items.filter(i => i.requiere_cocina)
+  // Lo que falta por enviar: productos nuevos o cantidades añadidas después de un envío
+  const pendientesCocina = itemsParaCocina
+    .map(i => ({ ...i, qty: i.qty - (enviado[i.id] ?? 0) }))
+    .filter(i => i.qty > 0)
+
+  // Un ticket vacío es un ticket nuevo: se olvida lo enviado con el anterior
+  if (items.length === 0 && (comandaIds.length > 0 || Object.keys(enviado).length > 0)) {
+    setEnviado({})
+    setComandaIds([])
+  }
 
   const recibidoNum = parseFloat(recibido) || 0
   const cambio = recibidoNum - total
@@ -128,29 +140,55 @@ export function TicketPanel({ items, onUpdateQty, onRemove, onClear, onHistoryOp
   function resetTicket() {
     onClear?.()
     setTicketId(`#SP-${Math.floor(Math.random() * 9000 + 1000)}`)
-    setComandaEnviada(false)
+    setEnviado({})
+    setComandaIds([])
   }
 
-  async function handleEnviarACocina() {
-    const itemsParaCocina = items.filter(i => i.requiere_cocina)
-    if (itemsParaCocina.length === 0) return
-    setEnviandoComanda(true)
-    const { error } = await createComanda(
+  /** Crea una comanda con lo pendiente de cocina. Devuelve su id, o null si falló. */
+  async function crearComandaPendiente(cuentaId?: string): Promise<string | null> {
+    const { data, error } = await createComanda(
       supabase,
       clubId ?? '',
-      itemsParaCocina.map(i => ({
+      pendientesCocina.map(i => ({
         producto_id: i.id,
         nombre: i.name,
         cantidad: i.qty,
         precio_unitario: i.price,
       })),
+      undefined,
+      cuentaId,
     )
+    return error || !data ? null : data.id
+  }
+
+  async function handleEnviarACocina() {
+    if (pendientesCocina.length === 0) return
+    setEnviandoComanda(true)
+    const id = await crearComandaPendiente()
     setEnviandoComanda(false)
-    if (error) {
+    if (!id) {
       toast.error('Error al enviar a cocina')
-    } else {
-      setComandaEnviada(true)
-      toast.success('Comanda enviada a cocina ✓')
+      return
+    }
+    setEnviado(prev => ({ ...prev, ...Object.fromEntries(itemsParaCocina.map(i => [i.id, i.qty])) }))
+    setComandaIds(prev => [...prev, id])
+    toast.success('Comanda enviada a cocina ✓')
+  }
+
+  /**
+   * Tras cobrar: lo enviado antes deja de estar "sin cobrar" y lo que nunca se
+   * envió sale ahora hacia cocina. Devuelve el texto que se añade al aviso del pago.
+   */
+  async function cocinaTrasCobrar(cuentaId: string): Promise<string> {
+    if (comandaIds.length === 0 && pendientesCocina.length === 0) return ''
+    try {
+      await Promise.all(comandaIds.map(id => updateComanda(supabase, id, { cuenta_id: cuentaId })))
+      if (pendientesCocina.length > 0 && !(await crearComandaPendiente(cuentaId))) throw new Error('comanda')
+      return pendientesCocina.length > 0 ? ' · Comanda enviada a cocina' : ''
+    } catch {
+      // El cobro ya está hecho; lo que falló es solo el aviso a cocina
+      toast.error('El pago se registró, pero la comanda no llegó a cocina. Avisa a cocina.')
+      return ''
     }
   }
 
@@ -160,16 +198,17 @@ export function TicketPanel({ items, onUpdateQty, onRemove, onClear, onHistoryOp
       return
     }
     setPaying(true)
-    const { error } = await createCuenta(supabase, clubId ?? '', buildCuentaItems(), payModal.metodo, undefined, undefined, cajaId ?? undefined)
+    const { data, error } = await createCuenta(supabase, clubId ?? '', buildCuentaItems(), payModal.metodo, undefined, discount, cajaId ?? undefined)
+    const cocina = error || !data ? '' : await cocinaTrasCobrar(data.id)
     setPaying(false)
-    if (error) {
+    if (error || !data) {
       toast.error('Error al procesar el pago')
     } else {
       setPayModal({ open: false, metodo: 'efectivo' })
       toast.success(
-        payModal.metodo === 'efectivo'
+        (payModal.metodo === 'efectivo'
           ? `Pago en efectivo — Cambio: $${cambio.toFixed(2)} MXN`
-          : 'Pago con tarjeta procesado'
+          : 'Pago con tarjeta procesado') + cocina
       )
       resetTicket()
     }
@@ -182,23 +221,26 @@ export function TicketPanel({ items, onUpdateQty, onRemove, onClear, onHistoryOp
     if (splitTarjeta > 0) pagos.push({ metodo: 'credito', monto: splitTarjeta })
     if (pagos.length === 0) return
     setPaying(true)
-    const { error } = await createCuenta(supabase, clubId ?? '', buildCuentaItems(), pagos, undefined, undefined, cajaId ?? undefined)
+    const { data, error } = await createCuenta(supabase, clubId ?? '', buildCuentaItems(), pagos, undefined, discount, cajaId ?? undefined)
+    const cocina = error || !data ? '' : await cocinaTrasCobrar(data.id)
     setPaying(false)
-    if (error) {
+    if (error || !data) {
       toast.error('Error al procesar el pago')
     } else {
       setSplitOpen(false)
       const cambioStr = splitCambio > 0 ? ` — Cambio efectivo: $${splitCambio.toFixed(2)}` : ''
-      toast.success(`Pago dividido — Efectivo: $${Math.min(splitEfectivoNum, total).toFixed(2)} · Tarjeta: $${splitTarjeta.toFixed(2)}${cambioStr}`)
+      toast.success(`Pago dividido — Efectivo: $${Math.min(splitEfectivoNum, total).toFixed(2)} · Tarjeta: $${splitTarjeta.toFixed(2)}${cambioStr}${cocina}`)
       resetTicket()
     }
   }
 
   async function handleConfirmSplitAccount(splits: PersonSplit[]) {
     let allOk = true
+    // La comanda es una sola: queda ligada a la primera de las cuentas
+    let primeraCuentaId: string | null = null
     setPaying(true)
     for (const split of splits) {
-      const { error } = await createCuenta(
+      const { data, error } = await createCuenta(
         supabase,
         clubId ?? '',
         split.items,
@@ -207,16 +249,18 @@ export function TicketPanel({ items, onUpdateQty, onRemove, onClear, onHistoryOp
         0,
         cajaId ?? undefined,
       )
-      if (error) {
+      if (error || !data) {
         toast.error(`Error al cobrar a ${split.nombre}`)
         allOk = false
         break
       }
+      primeraCuentaId ??= data.id
     }
+    const cocina = allOk && primeraCuentaId ? await cocinaTrasCobrar(primeraCuentaId) : ''
     setPaying(false)
     if (allOk) {
       setSplitAccountOpen(false)
-      toast.success(`Cuenta dividida entre ${splits.length} persona${splits.length !== 1 ? 's' : ''}`)
+      toast.success(`Cuenta dividida entre ${splits.length} persona${splits.length !== 1 ? 's' : ''}${cocina}`)
       resetTicket()
     }
   }
@@ -704,28 +748,36 @@ export function TicketPanel({ items, onUpdateQty, onRemove, onClear, onHistoryOp
             margin: '0 20px 12px',
           }}>
             <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
-              🍳 {itemsParaCocina.length} item{itemsParaCocina.length !== 1 ? 's' : ''} para cocina
+              {pendientesCocina.length > 0
+                ? `🍳 ${pendientesCocina.length} item${pendientesCocina.length !== 1 ? 's' : ''} para cocina · sale al cobrar`
+                : '🍳 Todo enviado a cocina'}
             </span>
             <button
               type="button"
               onClick={handleEnviarACocina}
-              disabled={comandaEnviada || enviandoComanda}
+              disabled={pendientesCocina.length === 0 || enviandoComanda}
               style={{
                 padding: '5px 12px',
                 background: 'transparent',
-                border: comandaEnviada
+                border: pendientesCocina.length === 0
                   ? '1px solid var(--color-border-subtle)'
                   : '1px solid var(--color-lime)',
                 borderRadius: '6px',
-                color: comandaEnviada ? 'var(--color-muted)' : 'var(--color-lime)',
+                color: pendientesCocina.length === 0 ? 'var(--color-muted)' : 'var(--color-lime)',
                 fontSize: '11px', fontWeight: 700,
-                cursor: (comandaEnviada || enviandoComanda) ? 'not-allowed' : 'pointer',
+                cursor: (pendientesCocina.length === 0 || enviandoComanda) ? 'not-allowed' : 'pointer',
                 fontFamily: 'inherit',
                 whiteSpace: 'nowrap',
               }}
             >
-              {enviandoComanda ? 'Enviando...' : comandaEnviada ? '✓ Enviado a cocina' : 'Enviar a cocina'}
+              {enviandoComanda ? 'Enviando...' : pendientesCocina.length === 0 ? '✓ Enviado' : 'Enviar ahora'}
             </button>
+          </div>
+        )}
+        {/* Sin productos de cocina no hay nada que enviar: se dice, para que no parezca un fallo */}
+        {items.length > 0 && itemsParaCocina.length === 0 && (
+          <div style={{ margin: '0 20px 12px', fontSize: '11px', color: 'var(--color-muted-dim)', lineHeight: 1.4 }}>
+            Este ticket no genera comanda: ningún producto está marcado para cocina (se marca en Gestionar menú).
           </div>
         )}
 

@@ -51,12 +51,14 @@ export async function createComanda(
   clubId: string,
   items: ComandaItemInput[],
   notas?: string,
+  // Cuenta ya cobrada a la que pertenece; sin ella la comanda queda "sin cobrar"
+  cuentaId?: string,
 ): Promise<{ data: { id: string } | null; error: Error | null }> {
   const { data: comanda, error: comandaError } = await supabase
     .from('comandas')
     .insert({
       club_id: clubId,
-      cuenta_id: null,
+      cuenta_id: cuentaId ?? null,
       estado: 'pendiente',
       notas: notas ?? null,
     })

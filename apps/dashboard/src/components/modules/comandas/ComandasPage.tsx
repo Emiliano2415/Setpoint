@@ -12,6 +12,7 @@ import {
 import { getCajaActiva } from '@/lib/supabase/queries/caja'
 import { CobrarComandaModal } from './CobrarComandaModal'
 import { useAppStore } from '@/store/useAppStore'
+import { toast } from 'sonner'
 const HIDE_AFTER_MS = 30 * 60 * 1000 // 30 minutos
 
 function isRecentlyDelivered(comanda: ComandaFromDB): boolean {
@@ -90,19 +91,23 @@ export function ComandasPage({ cajaId: cajaIdProp }: ComandasPageProps = {}) {
       channel.unsubscribe()
       clearInterval(tickInterval)
     }
-  }, [fetchComandas, supabase])
+  }, [fetchComandas, supabase, clubId])
 
-  const advance = async (id: string, currentStatus: ComandaEstado) => {
-    const next = NEXT_STATUS[currentStatus]
+  const advance = async (comanda: ComandaFromDB) => {
+    let next = NEXT_STATUS[comanda.estado]
     if (!next) return
+    // "Entregado" es lo entregado que falta cobrar; lo ya pagado termina en "cobrado"
+    if (next === 'entregado' && comanda.cuenta_id !== null) next = 'cobrado'
+    const destino = next
     try {
-      await updateComandaEstado(supabase, id, next)
-      // Realtime actualizará vía suscripción; actualizamos local también para respuesta inmediata
+      await updateComandaEstado(supabase, comanda.id, destino)
+      // El sondeo lo traerá de nuevo; se actualiza aquí para que responda al instante
       setComandas((prev) =>
-        prev.map((c) => (c.id === id ? { ...c, estado: next } : c)),
+        prev.map((c) => (c.id === comanda.id ? { ...c, estado: destino } : c)),
       )
     } catch (err) {
       console.error('Error actualizando estado:', err)
+      toast.error('No se pudo actualizar la comanda')
     }
   }
 
@@ -210,7 +215,7 @@ export function ComandasPage({ cajaId: cajaIdProp }: ComandasPageProps = {}) {
                 return (
                   <div
                     key={item.id}
-                    onClick={() => advance(item.id, item.estado)}
+                    onClick={() => advance(item)}
                     style={{
                       background: 'var(--color-bg2)',
                       border: '1px solid var(--color-border-subtle)',
