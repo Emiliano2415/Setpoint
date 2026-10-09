@@ -21,17 +21,22 @@ El rediseño tiene dos mitades que no se deben mezclar:
 
 Se conserva la identidad (tema oscuro verdoso con acento lima), bajando saturación y contraste.
 
-| Uso | Antes | Ahora |
-|---|---|---|
-| Fondo | `#0D1109` | `#121714` |
-| Superficie | `#161C10` | `#181E1A` |
-| Superficie elevada | `#1a2213` | `#1F2622` |
-| Borde | `#28351C` | `#2B342E` |
-| Texto | `#F1F5F9` | `#E7EBE5` |
-| Texto secundario | `#CBD5C4` | `#A9B4A7` |
-| Texto atenuado | `#8B9C7A` | `#7C887B` |
-| Acento | `#6CF20D` | `#A6D785` |
-| Éxito / aviso / peligro / info | saturados | `#86C99A` / `#D9B455` / `#D9736B` / `#7FA8D9` |
+Valores de la paleta que Stitch pinta y que el usuario aprobó el 2026-10-09. El código usa los mismos nombres que Stitch.
+
+| Uso | Antes | Ahora | Nombre |
+|---|---|---|---|
+| Fondo | `#0D1109` | `#0a0f0c` | `background` |
+| Superficie | `#161C10` | `#141b17` | `surface-container` |
+| Superficie elevada | `#1a2213` | `#19211d` / `#1e2822` | `surface-container-high` / `-highest` |
+| Borde | `#28351C` | `#404a44` | `outline-variant` |
+| Texto | `#F1F5F9` | `#dde8df` | `on-surface` |
+| Texto secundario | `#CBD5C4` | `#a2aea6` | `on-surface-variant` |
+| Texto atenuado | `#8B9C7A` | `#6d7871` | `outline` |
+| Acento | `#6CF20D` | `#a3d483` | `primary` (texto encima: `#214906`) |
+| Peligro | `#EF4444` | `#f97758` | `error` |
+| Éxito / aviso / info | saturados | `#86C99A` / `#D9B455` / `#7FA8D9` | `success` / `warning` / `info` |
+
+El fondo apenas cambia; lo que suaviza la interfaz es el acento (de neón a salvia), el texto menos blanco y la ausencia de brillos.
 
 Reglas:
 
@@ -92,6 +97,12 @@ Lo que un encargo de implementación **no puede** tocar:
 Lo que **sí** cambia: el JSX, las clases, la composición en primitivas, los textos de interfaz acordados en la especificación.
 
 Comprobación mecánica en cada revisión: `git diff --stat -- apps/dashboard/src/lib apps/dashboard/src/store` debe salir vacío.
+
+### 6. Gráficas y filtros
+
+El usuario quiere las gráficas con **Mono Charts de Amicro** (https://amicro.vercel.app/mono-charts): gráficas de una sola tinta, geometría redondeada y tipografía mínima, que encajan con esta dirección. Sustituyen a Recharts en Reportes.
+
+Antes de diseñar cualquier apartado con filtros o gráficas se le avisa y se espera su respuesta. La lista de apartados afectados está en el plan.
 
 ## Alcance
 

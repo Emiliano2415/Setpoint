@@ -50,6 +50,26 @@ grep -c "style={{" <archivo>          # Esperado: 0, o cada uso justificado en l
 
 Después, **[Claude]** recorre el flujo de humo del módulo en el navegador con el servidor vigilado (Task 9) y compara con la captura de Stitch.
 
+### Avisar antes de filtros y gráficas
+
+Pedido del usuario (2026-10-09): **antes de diseñar cualquier apartado con filtros o con gráficas, avisarle y esperar su respuesta.** Afecta a:
+
+| Dónde | Qué |
+|---|---|
+| Pistas | Navegación por fecha |
+| Inventario, Clientes, Personal | Buscador y filtros de lista |
+| Historial, Cancelaciones | Rango de fechas y filtros |
+| Caja | Resumen del turno (posibles gráficas) |
+| Reportes | Gráficas y selector de periodo |
+
+Para las gráficas quiere usar **Mono Charts de Amicro** (https://amicro.vercel.app/mono-charts): 30 gráficas de una sola tinta, de Syed Subhan, repositorio `Subhan-code/Amicro--Micro-transitions-`. Se instalan una a una desde su registro de shadcn:
+
+```bash
+npx shadcn@latest add https://amicro.vercel.app/r/<nombre>.json
+```
+
+Antes de adoptarlas (Task 28): leer su licencia, comprobar qué dependencias trae cada una y que funcionan con Tailwind v4, y crear `apps/dashboard/components.json` (el proyecto no usa shadcn hoy). Sustituyen a Recharts.
+
 ### Commits
 
 Uno por tarea, en inglés, estilo del repositorio: `feat(ds): …`, `refactor(pos): …`. Los hace Claude tras la revisión.
@@ -68,9 +88,7 @@ Cada generación de Stitch devuelve unas 5,000 palabras de respuesta. Para no ll
 
 **Hecho:** `Punto de Venta` (`screens/be32ac930434454b9e902c9e5333154e`) y `Punto de Venta — Cobro en efectivo` (`screens/580655626e2849b380a8590db902fb9f`).
 
-**Step 1:** El usuario revisa ambos diseños en Stitch.
-**Step 2:** Si pide cambios de color, tipografía o densidad, se ajusta el sistema de diseño (`update_design_system`) y se reaplica (`apply_design_system`) antes de generar nada más.
-**Step 3:** No se pasa al Task 2 sin su visto bueno.
+**Aprobado por el usuario el 2026-10-09** ("me gusta bastante"), tal como lo pinta Stitch. Por eso los tokens del código (Task 10) usan los nombres y valores de la paleta de Stitch, no los del texto del sistema de diseño.
 
 ### Task 2: Corregir el armazón
 
@@ -121,57 +139,69 @@ Script que arranca `next dev` de una app, mide la memoria de sus procesos cada 5
 **Step 1:** Sustituir la sección de colores del bloque `@theme inline` por esto. Los nombres antiguos se conservan apuntando a la paleta nueva para que las pantallas sin migrar cambien de tono desde ya.
 
 ```css
-  /* ===================== TOKENS 2.0 ===================== */
-  --color-canvas: #121714;
-  --color-panel: #181E1A;
-  --color-raised: #1F2622;
-  --color-line: #2B342E;
-  --color-line-strong: #3A453D;
+  /* ===================== TOKENS 2.0 =====================
+     Mismos nombres y valores que el sistema de diseño de Stitch: las clases
+     del HTML exportado (bg-surface-container, text-on-surface…) valen tal cual. */
+  --color-background: #0a0f0c;
+  --color-surface-container-low: #0e1511;
+  --color-surface-container: #141b17;
+  --color-surface-container-high: #19211d;
+  --color-surface-container-highest: #1e2822;
+  --color-surface-bright: #242e28;
 
-  --color-ink: #E7EBE5;
-  --color-ink-2: #A9B4A7;
-  --color-ink-3: #7C887B;
+  --color-outline: #6d7871;
+  --color-outline-variant: #404a44;
 
-  --color-brand: #A6D785;
-  --color-brand-ink: #10140F;
-  --color-brand-soft: rgba(166,215,133,0.12);
+  --color-on-surface: #dde8df;
+  --color-on-surface-variant: #a2aea6;
 
-  --color-ok: #86C99A;
-  --color-ok-soft: rgba(134,201,154,0.12);
-  --color-warn: #D9B455;
-  --color-warn-soft: rgba(217,180,85,0.12);
-  --color-danger: #D9736B;
-  --color-danger-soft: rgba(217,115,107,0.12);
+  --color-primary: #a3d483;
+  --color-primary-dim: #96c676;
+  --color-on-primary: #214906;
+  --color-primary-container: #335c19;
+  --color-on-primary-container: #bff29d;
+
+  --color-secondary: #bdcbaf;
+  --color-secondary-dim: #afbda2;
+  --color-tertiary: #fff9e6;
+  --color-tertiary-dim: #eee4a0;
+
+  --color-error: #f97758;
+  --color-error-container: #85230a;
+  --color-on-error-container: #ff9b82;
+
+  /* Estados que Stitch no nombra */
+  --color-success: #86C99A;
+  --color-warning: #D9B455;
   --color-info: #7FA8D9;
-  --color-info-soft: rgba(127,168,217,0.12);
 
   /* ============ NOMBRES ANTIGUOS (se borran en el cierre) ============ */
-  --color-bg: #121714;
-  --color-bg2: #181E1A;
-  --color-bg3: #1F2622;
-  --color-bg4: #252D28;
+  --color-bg: #0a0f0c;
+  --color-bg2: #141b17;
+  --color-bg3: #19211d;
+  --color-bg4: #1e2822;
 
-  --color-lime: #A6D785;
-  --color-lime-5: rgba(166,215,133,0.05);
-  --color-lime-8: rgba(166,215,133,0.08);
-  --color-lime-10: rgba(166,215,133,0.10);
-  --color-lime-15: rgba(166,215,133,0.15);
-  --color-lime-20: rgba(166,215,133,0.20);
-  --color-lime-30: rgba(166,215,133,0.30);
-  --color-lime-60: rgba(166,215,133,0.60);
+  --color-lime: #a3d483;
+  --color-lime-5: rgba(163,212,131,0.05);
+  --color-lime-8: rgba(163,212,131,0.08);
+  --color-lime-10: rgba(163,212,131,0.10);
+  --color-lime-15: rgba(163,212,131,0.15);
+  --color-lime-20: rgba(163,212,131,0.20);
+  --color-lime-30: rgba(163,212,131,0.30);
+  --color-lime-60: rgba(163,212,131,0.60);
 
-  --color-text: #E7EBE5;
-  --color-text-secondary: #A9B4A7;
-  --color-muted: #94A093;
-  --color-muted-dim: #5F6B5F;
+  --color-text: #dde8df;
+  --color-text-secondary: #a2aea6;
+  --color-muted: #a2aea6;
+  --color-muted-dim: #6d7871;
 
-  --color-border: #2B342E;
-  --color-border-subtle: #232B26;
+  --color-border: #404a44;
+  --color-border-subtle: rgba(64,74,68,0.5);
 
   --color-yellow: #D9B455;
   --color-yellow-10: rgba(217,180,85,0.10);
-  --color-red: #D9736B;
-  --color-red-10: rgba(217,115,107,0.10);
+  --color-red: #f97758;
+  --color-red-10: rgba(249,119,88,0.10);
   --color-green: #86C99A;
   --color-green-10: rgba(134,201,154,0.10);
   --color-blue: #7FA8D9;
@@ -179,10 +209,10 @@ Script que arranca `next dev` de una app, mide la memoria de sus procesos cada 5
   --color-orange: #D99A5B;
   --color-orange-10: rgba(217,154,91,0.10);
 
-  --color-surface: rgba(24,30,26,0.6);
+  --color-surface: rgba(20,27,23,0.6);
 ```
 
-**Step 2:** En el mismo archivo, cambiar el color de la barra de desplazamiento y del foco de `rgba(108,242,13,…)` a `rgba(166,215,133,…)` con la misma opacidad.
+**Step 2:** En el mismo archivo, cambiar el color de la barra de desplazamiento y del foco de `rgba(108,242,13,…)` a `rgba(163,212,131,…)` con la misma opacidad.
 
 **Step 3:** Buscar colores neón escritos a mano: `grep -rn "6CF20D\|108,242,13" apps/dashboard/src --include=*.tsx --include=*.ts`. Sustituir cada uno por `var(--color-lime)` o la variante `--color-lime-NN` de opacidad más cercana. No tocar nada más de esas líneas.
 
@@ -200,10 +230,10 @@ Script que arranca `next dev` de una app, mide la memoria de sus procesos cada 5
 import type { ButtonHTMLAttributes } from 'react'
 
 const VARIANT = {
-  primary: 'bg-brand text-brand-ink hover:brightness-105',
-  secondary: 'border border-line-strong text-ink hover:bg-raised',
-  ghost: 'text-ink-2 hover:bg-raised hover:text-ink',
-  danger: 'border border-danger/50 text-danger hover:bg-danger-soft',
+  primary: 'bg-primary text-on-primary hover:brightness-105',
+  secondary: 'border border-outline text-on-surface hover:bg-surface-container-highest',
+  ghost: 'text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface',
+  danger: 'border border-error/50 text-error hover:bg-error/10',
 } as const
 
 const SIZE = {
@@ -235,7 +265,7 @@ export function Button({
     <button
       type={type}
       disabled={disabled || loading}
-      className={`inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-50 ${VARIANT[variant]} ${SIZE[size]} ${fullWidth ? 'w-full' : ''} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-50 ${VARIANT[variant]} ${SIZE[size]} ${fullWidth ? 'w-full' : ''} ${className}`}
       {...rest}
     >
       {loading ? 'Procesando…' : children}
@@ -249,12 +279,12 @@ export function Button({
 | Componente | Props | Aspecto |
 |---|---|---|
 | `IconButton` | `icon: ReactNode`, `label: string` (va a `aria-label`), `variant?: 'ghost' \| 'secondary' \| 'danger'`, resto de atributos de botón | Cuadrado de 32 px, radio 8 |
-| `Badge` | `tone?: 'neutral' \| 'ok' \| 'warn' \| 'danger' \| 'info' \| 'brand'`, `children` | Punto de 6 px + texto 12/500; fondo `*-soft`, texto del tono |
-| `Card` | `padding?: 'none' \| 'md' \| 'lg'`, `className?`, `children` | `bg-panel border border-line rounded-lg` |
-| `StatCard` | `label: string`, `value: ReactNode`, `hint?: string`, `tone?` como `Badge` | Etiqueta 12 `text-ink-3`, valor 24/600 tabular, pista 12 |
+| `Badge` | `tone?: 'neutral' \| 'success' \| 'warning' \| 'error' \| 'info' \| 'primary'`, `children` | Punto de 6 px + texto 12/500; fondo del tono al 10 % (p. ej. `bg-success/10`), texto del tono |
+| `Card` | `padding?: 'none' \| 'md' \| 'lg'`, `className?`, `children` | `bg-surface-container border border-outline-variant rounded-lg` |
+| `StatCard` | `label: string`, `value: ReactNode`, `hint?: string`, `tone?` como `Badge` | Etiqueta 12 `text-outline`, valor 24/600 tabular, pista 12 |
 | `Money` | `value: number`, `className?` | `<span>` con `tabular-nums`, formato `$1,234.50` (`Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' })`) |
-| `Skeleton` | `className?` | Bloque `bg-raised animate-pulse rounded-md` |
-| `EmptyState` | `icon: ReactNode`, `title: string`, `action?: ReactNode` | Centrado, icono 32 `text-ink-3`, una línea 14 `text-ink-2`, acción debajo |
+| `Skeleton` | `className?` | Bloque `bg-surface-container-highest animate-pulse rounded-md` |
+| `EmptyState` | `icon: ReactNode`, `title: string`, `action?: ReactNode` | Centrado, icono 32 `text-outline`, una línea 14 `text-on-surface-variant`, acción debajo |
 
 **Step 3:** `index.ts` reexporta todo.
 **Step 4:** Verificar con `tsc` y `eslint src/components/ds`.
@@ -268,13 +298,13 @@ export function Button({
 
 | Componente | Props | Aspecto |
 |---|---|---|
-| `Field` | `label: string`, `htmlFor: string`, `hint?: string`, `error?: string`, `children` | Etiqueta 12/500 `text-ink-2` arriba, ayuda 12 `text-ink-3` abajo; si hay `error` sustituye a la ayuda en `text-danger` |
-| `Input` | atributos de `<input>` + `prefix?: ReactNode`, `invalid?: boolean` | Alto 40, `bg-canvas border border-line rounded-lg px-3 text-sm`; foco `border-brand`; `invalid` → `border-danger` |
+| `Field` | `label: string`, `htmlFor: string`, `hint?: string`, `error?: string`, `children` | Etiqueta 12/500 `text-on-surface-variant` arriba, ayuda 12 `text-outline` abajo; si hay `error` sustituye a la ayuda en `text-error` |
+| `Input` | atributos de `<input>` + `prefix?: ReactNode`, `invalid?: boolean` | Alto 40, `bg-background border border-outline-variant rounded-lg px-3 text-sm`; foco `border-primary`; `invalid` → `border-error` |
 | `Select` | atributos de `<select>` + `invalid?` | Igual que `Input`, con `ChevronDown` a la derecha |
 | `Textarea` | atributos de `<textarea>` + `invalid?` | Igual que `Input`, alto mínimo 80 |
-| `Switch` | `checked: boolean`, `onChange: (v: boolean) => void`, `label: string`, `disabled?` | `role="switch"`, pista 36×20, activo `bg-brand` |
-| `SegmentedControl` | `value: string`, `onChange: (v: string) => void`, `options: { value: string; label: string }[]` | Contenedor `bg-canvas border border-line rounded-lg p-1`; opción activa `bg-raised text-ink` |
-| `Tabs` | `value`, `onChange`, `tabs: { value: string; label: string; count?: number }[]` | Subrayado de 2 px `border-brand` en la activa, resto `text-ink-2` |
+| `Switch` | `checked: boolean`, `onChange: (v: boolean) => void`, `label: string`, `disabled?` | `role="switch"`, pista 36×20, activo `bg-primary` |
+| `SegmentedControl` | `value: string`, `onChange: (v: string) => void`, `options: { value: string; label: string }[]` | Contenedor `bg-background border border-outline-variant rounded-lg p-1`; opción activa `bg-surface-container-highest text-on-surface` |
+| `Tabs` | `value`, `onChange`, `tabs: { value: string; label: string; count?: number }[]` | Subrayado de 2 px `border-primary` en la activa, resto `text-on-surface-variant` |
 
 **Verificar:** `tsc`, `eslint src/components/ds`.
 **Commit:** `feat(ds): form primitives`
@@ -361,26 +391,26 @@ export function Modal({
         aria-modal="true"
         aria-label={title}
         tabIndex={-1}
-        className={`flex max-h-[calc(100vh-32px)] w-full ${WIDTH[size]} flex-col rounded-xl border border-line bg-panel shadow-2xl outline-none`}
+        className={`flex max-h-[calc(100vh-32px)] w-full ${WIDTH[size]} flex-col rounded-xl border border-outline-variant bg-surface-container shadow-2xl outline-none`}
       >
-        <header className="flex items-start justify-between gap-4 border-b border-line px-6 py-4">
+        <header className="flex items-start justify-between gap-4 border-b border-outline-variant px-6 py-4">
           <div>
-            <h2 className="text-base font-semibold text-ink">{title}</h2>
-            {description && <p className="mt-1 text-sm text-ink-2">{description}</p>}
+            <h2 className="text-base font-semibold text-on-surface">{title}</h2>
+            {description && <p className="mt-1 text-sm text-on-surface-variant">{description}</p>}
           </div>
           <button
             type="button"
             onClick={onClose}
             disabled={!dismissable}
             aria-label="Cerrar"
-            className="rounded-md p-1 text-ink-3 hover:bg-raised hover:text-ink disabled:opacity-40"
+            className="rounded-md p-1 text-outline hover:bg-surface-container-highest hover:text-on-surface disabled:opacity-40"
           >
             <X size={18} />
           </button>
         </header>
         <div className="flex-1 overflow-y-auto px-6 py-5">{children}</div>
         {footer && (
-          <footer className="flex items-center justify-between gap-3 border-t border-line px-6 py-4">
+          <footer className="flex items-center justify-between gap-3 border-t border-outline-variant px-6 py-4">
             {footer}
           </footer>
         )}
@@ -395,7 +425,7 @@ export function Modal({
 | Componente | Props | Comportamiento |
 |---|---|---|
 | `Drawer` | `open`, `onClose`, `title`, `footer?`, `children` | Igual que `Modal` (Esc, fondo, foco) pero anclado a la derecha, ancho 420, alto completo |
-| `Stepper` | `steps: string[]`, `current: number` (base 0) | Fila de círculos numerados de 24 px; hecho `bg-brand text-brand-ink`, actual `border-brand text-brand`, pendiente `border-line text-ink-3`; etiqueta 12 junto a cada uno |
+| `Stepper` | `steps: string[]`, `current: number` (base 0) | Fila de círculos numerados de 24 px; hecho `bg-primary text-on-primary`, actual `border-primary text-primary`, pendiente `border-outline-variant text-outline`; etiqueta 12 junto a cada uno |
 | `ConfirmDialog` | `open`, `onCancel`, `onConfirm`, `title`, `consequence: string`, `confirmLabel: string`, `loading?` | `Modal` `sm` con la frase de consecuencia y pie: `Button` secundario "Cancelar", `Button` `danger` con `confirmLabel` |
 
 **Verificar:** `tsc`, `eslint src/components/ds`.
@@ -408,7 +438,7 @@ export function Modal({
 - Modify: `apps/dashboard/src/components/ds/index.ts`
 
 `Table<T>` con props `columns: { key: string; header: string; align?: 'left' | 'right'; width?: string; render: (row: T) => ReactNode }[]`, `rows: T[]`, `rowKey: (row: T) => string`, `onRowClick?: (row: T) => void`, `selectedKey?: string`, `empty?: ReactNode`.
-Cabecera fija 12/500 mayúsculas `text-ink-3`, filas de 40 px con `border-b border-line`, fila bajo el cursor `bg-raised`, fila seleccionada `bg-brand-soft`. Sin cebra.
+Cabecera fija 12/500 mayúsculas `text-outline`, filas de 40 px con `border-b border-outline-variant`, fila bajo el cursor `bg-surface-container-highest`, fila seleccionada `bg-primary/10`. Sin cebra.
 
 **Verificar:** `tsc`, `eslint`.
 **Commit:** `feat(ds): table primitive`
@@ -482,7 +512,7 @@ Los archivos de más de 500 líneas (`TicketPanel`, `SplitAccountModal`, `AddPro
 ```bash
 grep -rn "style={{" apps/dashboard/src --include=*.tsx | wc -l      # Esperado: solo usos justificados
 grep -rn "@/components/ui" apps/dashboard/src                         # Esperado: vacío
-grep -rnE "var\(--color-(bg|lime|text|muted|border|yellow|red|green|blue|orange|surface)" apps/dashboard/src   # Esperado: vacío
+grep -rnE "var\(--color-(bg|lime|text|muted|border|yellow|red|green|blue|orange|surface\))" apps/dashboard/src   # Esperado: vacío
 ```
 
 Lo que aparezca se corrige con un encargo a Haiku por archivo.
@@ -522,9 +552,10 @@ PRIMITIVAS DISPONIBLES: apps/dashboard/src/components/ds/ (léelas antes de empe
 
 QUÉ HACER
 Sustituye el JSX y los estilos del archivo para que se vea como el diseño, usando las
-primitivas. El HTML de Stitch usa colores con nombres propios: tradúcelos a los tokens del
-proyecto (bg-canvas, bg-panel, bg-raised, border-line, text-ink, text-ink-2, text-ink-3,
-bg-brand, text-brand-ink, y ok / warn / danger / info con sus variantes -soft).
+primitivas. Los colores del HTML de Stitch (bg-surface-container, text-on-surface-variant,
+border-outline-variant, bg-primary…) existen con el mismo nombre en el proyecto: úsalos tal
+cual. No copies colores en hexadecimal ni la fuente de iconos de Stitch (Material Symbols):
+los iconos son de lucide-react.
 
 QUÉ NO PUEDES TOCAR
 <pegar aquí los 10 puntos del contrato de lógica>
