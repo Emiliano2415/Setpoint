@@ -206,8 +206,8 @@ export function ReservationModal({ court, courts, onClose, onSuccess }: Props) {
             style={{
               display: 'flex', alignItems: 'center', gap: '12px',
               padding: '12px 14px',
-              background: checkinNow ? 'rgba(108,242,13,0.06)' : 'var(--color-bg)',
-              border: `1px solid ${checkinNow ? 'rgba(108,242,13,0.20)' : 'var(--color-border)'}`,
+              background: checkinNow ? 'rgba(163,212,131,0.06)' : 'var(--color-bg)',
+              border: `1px solid ${checkinNow ? 'rgba(163,212,131,0.20)' : 'var(--color-border)'}`,
               borderRadius: '10px',
               cursor: 'pointer',
               transition: 'all 0.15s',
@@ -249,7 +249,7 @@ export function ReservationModal({ court, courts, onClose, onSuccess }: Props) {
               disabled={saving || !pistaId}
               style={{
                 padding: '13px',
-                background: saving || !pistaId ? 'rgba(108,242,13,0.3)' : 'var(--color-lime)',
+                background: saving || !pistaId ? 'rgba(163,212,131,0.3)' : 'var(--color-lime)',
                 border: 'none', borderRadius: '10px',
                 color: 'var(--color-bg)', fontSize: '13px', fontWeight: 800,
                 cursor: saving || !pistaId ? 'not-allowed' : 'pointer',

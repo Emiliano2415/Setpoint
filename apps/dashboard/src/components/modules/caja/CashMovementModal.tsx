@@ -83,8 +83,8 @@ export function CashMovementModal({ cajaId, onClose, onSuccess }: Props) {
                   onClick={() => setCategoria(opt.value)}
                   style={{
                     padding: '8px 10px', cursor: 'pointer', borderRadius: '8px', transition: 'all 0.15s',
-                    background: categoria === opt.value ? 'rgba(108,242,13,0.06)' : 'var(--color-bg)',
-                    border: `1px solid ${categoria === opt.value ? 'rgba(108,242,13,0.25)' : 'var(--color-border)'}`,
+                    background: categoria === opt.value ? 'rgba(163,212,131,0.06)' : 'var(--color-bg)',
+                    border: `1px solid ${categoria === opt.value ? 'rgba(163,212,131,0.25)' : 'var(--color-border)'}`,
                   }}
                 >
                   <div style={{ fontSize: '11px', fontWeight: 700, color: categoria === opt.value ? 'var(--color-lime)' : 'var(--color-text)' }}>{opt.label}</div>
@@ -132,7 +132,7 @@ export function CashMovementModal({ cajaId, onClose, onSuccess }: Props) {
               disabled={saving || !canSubmit}
               style={{
                 padding: '13px', border: 'none', borderRadius: '10px',
-                background: saving || !canSubmit ? 'rgba(108,242,13,0.3)' : 'var(--color-lime)',
+                background: saving || !canSubmit ? 'rgba(163,212,131,0.3)' : 'var(--color-lime)',
                 color: 'var(--color-bg)', fontSize: '13px', fontWeight: 800,
                 cursor: saving || !canSubmit ? 'not-allowed' : 'pointer',
                 fontFamily: 'inherit', textTransform: 'uppercase', letterSpacing: '0.3px',

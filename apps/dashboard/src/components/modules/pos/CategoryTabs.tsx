@@ -38,7 +38,7 @@ export function CategoryTabs({ categories, active, onChange }: CategoryTabsProps
             }}
             onMouseEnter={(e) => {
               if (!isActive) {
-                e.currentTarget.style.borderColor = 'rgba(108,242,13,0.20)'
+                e.currentTarget.style.borderColor = 'rgba(163,212,131,0.20)'
                 e.currentTarget.style.color = 'var(--color-text)'
               }
             }}

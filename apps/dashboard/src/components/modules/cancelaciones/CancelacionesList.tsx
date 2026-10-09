@@ -6,7 +6,7 @@ const ESTADO_BADGE: Record<string, { label: string; color: string; bg: string }>
   ejecutada:   { label: 'Ejecutada',   color: 'var(--color-muted)', bg: 'var(--color-bg)' },
   pendiente:   { label: 'Pendiente',   color: '#F97316', bg: 'rgba(249,115,22,0.12)' },
   aprobada:    { label: 'Aprobada',    color: '#3B82F6', bg: 'rgba(59,130,246,0.12)' },
-  reembolsada: { label: 'Reembolsada', color: 'var(--color-lime)', bg: 'rgba(108,242,13,0.10)' },
+  reembolsada: { label: 'Reembolsada', color: 'var(--color-lime)', bg: 'rgba(163,212,131,0.10)' },
   rechazada:   { label: 'Rechazada',   color: '#EF4444', bg: 'rgba(239,68,68,0.10)' },
 }
 
@@ -59,7 +59,7 @@ export function CancelacionesList({ rows, loading, selected, onSelect }: Props) 
               padding: '12px 14px',
               borderRadius: '10px',
               border: `1px solid ${isSelected ? 'var(--color-lime)' : 'var(--color-border-subtle)'}`,
-              background: isSelected ? 'rgba(108,242,13,0.05)' : 'var(--color-bg2)',
+              background: isSelected ? 'rgba(163,212,131,0.05)' : 'var(--color-bg2)',
               marginBottom: '6px',
               cursor: 'pointer',
               transition: 'border-color 0.15s',

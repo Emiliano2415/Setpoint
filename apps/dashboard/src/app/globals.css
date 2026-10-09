@@ -5,46 +5,77 @@
 @import "tailwindcss" source("..");
 
 @theme inline {
-  /* ===================== COLORES BASE ===================== */
-  --color-bg: #0D1109;
-  --color-bg2: #161C10;
-  --color-bg3: #1a2213;
-  --color-bg4: #1f2918;
+  /* ===================== TOKENS 2.0 =====================
+     Mismos nombres y valores que el sistema de diseño de Stitch: las clases
+     del HTML exportado (bg-surface-container, text-on-surface…) valen tal cual. */
+  --color-background: #0a0f0c;
+  --color-surface-container-low: #0e1511;
+  --color-surface-container: #141b17;
+  --color-surface-container-high: #19211d;
+  --color-surface-container-highest: #1e2822;
+  --color-surface-bright: #242e28;
 
-  /* Lime accent — principal */
-  --color-lime: #6CF20D;
-  --color-lime-5: rgba(108,242,13,0.05);
-  --color-lime-8: rgba(108,242,13,0.08);
-  --color-lime-10: rgba(108,242,13,0.10);
-  --color-lime-15: rgba(108,242,13,0.15);
-  --color-lime-20: rgba(108,242,13,0.20);
-  --color-lime-30: rgba(108,242,13,0.30);
-  --color-lime-60: rgba(108,242,13,0.60);
+  --color-outline: #6d7871;
+  --color-outline-variant: #404a44;
 
-  /* Texto */
-  --color-text: #F1F5F9;
-  --color-text-secondary: #CBD5C4;
-  --color-muted: #8B9C7A;
-  --color-muted-dim: #5A6B4E;
+  --color-on-surface: #dde8df;
+  --color-on-surface-variant: #a2aea6;
 
-  /* Bordes */
-  --color-border: #28351C;
-  --color-border-subtle: #1e2a15;
+  --color-primary: #a3d483;
+  --color-primary-dim: #96c676;
+  --color-on-primary: #214906;
+  --color-primary-container: #335c19;
+  --color-on-primary-container: #bff29d;
 
-  /* Semánticos */
-  --color-yellow: #EAB308;
-  --color-yellow-10: rgba(234,179,8,0.10);
-  --color-red: #EF4444;
-  --color-red-10: rgba(239,68,68,0.10);
-  --color-green: #22C55E;
-  --color-green-10: rgba(34,197,94,0.10);
-  --color-blue: #3B82F6;
-  --color-blue-10: rgba(59,130,246,0.10);
-  --color-orange: #F97316;
-  --color-orange-10: rgba(249,115,22,0.10);
+  --color-secondary: #bdcbaf;
+  --color-secondary-dim: #afbda2;
+  --color-tertiary: #fff9e6;
+  --color-tertiary-dim: #eee4a0;
 
-  /* Surface */
-  --color-surface: rgba(22,28,16,0.6);
+  --color-error: #f97758;
+  --color-error-container: #85230a;
+  --color-on-error-container: #ff9b82;
+
+  /* Estados que Stitch no nombra */
+  --color-success: #86C99A;
+  --color-warning: #D9B455;
+  --color-info: #7FA8D9;
+
+  /* ============ NOMBRES ANTIGUOS (se borran en el cierre) ============ */
+  --color-bg: #0a0f0c;
+  --color-bg2: #141b17;
+  --color-bg3: #19211d;
+  --color-bg4: #1e2822;
+
+  --color-lime: #a3d483;
+  --color-lime-5: rgba(163,212,131,0.05);
+  --color-lime-8: rgba(163,212,131,0.08);
+  --color-lime-10: rgba(163,212,131,0.10);
+  --color-lime-15: rgba(163,212,131,0.15);
+  --color-lime-20: rgba(163,212,131,0.20);
+  --color-lime-30: rgba(163,212,131,0.30);
+  --color-lime-60: rgba(163,212,131,0.60);
+
+  --color-text: #dde8df;
+  --color-text-secondary: #a2aea6;
+  --color-muted: #a2aea6;
+  --color-muted-dim: #6d7871;
+
+  --color-border: #404a44;
+  --color-border-subtle: rgba(64,74,68,0.5);
+
+  --color-yellow: #D9B455;
+  --color-yellow-10: rgba(217,180,85,0.10);
+  --color-red: #f97758;
+  --color-red-10: rgba(249,119,88,0.10);
+  --color-green: #86C99A;
+  --color-green-10: rgba(134,201,154,0.10);
+  --color-blue: #7FA8D9;
+  --color-blue-10: rgba(127,168,217,0.10);
+  --color-orange: #D99A5B;
+  --color-orange-10: rgba(217,154,91,0.10);
+
+  --color-surface: rgba(20,27,23,0.6);
 
   /* ===================== TIPOGRAFÍA ===================== */
   --font-sans: 'Inter', system-ui, sans-serif;
@@ -80,8 +111,8 @@ body {
 /* ===================== SCROLLBAR ===================== */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(108,242,13,0.2); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(108,242,13,0.35); }
+::-webkit-scrollbar-thumb { background: rgba(163,212,131,0.2); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(163,212,131,0.35); }
 
 /* ===================== FOCUS ===================== */
 :focus-visible {

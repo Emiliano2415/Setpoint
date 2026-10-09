@@ -107,7 +107,7 @@ export function NewClientModal({ onClose, onSuccess }: Props) {
                     flex: 1, padding: '8px 0', borderRadius: '8px',
                     border: '1px solid',
                     borderColor: categoria === cat.value ? 'var(--color-lime)' : 'var(--color-border)',
-                    background: categoria === cat.value ? 'rgba(108,242,13,0.1)' : 'var(--color-bg)',
+                    background: categoria === cat.value ? 'rgba(163,212,131,0.1)' : 'var(--color-bg)',
                     color: categoria === cat.value ? 'var(--color-lime)' : 'var(--color-muted)',
                     fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
                     transition: 'all 0.15s',

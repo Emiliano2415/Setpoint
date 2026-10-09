@@ -35,7 +35,7 @@ interface SplitAccountModalProps {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const TAX_RATE = 0.16
-const PERSON_COLORS = ['#6cf20d', '#60a5fa', '#f472b6', '#fb923c', '#a78bfa', '#34d399']
+const PERSON_COLORS = ['#a3d483', '#60a5fa', '#f472b6', '#fb923c', '#a78bfa', '#34d399']
 const METODOS: { key: MetodoPago; label: string; icon: string }[] = [
   { key: 'efectivo', label: 'Efectivo', icon: '💵' },
   { key: 'credito', label: 'Crédito', icon: '💳' },
@@ -101,7 +101,7 @@ function MethodSelector({ selected, onSelect }: MethodSelectorProps) {
               padding: '5px 10px',
               borderRadius: 6,
               border: isActive ? '1.5px solid var(--color-lime)' : '1.5px solid var(--color-border)',
-              background: isActive ? 'rgba(108,242,13,0.08)' : 'transparent',
+              background: isActive ? 'rgba(163,212,131,0.08)' : 'transparent',
               color: isActive ? 'var(--color-lime)' : 'var(--color-muted)',
               fontSize: 12,
               cursor: 'pointer',
@@ -977,7 +977,7 @@ export function SplitAccountModal({
                     borderBottom: isActive
                       ? '2px solid var(--color-lime)'
                       : '2px solid transparent',
-                    background: isActive ? 'rgba(108,242,13,0.06)' : 'transparent',
+                    background: isActive ? 'rgba(163,212,131,0.06)' : 'transparent',
                     color: isActive ? 'var(--color-lime)' : 'var(--color-muted)',
                     fontSize: 14,
                     fontWeight: isActive ? 600 : 400,

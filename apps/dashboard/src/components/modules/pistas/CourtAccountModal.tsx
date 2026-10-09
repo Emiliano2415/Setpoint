@@ -15,7 +15,7 @@ import { useAppStore } from '@/store/useAppStore'
 // Issue 6 — moved statusColors and statusLabels to module scope
 const statusColors: Record<string, string> = {
   ocupada: '#EF4444',
-  disponible: '#6CF20D',
+  disponible: '#a3d483',
   reservada: '#6366F1',
   mantenimiento: '#EAB308',
 }
@@ -318,8 +318,8 @@ export function CourtAccountModal({ court, reserva, onClose, onRefresh, onReserv
                       onClick={() => setCourtPOSOpen(true)}
                       style={{
                         display: 'flex', alignItems: 'center', gap: '3px',
-                        padding: '3px 8px', background: 'rgba(108,242,13,0.12)',
-                        border: '1px solid rgba(108,242,13,0.25)', borderRadius: '6px',
+                        padding: '3px 8px', background: 'rgba(163,212,131,0.12)',
+                        border: '1px solid rgba(163,212,131,0.25)', borderRadius: '6px',
                         color: 'var(--color-lime)', fontSize: '11px', fontWeight: 700,
                         cursor: 'pointer', fontFamily: 'inherit',
                       }}
@@ -331,11 +331,11 @@ export function CourtAccountModal({ court, reserva, onClose, onRefresh, onReserv
 
                 {/* Total breakdown */}
                 <div style={{
-                  background: 'rgba(108,242,13,0.06)',
-                  border: '1px solid rgba(108,242,13,0.15)',
+                  background: 'rgba(163,212,131,0.06)',
+                  border: '1px solid rgba(163,212,131,0.15)',
                   borderRadius: '10px', overflow: 'hidden',
                 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 14px', borderBottom: '1px solid rgba(108,242,13,0.10)', fontSize: '12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 14px', borderBottom: '1px solid rgba(163,212,131,0.10)', fontSize: '12px' }}>
                     <span style={{ color: 'var(--color-muted)' }}>Tiempo</span>
                     <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-muted)' }}>${fmt(costoTiempo)}</span>
                   </div>
@@ -424,7 +424,7 @@ export function CourtAccountModal({ court, reserva, onClose, onRefresh, onReserv
                   style={{
                     padding: '10px 8px', borderRadius: '8px', fontFamily: 'inherit',
                     border: canchaMetodo === m ? '1.5px solid var(--color-lime)' : '1px solid var(--color-border)',
-                    background: canchaMetodo === m ? 'rgba(108,242,13,0.10)' : 'var(--color-bg)',
+                    background: canchaMetodo === m ? 'rgba(163,212,131,0.10)' : 'var(--color-bg)',
                     color: canchaMetodo === m ? 'var(--color-lime)' : 'var(--color-muted)',
                     fontSize: '12px', fontWeight: canchaMetodo === m ? 700 : 500, cursor: 'pointer',
                   }}
@@ -446,7 +446,7 @@ export function CourtAccountModal({ court, reserva, onClose, onRefresh, onReserv
                 type="button"
                 onClick={handlePagarCancha}
                 disabled={canchaPaying}
-                style={{ padding: '11px', background: canchaPaying ? 'rgba(108,242,13,0.3)' : 'var(--color-lime)', border: 'none', borderRadius: '8px', color: 'var(--color-bg)', fontSize: '12px', fontWeight: 800, cursor: canchaPaying ? 'not-allowed' : 'pointer', fontFamily: 'inherit' }}
+                style={{ padding: '11px', background: canchaPaying ? 'rgba(163,212,131,0.3)' : 'var(--color-lime)', border: 'none', borderRadius: '8px', color: 'var(--color-bg)', fontSize: '12px', fontWeight: 800, cursor: canchaPaying ? 'not-allowed' : 'pointer', fontFamily: 'inherit' }}
               >
                 {canchaPaying ? 'Cobrando...' : `Cobrar $${fmt(costoTiempo)}`}
               </button>

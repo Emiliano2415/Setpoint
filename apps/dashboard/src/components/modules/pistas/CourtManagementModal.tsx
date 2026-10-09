@@ -181,7 +181,7 @@ export function CourtManagementModal({ onClose, onRefresh }: Props) {
 
         {/* Add form */}
         {showAddForm && (
-          <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--color-border-subtle)', background: 'rgba(108,242,13,0.03)', flexShrink: 0 }}>
+          <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--color-border-subtle)', background: 'rgba(163,212,131,0.03)', flexShrink: 0 }}>
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px', marginBottom: '10px' }}>
               <input
                 type="text"

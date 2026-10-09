@@ -37,7 +37,7 @@ function MetodoBadge({ metodo }: { metodo: string }) {
     <span style={{
       fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.3px',
       padding: '3px 7px', borderRadius: '5px',
-      background: isDividido ? 'rgba(234,179,8,0.12)' : isCard ? 'rgba(96,165,250,0.12)' : 'rgba(108,242,13,0.10)',
+      background: isDividido ? 'rgba(234,179,8,0.12)' : isCard ? 'rgba(96,165,250,0.12)' : 'rgba(163,212,131,0.10)',
       color: isDividido ? '#EAB308' : isCard ? '#60a5fa' : 'var(--color-lime)',
     }}>
       {isDividido ? 'Dividido' : isCard ? 'Tarjeta' : metodo === 'cortesia' ? 'Cortesía' : 'Efectivo'}
@@ -449,7 +449,7 @@ export function HistorialPage() {
             ) : movimientos.map((m) => {
               const esIngreso = m.tipo === 'ingreso' || m.tipo === 'fondo'
               const color = esIngreso ? 'var(--color-lime)' : '#ef4444'
-              const bgColor = esIngreso ? 'rgba(108,242,13,0.10)' : 'rgba(239,68,68,0.10)'
+              const bgColor = esIngreso ? 'rgba(163,212,131,0.10)' : 'rgba(239,68,68,0.10)'
               const tipoLabel = ({ ingreso: 'Ingreso', egreso: 'Egreso', fondo: 'Fondo', retiro: 'Retiro' } as Record<string, string>)[m.tipo] ?? m.tipo
               return (
                 <div key={m.id}
@@ -502,7 +502,7 @@ export function HistorialPage() {
                       <div key={`v-${v.id}`} onClick={() => setExpandedId(expandedId === v.id ? null : v.id)}
                         style={{ marginBottom: '6px', background: 'var(--color-bg2)', border: '1px solid var(--color-border-subtle)', borderRadius: '10px', overflow: 'hidden', cursor: 'pointer' }}>
                         <div style={{ padding: '11px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                          <span style={{ fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', padding: '2px 6px', borderRadius: '4px', background: 'rgba(108,242,13,0.10)', color: 'var(--color-lime)', whiteSpace: 'nowrap' }}>POS</span>
+                          <span style={{ fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', padding: '2px 6px', borderRadius: '4px', background: 'rgba(163,212,131,0.10)', color: 'var(--color-lime)', whiteSpace: 'nowrap' }}>POS</span>
                           <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--color-muted-dim)', whiteSpace: 'nowrap' }}>{fmtHora(v.created_at)}</span>
                           <span style={{ flex: 1, fontSize: '12px', fontWeight: 600 }}>{v.numero_ticket} · {v.items.length} productos</span>
                           <MetodoBadge metodo={metodoLabel} />
@@ -534,7 +534,7 @@ export function HistorialPage() {
                   return (
                     <div key={`m-${mv.id}`}
                       style={{ marginBottom: '6px', background: 'var(--color-bg2)', border: '1px solid var(--color-border-subtle)', borderRadius: '10px', padding: '11px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <span style={{ fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', padding: '2px 6px', borderRadius: '4px', background: esIngreso ? 'rgba(108,242,13,0.10)' : 'rgba(239,68,68,0.10)', color: esIngreso ? 'var(--color-lime)' : '#ef4444', whiteSpace: 'nowrap' }}>Caja</span>
+                      <span style={{ fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', padding: '2px 6px', borderRadius: '4px', background: esIngreso ? 'rgba(163,212,131,0.10)' : 'rgba(239,68,68,0.10)', color: esIngreso ? 'var(--color-lime)' : '#ef4444', whiteSpace: 'nowrap' }}>Caja</span>
                       <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--color-muted-dim)', whiteSpace: 'nowrap' }}>{fmtHora(mv.created_at)}</span>
                       <span style={{ flex: 1, fontSize: '12px', fontWeight: 600 }}>{mv.concepto}</span>
                       <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', fontWeight: 700, color: esIngreso ? 'var(--color-lime)' : '#ef4444' }}>{esIngreso ? '+' : '-'}{fmtMonto(mv.monto)}</span>

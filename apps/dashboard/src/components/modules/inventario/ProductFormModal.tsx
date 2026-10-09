@@ -273,7 +273,7 @@ export function ProductFormModal({ clubId, producto, onClose, onSuccess }: Props
               disabled={saving || !isValid}
               style={{
                 padding: '13px',
-                background: saving || !isValid ? 'rgba(108,242,13,0.3)' : 'var(--color-lime)',
+                background: saving || !isValid ? 'rgba(163,212,131,0.3)' : 'var(--color-lime)',
                 border: 'none', borderRadius: '10px',
                 color: 'var(--color-bg)', fontSize: '13px', fontWeight: 800,
                 cursor: saving || !isValid ? 'not-allowed' : 'pointer',

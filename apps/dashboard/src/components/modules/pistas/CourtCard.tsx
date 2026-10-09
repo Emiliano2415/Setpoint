@@ -17,12 +17,12 @@ function getTimerState(timer: number, maxTime: number): 'active' | 'warning' | '
 
 const STATUS_BADGE: Record<CourtStatus, { label: string; bg: string; color: string }> = {
   ocupada: { label: '👤 Ocupada', bg: 'rgba(239,68,68,0.10)', color: '#EF4444' },
-  disponible: { label: '✓ Disponible', bg: 'rgba(108,242,13,0.10)', color: '#6CF20D' },
+  disponible: { label: '✓ Disponible', bg: 'rgba(163,212,131,0.10)', color: '#a3d483' },
   mantenimiento: { label: '🔧 Mantenimiento', bg: 'rgba(234,179,8,0.10)', color: '#EAB308' },
   reservada: { label: '📅 Reservada', bg: 'rgba(99,102,241,0.10)', color: '#6366F1' },
 }
 
-const TIMER_COLORS = { active: '#6CF20D', warning: '#EAB308', critical: '#EF4444' }
+const TIMER_COLORS = { active: '#a3d483', warning: '#EAB308', critical: '#EF4444' }
 
 export function CourtCard({ court, onClick, onCancelar }: { court: Court; onClick?: () => void; onCancelar?: () => void }) {
   const badge = STATUS_BADGE[court.status]
@@ -47,7 +47,7 @@ export function CourtCard({ court, onClick, onCancelar }: { court: Court; onClic
         transition: 'border-color 0.2s',
       }}
       onClick={onClick}
-      onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'rgba(108,242,13,0.20)')}
+      onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'rgba(163,212,131,0.20)')}
       onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--color-border-subtle)')}
     >
       {/* Header */}
@@ -107,7 +107,7 @@ export function CourtCard({ court, onClick, onCancelar }: { court: Court; onClic
         <div
           style={{
             width: '36px', height: '36px', borderRadius: '8px', flexShrink: 0,
-            background: court.status === 'mantenimiento' ? 'rgba(234,179,8,0.10)' : 'rgba(108,242,13,0.08)',
+            background: court.status === 'mantenimiento' ? 'rgba(234,179,8,0.10)' : 'rgba(163,212,131,0.08)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             color: court.status === 'mantenimiento' ? '#EAB308' : 'var(--color-muted)',
           }}

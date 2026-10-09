@@ -15,7 +15,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="es">
       <head>
-        <meta name="theme-color" content="#6CF20D" />
+        <meta name="theme-color" content="#a3d483" />
       </head>
       <body>
         <AuthProvider>

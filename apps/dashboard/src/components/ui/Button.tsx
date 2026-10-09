@@ -62,7 +62,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         }}
         onMouseEnter={(e) => {
           if (variant === 'primary') e.currentTarget.style.filter = 'brightness(1.1)'
-          if (variant === 'secondary') e.currentTarget.style.borderColor = 'rgba(108,242,13,0.30)'
+          if (variant === 'secondary') e.currentTarget.style.borderColor = 'rgba(163,212,131,0.30)'
           if (variant === 'ghost') {
             e.currentTarget.style.background = 'rgba(255,255,255,0.03)'
             e.currentTarget.style.color = 'var(--color-text)'

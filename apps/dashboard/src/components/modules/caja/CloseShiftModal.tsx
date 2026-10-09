@@ -182,7 +182,7 @@ export function CloseShiftModal({ cajaId, turnoId, efectivoEsperado, onClose, on
                   style={{ width: '100%', padding: '14px 16px', background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: '10px', color: 'var(--color-text)', fontSize: '20px', fontFamily: 'var(--font-mono)', fontWeight: 700, outline: 'none', boxSizing: 'border-box' }}
                 />
                 {contado && (
-                  <div style={{ marginTop: '8px', padding: '10px 14px', background: difOk ? 'rgba(108,242,13,0.06)' : 'rgba(239,68,68,0.08)', border: `1px solid ${difOk ? 'rgba(108,242,13,0.2)' : 'rgba(239,68,68,0.25)'}`, borderRadius: '8px', display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 700 }}>
+                  <div style={{ marginTop: '8px', padding: '10px 14px', background: difOk ? 'rgba(163,212,131,0.06)' : 'rgba(239,68,68,0.08)', border: `1px solid ${difOk ? 'rgba(163,212,131,0.2)' : 'rgba(239,68,68,0.25)'}`, borderRadius: '8px', display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 700 }}>
                     <span style={{ color: 'var(--color-muted)' }}>Diferencia</span>
                     <span style={{ fontFamily: 'var(--font-mono)', color: difOk ? 'var(--color-lime)' : '#EF4444' }}>
                       {diferencia >= 0 ? '+' : ''}{fmtMoney(diferencia)}
@@ -196,7 +196,7 @@ export function CloseShiftModal({ cajaId, turnoId, efectivoEsperado, onClose, on
                 <button
                   onClick={() => setStep(3)}
                   disabled={!contado || contadoNum < 0}
-                  style={{ padding: '13px', background: !contado ? 'rgba(108,242,13,0.3)' : 'var(--color-lime)', border: 'none', borderRadius: '10px', color: 'var(--color-bg)', fontSize: '13px', fontWeight: 800, cursor: !contado ? 'not-allowed' : 'pointer', fontFamily: 'inherit', textTransform: 'uppercase', letterSpacing: '0.3px' }}
+                  style={{ padding: '13px', background: !contado ? 'rgba(163,212,131,0.3)' : 'var(--color-lime)', border: 'none', borderRadius: '10px', color: 'var(--color-bg)', fontSize: '13px', fontWeight: 800, cursor: !contado ? 'not-allowed' : 'pointer', fontFamily: 'inherit', textTransform: 'uppercase', letterSpacing: '0.3px' }}
                 >
                   Continuar →
                 </button>
@@ -214,7 +214,7 @@ export function CloseShiftModal({ cajaId, turnoId, efectivoEsperado, onClose, on
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
                 <SummaryRow label="Efectivo esperado" value={fmtMoney(efectivoEsperado)} />
                 <SummaryRow label="Efectivo contado" value={fmtMoney(contadoNum)} highlight />
-                <div style={{ padding: '14px 16px', background: difOk ? 'rgba(108,242,13,0.06)' : diferencia > 0 ? 'rgba(234,179,8,0.08)' : 'rgba(239,68,68,0.08)', border: `1px solid ${difOk ? 'rgba(108,242,13,0.2)' : diferencia > 0 ? 'rgba(234,179,8,0.25)' : 'rgba(239,68,68,0.25)'}`, borderRadius: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ padding: '14px 16px', background: difOk ? 'rgba(163,212,131,0.06)' : diferencia > 0 ? 'rgba(234,179,8,0.08)' : 'rgba(239,68,68,0.08)', border: `1px solid ${difOk ? 'rgba(163,212,131,0.2)' : diferencia > 0 ? 'rgba(234,179,8,0.25)' : 'rgba(239,68,68,0.25)'}`, borderRadius: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
                     <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.3px' }}>Diferencia</span>
                     {!difOk && <div style={{ fontSize: '10px', color: diferencia > 0 ? '#EAB308' : '#EF4444', marginTop: '2px' }}>{diferencia > 0 ? '⚠ Sobrante — verificar' : '⚠ Faltante — verificar'}</div>}

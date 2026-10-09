@@ -249,7 +249,7 @@ export function InventarioPage() {
               background: 'transparent',
               color: showInactivos ? 'var(--color-lime)' : 'var(--color-muted)',
               border: '1px solid',
-              borderColor: showInactivos ? 'rgba(108,242,13,0.4)' : 'var(--color-border)',
+              borderColor: showInactivos ? 'rgba(163,212,131,0.4)' : 'var(--color-border)',
               borderRadius: '8px', fontSize: '11px', fontWeight: 700,
               fontFamily: 'inherit', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px',
             }}
@@ -454,7 +454,7 @@ function ActionBtn({
 }
 
 const TIPO_COLORS: Record<string, { bg: string; text: string; label: string }> = {
-  entrada: { bg: 'rgba(108,242,13,0.1)', text: 'var(--color-lime)', label: 'Entrada' },
+  entrada: { bg: 'rgba(163,212,131,0.1)', text: 'var(--color-lime)', label: 'Entrada' },
   salida: { bg: 'rgba(239,68,68,0.1)', text: '#EF4444', label: 'Salida' },
   ajuste: { bg: 'rgba(59,130,246,0.1)', text: '#60a5fa', label: 'Ajuste' },
   merma: { bg: 'rgba(234,179,8,0.1)', text: '#EAB308', label: 'Merma' },

@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils'
 type BadgeVariant = 'lime' | 'yellow' | 'red' | 'blue' | 'orange' | 'muted'
 
 const VARIANT_STYLES: Record<BadgeVariant, { background: string; color: string }> = {
-  lime: { background: 'rgba(108,242,13,0.10)', color: '#6CF20D' },
+  lime: { background: 'rgba(163,212,131,0.10)', color: '#a3d483' },
   yellow: { background: 'rgba(234,179,8,0.10)', color: '#EAB308' },
   red: { background: 'rgba(239,68,68,0.10)', color: '#EF4444' },
   blue: { background: 'rgba(59,130,246,0.10)', color: '#3B82F6' },

@@ -80,7 +80,7 @@ function Step1Categoria({ categories, selected, onSelect }: Step1CategoriaProps)
               key={cat.id}
               onClick={() => onSelect(cat)}
               style={{
-                background: isSelected ? 'rgba(108,242,13,0.10)' : gradient,
+                background: isSelected ? 'rgba(163,212,131,0.10)' : gradient,
                 borderRadius: 12,
                 padding: '14px 10px',
                 color: '#fff',

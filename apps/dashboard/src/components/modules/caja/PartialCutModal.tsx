@@ -217,8 +217,8 @@ export function PartialCutModal({ cajaId, efectivoEnCaja, cajeroNombre, turnoLab
             <div style={{
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
               padding: '12px 16px',
-              background: 'rgba(108,242,13,0.04)',
-              border: '1px solid rgba(108,242,13,0.15)',
+              background: 'rgba(163,212,131,0.04)',
+              border: '1px solid rgba(163,212,131,0.15)',
               borderRadius: '10px',
             }}>
               <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.3px' }}>
@@ -238,7 +238,7 @@ export function PartialCutModal({ cajaId, efectivoEnCaja, cajeroNombre, turnoLab
               disabled={saving || !isValid}
               style={{
                 padding: '13px',
-                background: saving || !isValid ? 'rgba(108,242,13,0.3)' : 'var(--color-lime)',
+                background: saving || !isValid ? 'rgba(163,212,131,0.3)' : 'var(--color-lime)',
                 border: 'none', borderRadius: '10px',
                 color: 'var(--color-bg)', fontSize: '13px', fontWeight: 800,
                 cursor: saving || !isValid ? 'not-allowed' : 'pointer',

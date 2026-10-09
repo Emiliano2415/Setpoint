@@ -128,7 +128,7 @@ export function CancelacionDetalle({ cancelacion, cajaId, onAction }: Props) {
               disabled={saving}
               style={{
                 padding: '10px', borderRadius: '8px', border: 'none',
-                background: saving ? 'rgba(108,242,13,0.3)' : 'var(--color-lime)',
+                background: saving ? 'rgba(163,212,131,0.3)' : 'var(--color-lime)',
                 color: 'var(--color-bg)', fontSize: '12px', fontWeight: 700,
                 cursor: saving ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
               }}

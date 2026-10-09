@@ -214,7 +214,7 @@ Script que arranca `next dev` de una app, mide la memoria de sus procesos cada 5
 
 **Step 2:** En el mismo archivo, cambiar el color de la barra de desplazamiento y del foco de `rgba(108,242,13,…)` a `rgba(163,212,131,…)` con la misma opacidad.
 
-**Step 3:** Buscar colores neón escritos a mano: `grep -rn "6CF20D\|108,242,13" apps/dashboard/src --include=*.tsx --include=*.ts`. Sustituir cada uno por `var(--color-lime)` o la variante `--color-lime-NN` de opacidad más cercana. No tocar nada más de esas líneas.
+**Step 3:** Hay unos 110 colores neón escritos a mano en 38 archivos (`grep -rnE "6CF20D|108, ?242, ?13" apps/dashboard/src`). Sustitución mecánica, conservando la opacidad: `rgba(108,242,13,X)` → `rgba(163,212,131,X)` y `#6CF20D` → `#a3d483`. No tocar nada más de esas líneas.
 
 **Step 4:** Verificar con `npx tsc --noEmit`.
 **Commit:** `feat(ds): soft palette tokens and legacy token remap`

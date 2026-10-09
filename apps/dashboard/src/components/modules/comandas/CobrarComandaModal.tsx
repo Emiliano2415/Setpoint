@@ -294,8 +294,8 @@ export function CobrarComandaModal({ comanda, cajaId, onClose, onSuccess }: Prop
                         style={{
                           display: 'flex', alignItems: 'center', gap: '10px',
                           padding: '12px 14px',
-                          background: isSelected ? 'rgba(108,242,13,0.08)' : 'var(--color-bg)',
-                          border: `1px solid ${isSelected ? 'rgba(108,242,13,0.40)' : 'var(--color-border)'}`,
+                          background: isSelected ? 'rgba(163,212,131,0.08)' : 'var(--color-bg)',
+                          border: `1px solid ${isSelected ? 'rgba(163,212,131,0.40)' : 'var(--color-border)'}`,
                           borderRadius: '10px', cursor: 'pointer', fontFamily: 'inherit',
                           transition: 'all 0.15s', textAlign: 'left',
                         }}
@@ -313,7 +313,7 @@ export function CobrarComandaModal({ comanda, cajaId, onClose, onSuccess }: Prop
                   disabled={!selectedMetodo || paying}
                   style={{
                     width: '100%', padding: '13px',
-                    background: !selectedMetodo || paying ? 'rgba(108,242,13,0.3)' : 'var(--color-lime)',
+                    background: !selectedMetodo || paying ? 'rgba(163,212,131,0.3)' : 'var(--color-lime)',
                     border: 'none', borderRadius: '10px',
                     color: 'var(--color-bg)', fontSize: '13px', fontWeight: 800,
                     cursor: !selectedMetodo || paying ? 'not-allowed' : 'pointer',
@@ -400,8 +400,8 @@ export function CobrarComandaModal({ comanda, cajaId, onClose, onSuccess }: Prop
                   <div style={{
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                     padding: '10px 14px',
-                    background: 'rgba(108,242,13,0.06)',
-                    border: '1px solid rgba(108,242,13,0.20)',
+                    background: 'rgba(163,212,131,0.06)',
+                    border: '1px solid rgba(163,212,131,0.20)',
                     borderRadius: '10px',
                   }}>
                     <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.3px' }}>Cambio</span>
@@ -417,7 +417,7 @@ export function CobrarComandaModal({ comanda, cajaId, onClose, onSuccess }: Prop
                   disabled={!splitEfectivo || !splitValid || paying}
                   style={{
                     width: '100%', padding: '13px',
-                    background: (!splitEfectivo || !splitValid || paying) ? 'rgba(108,242,13,0.3)' : 'var(--color-lime)',
+                    background: (!splitEfectivo || !splitValid || paying) ? 'rgba(163,212,131,0.3)' : 'var(--color-lime)',
                     border: 'none', borderRadius: '10px',
                     color: 'var(--color-bg)', fontSize: '13px', fontWeight: 800,
                     cursor: (!splitEfectivo || !splitValid || paying) ? 'not-allowed' : 'pointer',

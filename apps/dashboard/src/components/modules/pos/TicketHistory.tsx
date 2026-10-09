@@ -105,7 +105,7 @@ export function TicketHistory({ onClose }: TicketHistoryProps) {
                     {/* Método badge */}
                     <div style={{
                       width: '32px', height: '32px', borderRadius: '8px',
-                      background: isSplit ? 'rgba(234,179,8,0.12)' : isCard ? 'rgba(59,130,246,0.12)' : 'rgba(108,242,13,0.10)',
+                      background: isSplit ? 'rgba(234,179,8,0.12)' : isCard ? 'rgba(59,130,246,0.12)' : 'rgba(163,212,131,0.10)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                     }}>
                       {isSplit ? (

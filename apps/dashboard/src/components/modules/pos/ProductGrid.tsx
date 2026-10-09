@@ -76,7 +76,7 @@ function ProductCard({ product, onAdd }: { product: Product; onAdd: (p: Product)
       }}
       onMouseEnter={(e) => {
         if (!sinStock) {
-          e.currentTarget.style.borderColor = 'rgba(108,242,13,0.20)'
+          e.currentTarget.style.borderColor = 'rgba(163,212,131,0.20)'
           e.currentTarget.style.transform = 'translateY(-2px)'
         }
       }}

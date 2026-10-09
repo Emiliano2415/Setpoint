@@ -46,7 +46,7 @@ export default function LoginPage() {
           position: 'fixed',
           inset: 0,
           backgroundImage:
-            'radial-gradient(circle at 20% 50%, rgba(108,242,13,0.04) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(108,242,13,0.02) 0%, transparent 40%)',
+            'radial-gradient(circle at 20% 50%, rgba(163,212,131,0.04) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(163,212,131,0.02) 0%, transparent 40%)',
           pointerEvents: 'none',
         }}
       />
@@ -152,7 +152,7 @@ export default function LoginPage() {
                   boxSizing: 'border-box',
                   transition: 'border-color 150ms ease',
                 }}
-                onFocus={(e) => (e.target.style.borderColor = 'rgba(108,242,13,0.3)')}
+                onFocus={(e) => (e.target.style.borderColor = 'rgba(163,212,131,0.3)')}
                 onBlur={(e) => (e.target.style.borderColor = 'var(--color-border)')}
               />
             </div>
@@ -202,7 +202,7 @@ export default function LoginPage() {
                   boxSizing: 'border-box',
                   transition: 'border-color 150ms ease',
                 }}
-                onFocus={(e) => (e.target.style.borderColor = 'rgba(108,242,13,0.3)')}
+                onFocus={(e) => (e.target.style.borderColor = 'rgba(163,212,131,0.3)')}
                 onBlur={(e) => (e.target.style.borderColor = 'var(--color-border)')}
               />
             </div>
@@ -228,7 +228,7 @@ export default function LoginPage() {
               type="submit"
               disabled={loading}
               style={{
-                background: loading ? 'rgba(108,242,13,0.5)' : 'var(--color-lime)',
+                background: loading ? 'rgba(163,212,131,0.5)' : 'var(--color-lime)',
                 color: 'var(--color-bg)',
                 border: 'none',
                 borderRadius: '8px',

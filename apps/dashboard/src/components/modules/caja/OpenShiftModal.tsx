@@ -121,8 +121,8 @@ export function OpenShiftModal({ onClose, onSuccess }: Props) {
                   style={{
                     padding: '12px 8px',
                     borderRadius: '10px',
-                    border: `1px solid ${tipo === value ? 'rgba(108,242,13,0.4)' : 'var(--color-border)'}`,
-                    background: tipo === value ? 'rgba(108,242,13,0.08)' : 'var(--color-bg)',
+                    border: `1px solid ${tipo === value ? 'rgba(163,212,131,0.4)' : 'var(--color-border)'}`,
+                    background: tipo === value ? 'rgba(163,212,131,0.08)' : 'var(--color-bg)',
                     color: tipo === value ? 'var(--color-lime)' : 'var(--color-muted)',
                     fontSize: '13px', fontWeight: 700, cursor: 'pointer',
                     fontFamily: 'inherit', transition: 'all 0.15s',
@@ -207,7 +207,7 @@ export function OpenShiftModal({ onClose, onSuccess }: Props) {
               disabled={saving || !isValid}
               style={{
                 padding: '13px',
-                background: saving || !isValid ? 'rgba(108,242,13,0.3)' : 'var(--color-lime)',
+                background: saving || !isValid ? 'rgba(163,212,131,0.3)' : 'var(--color-lime)',
                 border: 'none', borderRadius: '10px',
                 color: 'var(--color-bg)', fontSize: '13px', fontWeight: 800,
                 cursor: saving || !isValid ? 'not-allowed' : 'pointer',

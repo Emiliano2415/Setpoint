@@ -115,7 +115,7 @@ export function ClientDetailModal({ clienteId, onClose, onRefresh }: Props) {
         <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--color-border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{
-              width: '44px', height: '44px', borderRadius: '50%', background: 'rgba(108,242,13,0.1)',
+              width: '44px', height: '44px', borderRadius: '50%', background: 'rgba(163,212,131,0.1)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
             }}>
               <User size={20} color="var(--color-lime)" />
@@ -135,7 +135,7 @@ export function ClientDetailModal({ clienteId, onClose, onRefresh }: Props) {
                   {catInfo.label}
                 </span>
                 {cliente.es_socio && (
-                  <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--color-lime)', background: 'rgba(108,242,13,0.1)', padding: '1px 6px', borderRadius: '4px' }}>
+                  <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--color-lime)', background: 'rgba(163,212,131,0.1)', padding: '1px 6px', borderRadius: '4px' }}>
                     SOCIO
                   </span>
                 )}
@@ -258,7 +258,7 @@ export function ClientDetailModal({ clienteId, onClose, onRefresh }: Props) {
 
           {/* Saldo cuenta */}
           {cliente.saldo_cuenta !== 0 && (
-            <div style={{ padding: '12px 16px', background: cliente.saldo_cuenta > 0 ? 'rgba(108,242,13,0.05)' : 'rgba(239,68,68,0.05)', border: `1px solid ${cliente.saldo_cuenta > 0 ? 'rgba(108,242,13,0.2)' : 'rgba(239,68,68,0.2)'}`, borderRadius: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ padding: '12px 16px', background: cliente.saldo_cuenta > 0 ? 'rgba(163,212,131,0.05)' : 'rgba(239,68,68,0.05)', border: `1px solid ${cliente.saldo_cuenta > 0 ? 'rgba(163,212,131,0.2)' : 'rgba(239,68,68,0.2)'}`, borderRadius: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '13px', fontWeight: 600 }}>Saldo en cuenta</span>
               <span style={{ fontSize: '16px', fontWeight: 800, color: cliente.saldo_cuenta > 0 ? 'var(--color-lime)' : '#ef4444' }}>
                 {cliente.saldo_cuenta > 0 ? '+' : ''}${cliente.saldo_cuenta.toFixed(2)} MXN

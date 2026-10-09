@@ -156,7 +156,7 @@ export function DescuentosPage() {
       {/* Info note */}
       <div style={{
         marginTop: '24px', padding: '14px 18px',
-        background: 'rgba(108,242,13,0.04)', border: '1px solid rgba(108,242,13,0.12)',
+        background: 'rgba(163,212,131,0.04)', border: '1px solid rgba(163,212,131,0.12)',
         borderRadius: '10px', fontSize: '12px', color: 'var(--color-muted)', lineHeight: 1.6,
       }}>
         <strong style={{ color: 'var(--color-lime)' }}>ℹ️ Cómo funcionan:</strong> Las reglas activas

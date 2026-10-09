@@ -378,8 +378,8 @@ export function TicketPanel({ items, onUpdateQty, onRemove, onClear, onHistoryOp
               <div style={{
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                 padding: '10px 14px', marginBottom: '16px',
-                background: splitCambio > 0 ? 'rgba(108,242,13,0.06)' : 'transparent',
-                border: `1px solid ${splitCambio > 0 ? 'rgba(108,242,13,0.20)' : 'var(--color-border-subtle)'}`,
+                background: splitCambio > 0 ? 'rgba(163,212,131,0.06)' : 'transparent',
+                border: `1px solid ${splitCambio > 0 ? 'rgba(163,212,131,0.20)' : 'var(--color-border-subtle)'}`,
                 borderRadius: '10px',
               }}>
                 <span style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.3px', color: 'var(--color-muted)' }}>
@@ -408,7 +408,7 @@ export function TicketPanel({ items, onUpdateQty, onRemove, onClear, onHistoryOp
                 disabled={paying || !splitEfectivo || !splitValid}
                 style={{
                   padding: '13px',
-                  background: (paying || !splitEfectivo || !splitValid) ? 'rgba(108,242,13,0.3)' : 'var(--color-lime)',
+                  background: (paying || !splitEfectivo || !splitValid) ? 'rgba(163,212,131,0.3)' : 'var(--color-lime)',
                   border: 'none', borderRadius: '10px',
                   color: 'var(--color-bg)', fontSize: '13px', fontWeight: 800,
                   cursor: (paying || !splitEfectivo || !splitValid) ? 'not-allowed' : 'pointer',
@@ -501,8 +501,8 @@ export function TicketPanel({ items, onUpdateQty, onRemove, onClear, onHistoryOp
                 <div style={{
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                   padding: '10px 14px',
-                  background: cambio >= 0 && recibido ? 'rgba(108,242,13,0.06)' : 'transparent',
-                  border: `1px solid ${cambio >= 0 && recibido ? 'rgba(108,242,13,0.20)' : 'var(--color-border-subtle)'}`,
+                  background: cambio >= 0 && recibido ? 'rgba(163,212,131,0.06)' : 'transparent',
+                  border: `1px solid ${cambio >= 0 && recibido ? 'rgba(163,212,131,0.20)' : 'var(--color-border-subtle)'}`,
                   borderRadius: '10px', marginBottom: '20px',
                   transition: 'all 0.2s',
                 }}>
@@ -559,7 +559,7 @@ export function TicketPanel({ items, onUpdateQty, onRemove, onClear, onHistoryOp
                 style={{
                   padding: '13px',
                   background: (paying || (payModal.metodo === 'efectivo' && (!recibido || recibidoNum < total)))
-                    ? 'rgba(108,242,13,0.3)' : 'var(--color-lime)',
+                    ? 'rgba(163,212,131,0.3)' : 'var(--color-lime)',
                   border: 'none', borderRadius: '10px',
                   color: 'var(--color-bg)', fontSize: '13px', fontWeight: 800,
                   cursor: (paying || (payModal.metodo === 'efectivo' && (!recibido || recibidoNum < total))) ? 'not-allowed' : 'pointer',
@@ -611,14 +611,14 @@ export function TicketPanel({ items, onUpdateQty, onRemove, onClear, onHistoryOp
                 style={{
                   display: 'flex', alignItems: 'center', gap: '10px',
                   padding: '10px 12px',
-                  background: activeRuleId ? 'rgba(108,242,13,0.06)' : 'var(--color-bg)',
-                  border: `1px solid ${activeRuleId ? 'rgba(108,242,13,0.20)' : 'var(--color-border)'}`,
+                  background: activeRuleId ? 'rgba(163,212,131,0.06)' : 'var(--color-bg)',
+                  border: `1px solid ${activeRuleId ? 'rgba(163,212,131,0.20)' : 'var(--color-border)'}`,
                   borderRadius: '8px', cursor: 'pointer', transition: 'all 0.15s',
                 }}
               >
                 <div style={{
                   width: '32px', height: '32px', borderRadius: '50%',
-                  background: activeRuleId ? 'rgba(108,242,13,0.15)' : 'rgba(255,255,255,0.04)',
+                  background: activeRuleId ? 'rgba(163,212,131,0.15)' : 'rgba(255,255,255,0.04)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   color: activeRuleId ? 'var(--color-lime)' : 'var(--color-muted)',
                   flexShrink: 0, transition: 'all 0.15s',
@@ -668,7 +668,7 @@ export function TicketPanel({ items, onUpdateQty, onRemove, onClear, onHistoryOp
                         style={{
                           padding: '5px 10px', borderRadius: '7px', border: '1px solid',
                           borderColor: isActive ? 'var(--color-lime)' : 'var(--color-border)',
-                          background: isActive ? 'rgba(108,242,13,0.08)' : 'var(--color-bg)',
+                          background: isActive ? 'rgba(163,212,131,0.08)' : 'var(--color-bg)',
                           color: isActive ? 'var(--color-lime)' : 'var(--color-muted)',
                           fontSize: '11px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
                           transition: 'all 0.15s',
@@ -797,7 +797,7 @@ export function TicketPanel({ items, onUpdateQty, onRemove, onClear, onHistoryOp
           style={{
             width: '100%',
             padding: '16px',
-            background: items.length === 0 ? 'rgba(108,242,13,0.3)' : 'var(--color-lime)',
+            background: items.length === 0 ? 'rgba(163,212,131,0.3)' : 'var(--color-lime)',
             color: 'var(--color-bg)',
             fontSize: '15px',
             fontWeight: 800,
@@ -936,8 +936,8 @@ function PayButton({ icon, label, onClick, disabled }: { icon: 'cash' | 'card' |
       }}
       onMouseEnter={(e) => {
         if (!disabled) {
-          e.currentTarget.style.borderColor = 'rgba(108,242,13,0.20)'
-          e.currentTarget.style.background = 'rgba(108,242,13,0.05)'
+          e.currentTarget.style.borderColor = 'rgba(163,212,131,0.20)'
+          e.currentTarget.style.background = 'rgba(163,212,131,0.05)'
         }
       }}
       onMouseLeave={(e) => {

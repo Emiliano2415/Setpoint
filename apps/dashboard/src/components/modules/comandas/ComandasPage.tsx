@@ -23,7 +23,7 @@ function isRecentlyDelivered(comanda: ComandaFromDB): boolean {
 const COLUMNS: { id: ComandaEstado; title: string; color: string }[] = [
   { id: 'pendiente',  title: 'Pendiente',  color: '#EAB308' },
   { id: 'preparando', title: 'Preparando', color: '#3B82F6' },
-  { id: 'listo',      title: 'Listo',      color: '#6CF20D' },
+  { id: 'listo',      title: 'Listo',      color: '#a3d483' },
   { id: 'entregado',  title: 'Entregado',  color: 'var(--color-muted-dim)' },
   { id: 'cobrado',    title: 'Cobrado',    color: '#22C55E' },
 ]
@@ -227,7 +227,7 @@ export function ComandasPage({ cajaId: cajaIdProp }: ComandasPageProps = {}) {
                     }}
                     onMouseEnter={(e) => {
                       if (col.id !== 'entregado' && col.id !== 'cobrado')
-                        e.currentTarget.style.borderColor = 'rgba(108,242,13,0.20)'
+                        e.currentTarget.style.borderColor = 'rgba(163,212,131,0.20)'
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.borderColor = 'var(--color-border-subtle)'

@@ -292,7 +292,7 @@ export function PistasPage() {
             gap: '8px',
             textTransform: 'uppercase',
             letterSpacing: '0.5px',
-            boxShadow: '0 8px 32px rgba(108,242,13,0.20)',
+            boxShadow: '0 8px 32px rgba(163,212,131,0.20)',
             zIndex: 10,
             transition: 'filter 0.15s',
           }}

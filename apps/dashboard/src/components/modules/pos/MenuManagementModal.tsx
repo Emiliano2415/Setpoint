@@ -152,7 +152,7 @@ export function MenuManagementModal({ onClose }: Props) {
                     padding: '5px 11px',
                     borderRadius: '20px',
                     border: isActive ? '1px solid var(--color-lime)' : '1px solid var(--color-border-subtle)',
-                    background: isActive ? 'rgba(108,242,13,0.12)' : 'transparent',
+                    background: isActive ? 'rgba(163,212,131,0.12)' : 'transparent',
                     color: isActive ? 'var(--color-lime)' : 'var(--color-muted)',
                     fontSize: '11px', fontWeight: isActive ? 700 : 500,
                     cursor: 'pointer', fontFamily: 'inherit',

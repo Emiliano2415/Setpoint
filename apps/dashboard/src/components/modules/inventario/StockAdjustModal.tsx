@@ -90,7 +90,7 @@ export function StockAdjustModal({ producto, onClose, onSuccess }: Props) {
               <div style={{ fontSize: '24px', fontWeight: 800 }}>{producto.stock_actual}</div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', fontSize: '20px', color: 'var(--color-muted)' }}>→</div>
-            <div style={{ flex: 1, padding: '12px 16px', background: 'var(--color-bg)', border: `1px solid ${delta > 0 ? 'rgba(108,242,13,0.3)' : delta < 0 ? 'rgba(239,68,68,0.3)' : 'var(--color-border-subtle)'}`, borderRadius: '10px', textAlign: 'center' }}>
+            <div style={{ flex: 1, padding: '12px 16px', background: 'var(--color-bg)', border: `1px solid ${delta > 0 ? 'rgba(163,212,131,0.3)' : delta < 0 ? 'rgba(239,68,68,0.3)' : 'var(--color-border-subtle)'}`, borderRadius: '10px', textAlign: 'center' }}>
               <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Stock Final</div>
               <div style={{ fontSize: '24px', fontWeight: 800, color: delta > 0 ? 'var(--color-lime)' : delta < 0 ? '#ef4444' : 'var(--color-text)' }}>
                 {stockPreview}

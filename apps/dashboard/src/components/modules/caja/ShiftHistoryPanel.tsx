@@ -124,7 +124,7 @@ export function ShiftHistoryPanel({ onClose }: Props) {
                     <span style={{
                       fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.3px',
                       padding: '3px 8px', borderRadius: '5px',
-                      background: c.estado === 'revisada' ? 'rgba(108,242,13,0.1)' : 'rgba(255,255,255,0.05)',
+                      background: c.estado === 'revisada' ? 'rgba(163,212,131,0.1)' : 'rgba(255,255,255,0.05)',
                       color: c.estado === 'revisada' ? 'var(--color-lime)' : 'var(--color-muted)',
                     }}>
                       {c.estado === 'revisada' ? 'Revisada' : 'Cerrada'}

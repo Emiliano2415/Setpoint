@@ -71,13 +71,13 @@ export function PistasSidebar({ occupiedCount, totalCourts, reservas }: PistasSi
               style={{
                 padding: '14px',
                 background: 'var(--color-bg)',
-                border: `${isFirst ? '1.5px' : '1px'} solid ${isFirst ? 'rgba(108,242,13,0.30)' : 'var(--color-border-subtle)'}`,
+                border: `${isFirst ? '1.5px' : '1px'} solid ${isFirst ? 'rgba(163,212,131,0.30)' : 'var(--color-border-subtle)'}`,
                 borderRadius: '12px',
                 marginBottom: '10px',
                 cursor: 'pointer',
                 transition: 'border-color 0.15s',
               }}
-              onMouseEnter={(e) => !isFirst && (e.currentTarget.style.borderColor = 'rgba(108,242,13,0.15)')}
+              onMouseEnter={(e) => !isFirst && (e.currentTarget.style.borderColor = 'rgba(163,212,131,0.15)')}
               onMouseLeave={(e) => !isFirst && (e.currentTarget.style.borderColor = 'var(--color-border-subtle)')}
             >
               <div>

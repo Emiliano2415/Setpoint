@@ -104,7 +104,7 @@ export function DiscountRuleModal({ regla, onClose, onSuccess }: Props) {
                   style={{
                     padding: '6px 14px', borderRadius: '8px', border: '1px solid',
                     borderColor: categoriaCliente === cat ? 'var(--color-lime)' : 'var(--color-border)',
-                    background: categoriaCliente === cat ? 'rgba(108,242,13,0.10)' : 'var(--color-bg)',
+                    background: categoriaCliente === cat ? 'rgba(163,212,131,0.10)' : 'var(--color-bg)',
                     color: categoriaCliente === cat ? 'var(--color-lime)' : 'var(--color-muted)',
                     fontSize: '12px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
                     transition: 'all 0.15s',
@@ -130,7 +130,7 @@ export function DiscountRuleModal({ regla, onClose, onSuccess }: Props) {
                   style={{
                     padding: '10px 12px', borderRadius: '8px', border: '1px solid',
                     borderColor: tipo === t.value ? 'var(--color-lime)' : 'var(--color-border)',
-                    background: tipo === t.value ? 'rgba(108,242,13,0.08)' : 'var(--color-bg)',
+                    background: tipo === t.value ? 'rgba(163,212,131,0.08)' : 'var(--color-bg)',
                     color: tipo === t.value ? 'var(--color-lime)' : 'var(--color-muted)',
                     fontSize: '12px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
                     textAlign: 'left', transition: 'all 0.15s',
@@ -177,7 +177,7 @@ export function DiscountRuleModal({ regla, onClose, onSuccess }: Props) {
             onClick={handleSave}
             disabled={saving || !isValid}
             style={{
-              padding: '9px 20px', background: saving || !isValid ? 'rgba(108,242,13,0.3)' : 'var(--color-lime)',
+              padding: '9px 20px', background: saving || !isValid ? 'rgba(163,212,131,0.3)' : 'var(--color-lime)',
               border: 'none', borderRadius: '8px', color: 'var(--color-bg)',
               fontSize: '13px', fontWeight: 700, cursor: saving || !isValid ? 'not-allowed' : 'pointer',
               fontFamily: 'inherit',
