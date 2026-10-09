@@ -13,6 +13,8 @@ import {
   getAllActiveProducts,
 } from '@/lib/supabase/queries/pos'
 import { useAppStore } from '@/store/useAppStore'
+import { useSearchStore } from '@/store/useSearchStore'
+import { coincideBusqueda } from '@/lib/busqueda'
 
 // imgClass mapping — coincide con nombres de categorías en DB
 const IMG_CLASS_BY_CATEGORY: Record<string, string> = {
@@ -60,6 +62,12 @@ export function POSPage() {
   const [categories, setCategories] = useState<CategoryTab[]>([])
   const [activeCategory, setActiveCategory] = useState<string>(ALL_CATEGORY_ID)
   const [products, setProducts] = useState<Product[]>([])
+  // El buscador de la barra superior filtra los productos de la categoría activa
+  const busqueda = useSearchStore((s) => s.query)
+  const productosVisibles = useMemo(
+    () => products.filter((p) => coincideBusqueda(busqueda, p.name, p.category, p.sub)),
+    [products, busqueda],
+  )
   const [loadingCategories, setLoadingCategories] = useState(true)
   const [loadingProducts, setLoadingProducts] = useState(true)
   const [ticketItems, setTicketItems] = useState<TicketItem[]>([])
@@ -230,7 +238,7 @@ export function POSPage() {
             Cargando...
           </div>
         ) : (
-          <ProductGrid products={products} onAdd={addProduct} />
+          <ProductGrid products={productosVisibles} onAdd={addProduct} />
         )}
       </div>
 

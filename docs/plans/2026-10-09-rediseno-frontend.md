@@ -593,4 +593,11 @@ Se programan antes de rediseñar el módulo afectado, para no reescribir dos vec
 | La venta se guarda en cuatro pasos separados | POS, Comandas, Pistas | 18 |
 | "Dividir cuenta" ignora el descuento activo | POS | 18 |
 | Las funciones `rpc_*` no comprueban el club; registro público abierto | Todos | 32 |
-| Bebidas sin comanda (¿estación de barra?) | POS, Comandas | Pendiente de decisión del usuario |
+
+### Decisiones tomadas (2026-10-09)
+
+| Tema | Decisión | Por qué |
+|---|---|---|
+| Buscador de la barra superior | Funciona por pantalla. La barra escribe en `useSearchStore` y cada pantalla filtra su lista con `coincideBusqueda()` (`src/lib/busqueda.ts`). Hecho en el POS; cada módulo lo adopta al rediseñarse | Pedido del usuario |
+| Indicador de turno | La barra muestra el turno real (responsable y hora) o "Sin turno abierto" con el botón "Abrir turno" | Pedido del usuario |
+| Bebidas y comandas | No se crea estación de barra. Solo genera comanda lo marcado "Cocina" en Gestionar menú | El usuario dejó la decisión a Claude. Una bebida embotellada se entrega en el mostrador al cobrar: mandarla a un tablero añade un paso sin aportar nada. Lo que sí se prepara (café, bocadillos) ya se marca. Si el club abre una barra con pantalla propia, se añade una columna `estacion` al producto y un filtro al tablero |

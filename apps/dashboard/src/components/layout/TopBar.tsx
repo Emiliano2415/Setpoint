@@ -6,7 +6,9 @@ import { Search, Bell, Settings } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { poll } from '@/lib/poll'
 import { getProductosBajoStock } from '@/lib/supabase/queries/inventario'
+import { getCajaActiva, type CajaActiva } from '@/lib/supabase/queries/caja'
 import { useAppStore } from '@/store/useAppStore'
+import { useSearchStore } from '@/store/useSearchStore'
 
 const MODULE_CONFIG: Record<
   string,
@@ -65,22 +67,39 @@ export function TopBar() {
   const [showStockPanel, setShowStockPanel] = useState(false)
   const [productosBajo, setProductosBajo] = useState<{ nombre: string; stock_actual: number; stock_minimo: number }[]>([])
 
+  // Turno abierto del club: undefined mientras carga, null si no hay ninguno
+  const [caja, setCaja] = useState<CajaActiva | null | undefined>(undefined)
+  const query = useSearchStore((s) => s.query)
+  const setQuery = useSearchStore((s) => s.setQuery)
+
   const supabase = useMemo(() => createClient(), [])
 
+  // Cada pantalla empieza con el buscador vacío
+  useEffect(() => {
+    setQuery('')
+  }, [pathname, setQuery])
+
+  // Stock bajo y turno abierto. Cada consulta por separado: que falle una no
+  // impide la otra, y la que falle se reintenta en el siguiente sondeo.
   const loadStock = useCallback(async () => {
     if (!clubId) return
-    try {
-      const bajos = await getProductosBajoStock(supabase, clubId)
-      setStockAlertas(bajos.length)
-      setProductosBajo(bajos)
-    } catch { /* silenciar */ }
+    const [bajos, cajaActiva] = await Promise.allSettled([
+      getProductosBajoStock(supabase, clubId),
+      getCajaActiva(supabase, clubId),
+    ])
+    if (bajos.status === 'fulfilled') {
+      setStockAlertas(bajos.value.length)
+      setProductosBajo(bajos.value)
+    }
+    if (cajaActiva.status === 'fulfilled') setCaja(cajaActiva.value)
   }, [supabase, clubId])
 
+  // Se recarga también al cambiar de pantalla: abrir o cerrar turno ocurre en Caja
   useEffect(() => {
     loadStock()
     if (!clubId) return
     return poll(loadStock, 30_000)
-  }, [clubId, loadStock])
+  }, [clubId, loadStock, pathname])
 
   function handleNuevoTurno() {
     if (pathname.startsWith('/caja')) {
@@ -138,6 +157,8 @@ export function TopBar() {
           <input
             type="text"
             placeholder={config.search}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
             style={{
               flex: 1,
               background: 'transparent',
@@ -254,9 +275,13 @@ export function TopBar() {
                 display: 'inline-block',
               }}
             />
-            Terminal 01 Online
+            {caja === undefined
+              ? 'Cargando turno…'
+              : caja
+                ? `Turno abierto · ${caja.turno?.empleado?.nombre ?? 'Sin responsable'} · ${new Date(caja.turno?.inicio ?? caja.created_at).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: false })}`
+                : 'Sin turno abierto'}
           </div>
-          <button
+          {caja === null && <button
             style={{
               padding: '7px 16px',
               background: 'var(--color-lime)',
@@ -275,8 +300,8 @@ export function TopBar() {
             onMouseEnter={(e) => (e.currentTarget.style.filter = 'brightness(1.1)')}
             onMouseLeave={(e) => (e.currentTarget.style.filter = 'none')}
           >
-            Nuevo Turno
-          </button>
+            Abrir turno
+          </button>}
         </>
       )}
     </header>
