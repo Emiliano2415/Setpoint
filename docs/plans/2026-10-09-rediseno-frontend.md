@@ -592,6 +592,19 @@ Se programan antes de rediseñar el módulo afectado, para no reescribir dos vec
 | El inventario no baja al vender | POS, Inventario | 18 |
 | La venta se guarda en cuatro pasos separados | POS, Comandas, Pistas | 18 |
 | "Dividir cuenta" ignora el descuento activo | POS | 18 |
+| Un mismo ticket tiene tres números (el del panel, el guardado y el del historial) | POS | 18 |
+| La rejilla de productos se queda en "Cargando..." si no hay categorías o falla su carga | POS | 18 |
+| Una venta de cortesía aparece como "Efectivo" en el historial de tickets | POS | 18 |
+| En "Dividir cuenta", el aviso "Sin turno activo — los cobros no se registran en caja" contradice que ya no se pueda cobrar sin turno | POS | 18 |
+
+Corregidos el 2026-10-09, al levantar el inventario del POS (`docs/design/specs/pos-inventario.md`):
+
+| Fallo | Estado |
+|---|---|
+| "Dividir cuenta a partes iguales" creaba una cuenta por persona con todos los productos: el total completo quedaba registrado N veces en ventas, pagos y caja | Corregido y comprobado en la base: una cuenta, un pago por persona |
+| "Dividir cuenta" se podía abrir sin turno abierto | Corregido |
+| El descuento elegido seguía activo en el ticket siguiente | Corregido; sin probar en el navegador |
+| El POS consultaba el turno una sola vez: abrirlo después exigía recargar | Corregido (sondeo cada 30 s); sin probar en el navegador |
 | Las funciones `rpc_*` no comprueban el club; registro público abierto | Todos | 32 |
 
 ### Decisiones tomadas (2026-10-09)

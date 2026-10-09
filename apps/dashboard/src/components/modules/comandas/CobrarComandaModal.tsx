@@ -9,7 +9,7 @@ import type { CuentaItem, PagoInput } from '@/lib/supabase/queries/pos'
 import { createCuenta } from '@/lib/supabase/queries/pos'
 import type { ComandaFromDB } from '@/lib/supabase/queries/comandas'
 import { updateComanda } from '@/lib/supabase/queries/comandas'
-import { SplitAccountModal, type PersonSplit } from '@/components/modules/pos/SplitAccountModal'
+import { SplitAccountModal, type PersonSplit, type SplitMode } from '@/components/modules/pos/SplitAccountModal'
 import type { TicketItem } from '@/components/modules/pos/POSPage'
 import { useAppStore } from '@/store/useAppStore'
 
@@ -147,13 +147,21 @@ export function CobrarComandaModal({ comanda, cajaId, onClose, onSuccess }: Prop
     }
   }
 
-  async function handleConfirmSplitAccount(splits: PersonSplit[]) {
+  async function handleConfirmSplitAccount(splits: PersonSplit[], modo: SplitMode) {
     if (splits.length === 0) return
     setPaying(true)
     let firstCuentaId: string | null = null
+    // A partes iguales es UNA venta pagada entre varios: una sola cuenta con todos
+    // los productos y un pago por persona. Antes se creaba una cuenta por persona
+    // con todos los productos, y el total completo quedaba registrado N veces.
+    // Por persona, cada quien tiene sus productos y su propia cuenta.
+    const cuentas: { items: CuentaItem[]; pagos: PagoInput[] | MetodoPago }[] =
+      modo === 'iguales'
+        ? [{ items: cuentaItems, pagos: splits.map((s) => ({ metodo: s.metodo, monto: s.total })) }]
+        : splits.map((s) => ({ items: s.items, pagos: s.metodo }))
     try {
-      for (const split of splits) {
-        const { data, error } = await createCuenta(supabase, clubId ?? '', split.items, split.metodo, undefined, 0, cajaId)
+      for (const cuenta of cuentas) {
+        const { data, error } = await createCuenta(supabase, clubId ?? '', cuenta.items, cuenta.pagos, undefined, 0, cajaId)
         if (error || !data) throw error ?? new Error('No se pudo crear la cuenta')
         if (!firstCuentaId) firstCuentaId = data.id
       }

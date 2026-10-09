@@ -6,9 +6,10 @@ import { Minus, Plus } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { createCuenta, type MetodoPago, type PagoInput } from '@/lib/supabase/queries/pos'
 import { createComanda, updateComanda } from '@/lib/supabase/queries/comandas'
-import { SplitAccountModal, type PersonSplit } from './SplitAccountModal'
+import { SplitAccountModal, type PersonSplit, type SplitMode } from './SplitAccountModal'
 import { getDescuentosActivos, type DescuentoRegla } from '@/lib/supabase/queries/descuentos'
 import { getCajaActiva } from '@/lib/supabase/queries/caja'
+import { poll } from '@/lib/poll'
 import { useAppStore } from '@/store/useAppStore'
 import { toast } from 'sonner'
 
@@ -39,11 +40,15 @@ export function TicketPanel({ items, onUpdateQty, onRemove, onClear, onHistoryOp
       .catch(() => {})
   }, [supabase, clubId])
 
+  // El turno se puede abrir o cerrar mientras el POS sigue en pantalla
   useEffect(() => {
     if (!clubId) return
-    getCajaActiva(supabase, clubId)
-      .then(c => setCajaId(c?.id ?? null))
-      .catch(() => console.warn('[TicketPanel] No se pudo verificar caja activa'))
+    const cargarCaja = () =>
+      getCajaActiva(supabase, clubId)
+        .then(c => setCajaId(c?.id ?? null))
+        .catch(() => console.warn('[TicketPanel] No se pudo verificar caja activa'))
+    cargarCaja()
+    return poll(cargarCaja, 30_000)
   }, [supabase, clubId])
   const [ticketId, setTicketId] = useState('#SP-0000')
   // Modal de pago simple
@@ -128,6 +133,15 @@ export function TicketPanel({ items, onUpdateQty, onRemove, onClear, onHistoryOp
     setSplitOpen(true)
   }
 
+  function openSplitAccountModal() {
+    if (items.length === 0) return
+    if (!cajaId) {
+      toast.error('No hay turno activo. Abre el turno en Caja antes de cobrar.')
+      return
+    }
+    setSplitAccountOpen(true)
+  }
+
   function buildCuentaItems() {
     return items.map((i) => ({
       producto_id: i.id,
@@ -142,6 +156,7 @@ export function TicketPanel({ items, onUpdateQty, onRemove, onClear, onHistoryOp
     setTicketId(`#SP-${Math.floor(Math.random() * 9000 + 1000)}`)
     setEnviado({})
     setComandaIds([])
+    setActiveRuleId(null)
   }
 
   /** Crea una comanda con lo pendiente de cocina. Devuelve su id, o null si falló. */
@@ -234,23 +249,31 @@ export function TicketPanel({ items, onUpdateQty, onRemove, onClear, onHistoryOp
     }
   }
 
-  async function handleConfirmSplitAccount(splits: PersonSplit[]) {
+  async function handleConfirmSplitAccount(splits: PersonSplit[], modo: SplitMode) {
     let allOk = true
     // La comanda es una sola: queda ligada a la primera de las cuentas
     let primeraCuentaId: string | null = null
     setPaying(true)
-    for (const split of splits) {
+    // A partes iguales es UNA venta pagada entre varios: una sola cuenta con todos
+    // los productos y un pago por persona. Antes se creaba una cuenta por persona
+    // con todos los productos, y el total completo quedaba registrado N veces.
+    // Por persona, cada quien tiene sus productos y su propia cuenta.
+    const cuentas: { quien: string; items: PersonSplit['items']; pagos: PagoInput[] | MetodoPago }[] =
+      modo === 'iguales'
+        ? [{ quien: 'la cuenta dividida', items: buildCuentaItems(), pagos: splits.map((s) => ({ metodo: s.metodo, monto: s.total })) }]
+        : splits.map((s) => ({ quien: `a ${s.nombre}`, items: s.items, pagos: s.metodo }))
+    for (const cuenta of cuentas) {
       const { data, error } = await createCuenta(
         supabase,
         clubId ?? '',
-        split.items,
-        split.metodo,
+        cuenta.items,
+        cuenta.pagos,
         undefined,
         0,
         cajaId ?? undefined,
       )
       if (error || !data) {
-        toast.error(`Error al cobrar a ${split.nombre}`)
+        toast.error(`Error al cobrar ${cuenta.quien}`)
         allOk = false
         break
       }
@@ -786,7 +809,7 @@ export function TicketPanel({ items, onUpdateQty, onRemove, onClear, onHistoryOp
         <PayButton icon="cash" label="Efectivo" onClick={() => openPayModal('efectivo')} disabled={items.length === 0} />
         <PayButton icon="card" label="Tarjeta" onClick={() => openPayModal('credito')} disabled={items.length === 0} />
         <PayButton icon="split" label="Dividir Pago" onClick={openSplitModal} disabled={items.length === 0} />
-        <PayButton icon="split" label="Dividir Cuenta" onClick={() => setSplitAccountOpen(true)} disabled={items.length === 0} />
+        <PayButton icon="split" label="Dividir Cuenta" onClick={openSplitAccountModal} disabled={items.length === 0} />
       </div>
 
       {/* Botón PAY principal */}

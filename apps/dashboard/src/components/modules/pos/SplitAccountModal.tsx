@@ -24,11 +24,17 @@ export interface PersonSplit {
   total: number
 }
 
+/**
+ * 'por-persona': cada quien paga sus productos (una cuenta por persona).
+ * 'iguales': una sola venta pagada entre varios (una cuenta, un pago por persona).
+ */
+export type SplitMode = 'por-persona' | 'iguales'
+
 interface SplitAccountModalProps {
   open: boolean
   items: TicketItem[]
   cajaId: string | null | undefined
-  onConfirm: (splits: PersonSplit[]) => Promise<void>
+  onConfirm: (splits: PersonSplit[], modo: SplitMode) => Promise<void>
   onCancel: () => void
 }
 
@@ -850,7 +856,7 @@ export function SplitAccountModal({
       }
     })
     try {
-      await onConfirm(splits)
+      await onConfirm(splits, 'por-persona')
     } finally {
       setConfirming(false)
     }
@@ -885,7 +891,7 @@ export function SplitAccountModal({
       }
     })
     try {
-      await onConfirm(splits)
+      await onConfirm(splits, 'iguales')
     } finally {
       setConfirming(false)
     }
