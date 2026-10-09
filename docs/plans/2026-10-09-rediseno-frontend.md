@@ -50,6 +50,12 @@ grep -c "style={{" <archivo>          # Esperado: 0, o cada uso justificado en l
 
 Después, **[Claude]** recorre el flujo de humo del módulo en el navegador con el servidor vigilado (Task 9) y compara con la captura de Stitch.
 
+### CSS propio siempre dentro de una capa
+
+Las utilidades de Tailwind v4 viven en capas, y una regla escrita fuera de toda capa les gana sin importar la especificidad. El reset `* { padding: 0 }` de `globals.css` estaba fuera de capa y anulaba `p-4`, `px-3`… (detectado el 2026-10-09 al probar la página de muestra). Cualquier regla nueva en `globals.css` va dentro de `@layer base` o `@layer components`.
+
+La escala de radios es la de Stitch: `rounded-lg` = 8 px, `rounded-xl` = 12 px.
+
 ### Avisar antes de filtros y gráficas
 
 Pedido del usuario (2026-10-09): **antes de diseñar cualquier apartado con filtros o con gráficas, avisarle y esperar su respuesta.** Afecta a:
