@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Setpoint PMS — Descuentos</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-tint": "#a3d483",
+            "surface-container": "#141b17",
+            "on-secondary": "#38442f",
+            "on-tertiary": "#666029",
+            "primary-dim": "#96c676",
+            "on-primary": "#214906",
+            "on-primary-container": "#bff29d",
+            "on-error-container": "#ff9b82",
+            "primary-fixed-dim": "#b1e38f",
+            "background": "#0a0f0c",
+            "tertiary-dim": "#eee4a0",
+            "surface-container-high": "#19211d",
+            "surface-variant": "#1e2822",
+            "tertiary-fixed": "#fcf3ad",
+            "primary-container": "#335c19",
+            "on-tertiary-container": "#5e5822",
+            "on-surface": "#dde8df",
+            "secondary-dim": "#afbda2",
+            "on-surface-variant": "#a2aea6",
+            "on-secondary-container": "#b6c4a8",
+            "inverse-on-surface": "#515652",
+            "primary": "#a3d483",
+            "inverse-primary": "#3f6a25",
+            "on-background": "#dde8df",
+            "surface-container-lowest": "#000000",
+            "tertiary-fixed-dim": "#eee4a0",
+            "secondary-fixed": "#d9e7ca",
+            "on-primary-fixed-variant": "#3c6622",
+            "tertiary-container": "#f6eda7",
+            "on-secondary-fixed": "#37432e",
+            "secondary": "#bdcbaf",
+            "surface-dim": "#0a0f0c",
+            "surface": "#0a0f0c",
+            "outline-variant": "#404a44",
+            "on-primary-fixed": "#204806",
+            "inverse-surface": "#f6fbf5",
+            "on-secondary-fixed-variant": "#535f49",
+            "error-container": "#85230a",
+            "surface-bright": "#242e28",
+            "error": "#f97758",
+            "secondary-container": "#333f2a",
+            "on-error": "#450900",
+            "primary-fixed": "#bff19c",
+            "on-tertiary-fixed-variant": "#6c662e",
+            "outline": "#6d7871",
+            "on-tertiary-fixed": "#4e4914",
+            "surface-container-low": "#0e1511",
+            "surface-container-highest": "#1e2822",
+            "error-dim": "#c44f34",
+            "secondary-fixed-dim": "#cbd9bc",
+            "tertiary": "#fff9e6"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "fontFamily": {
+            "headline": ["Inter", "sans-serif"],
+            "display": ["Inter", "sans-serif"],
+            "body": ["Inter", "sans-serif"],
+            "label": ["Inter", "sans-serif"]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+      font-size: 18px;
+      line-height: 1;
+      display: inline-block;
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface font-body antialiased selection:bg-primary-container selection:text-on-primary-container overflow-hidden h-screen w-screen">
+<div class="flex h-screen w-screen overflow-hidden">
+<!-- Left Sidebar: Fixed 232px grouped navigation -->
+<aside class="w-[232px] shrink-0 h-screen border-r border-outline-variant bg-surface-container flex flex-col justify-between p-3 select-none z-40">
+<div class="flex flex-col gap-5 overflow-y-auto pr-1">
+<!-- Top header: Brand wordmark & Subtext -->
+<div class="px-2 pt-1 pb-1">
+<div class="flex items-center gap-1.5">
+<span class="font-headline text-base font-semibold text-on-surface tracking-tight">Setpoint</span>
+<span class="h-1.5 w-1.5 rounded-full bg-primary inline-block"></span>
+</div>
+<p class="font-body text-xs text-on-surface-variant font-normal mt-0.5">Club Central</p>
+</div>
+<!-- Group: OPERACIÓN -->
+<div class="flex flex-col gap-1">
+<span class="px-2.5 pb-1 text-[11px] font-semibold uppercase tracking-wider text-outline">OPERACIÓN</span>
+<nav class="flex flex-col gap-0.5">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="point_of_sale">point_of_sale</span>
+<span>Punto de Venta</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="sports_tennis">sports_tennis</span>
+<span>Pistas</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
+<span>Comandas</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+<span>Inventario</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span>Clientes</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="point_of_sale">point_of_sale</span>
+<span>Caja</span>
+</a>
+</nav>
+</div>
+<!-- Group: ADMINISTRACIÓN -->
+<div class="flex flex-col gap-1">
+<span class="px-2.5 pb-1 text-[11px] font-semibold uppercase tracking-wider text-outline">ADMINISTRACIÓN</span>
+<nav class="flex flex-col gap-0.5">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="badge">badge</span>
+<span>Personal</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="bar_chart">bar_chart</span>
+<span>Reportes</span>
+</a>
+<!-- Active Navigation Item: Descuentos -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-surface-container-highest text-primary font-medium text-sm" href="#">
+<span class="material-symbols-outlined text-primary" data-icon="percent">percent</span>
+<span>Descuentos</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span>Historial</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="cancel">cancel</span>
+<span>Cancelaciones</span>
+</a>
+</nav>
+</div>
+</div>
+<!-- Bottom Section: Configuración, User Card, Cerrar Sesión -->
+<div class="flex flex-col gap-2 pt-2 border-t border-outline-variant/60">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span>Configuración</span>
+</a>
+<!-- User card -->
+<div class="flex items-center justify-between px-2.5 py-2 rounded-lg bg-surface-container-low border border-outline-variant/40">
+<div class="flex items-center gap-2.5 min-w-0">
+<div class="h-7 w-7 rounded-lg bg-surface-container-highest border border-outline-variant flex items-center justify-center font-semibold text-xs text-primary shrink-0">
+              E
+            </div>
+<div class="truncate">
+<p class="text-xs font-medium text-on-surface truncate leading-none">Emiliano</p>
+<p class="text-[11px] text-on-surface-variant truncate mt-0.5 leading-none">Propietario</p>
+</div>
+</div>
+<button aria-label="Cerrar sesión" class="text-on-surface-variant hover:text-error transition-colors p-1 rounded hover:bg-surface-container-high shrink-0" title="Cerrar sesión" type="button">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+</button>
+</div>
+</div>
+</aside>
+<!-- Main Workspace Area -->
+<main class="flex-1 min-w-0 h-screen flex flex-col bg-background">
+<!-- Top Bar: 56px dense -->
+<header class="h-14 shrink-0 border-b border-outline-variant bg-surface-container px-6 flex items-center justify-between z-30">
+<div class="flex items-center gap-4">
+<h1 class="font-headline text-lg font-semibold text-on-surface tracking-tight">Descuentos</h1>
+<div class="flex items-center gap-2 px-2.5 py-1 rounded bg-surface-container-high text-xs text-on-surface-variant border border-outline-variant/40">
+<span class="h-1.5 w-1.5 rounded-full bg-primary"></span>
+<span>Cargando catálogo</span>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<button class="bg-primary text-on-primary opacity-60 cursor-not-allowed px-3.5 py-1.5 rounded-lg font-medium text-sm flex items-center gap-1.5 shadow-none transition-opacity" disabled="" type="button">
+<span class="material-symbols-outlined font-semibold text-sm" data-icon="add">add</span>
+<span>Nueva regla</span>
+</button>
+</div>
+</header>
+<!-- Content Canvas: Loading State Pattern -->
+<div class="flex-1 min-w-0 p-6 overflow-y-auto flex flex-col gap-4">
+<!-- Filter and Search Skeleton Toolbar -->
+<div class="flex items-center justify-between gap-4">
+<div class="flex items-center gap-3">
+<div class="w-64 h-8 rounded-lg bg-surface-container border border-outline-variant/60 flex items-center px-3 gap-2">
+<span class="material-symbols-outlined text-outline text-xs" data-icon="search">search</span>
+<div class="w-24 h-2.5 bg-surface-variant rounded animate-pulse"></div>
+</div>
+<div class="w-28 h-8 rounded-lg bg-surface-container border border-outline-variant/60 flex items-center px-3 justify-between">
+<div class="w-14 h-2.5 bg-surface-variant rounded animate-pulse"></div>
+<span class="material-symbols-outlined text-outline text-xs" data-icon="expand_more">expand_more</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-20 h-8 rounded-lg bg-surface-container border border-outline-variant/60 flex items-center justify-center">
+<div class="w-10 h-2.5 bg-surface-variant rounded animate-pulse"></div>
+</div>
+</div>
+</div>
+<!-- Bordered Panel Container with Skeleton Table -->
+<div class="border border-outline-variant rounded-xl bg-surface-container overflow-hidden flex flex-col">
+<!-- Table Header -->
+<div class="h-11 px-6 border-b border-outline-variant bg-surface-container-high flex items-center text-xs font-semibold uppercase tracking-wider text-on-surface-variant select-none">
+<div class="w-2/5 min-w-[200px]">Regla</div>
+<div class="flex-1 min-w-[120px]">Tipo</div>
+<div class="flex-1 min-w-[100px] text-right pr-6">Valor</div>
+<div class="flex-1 min-w-[140px]">Aplica a</div>
+<div class="w-28 text-right flex-none">Estado</div>
+</div>
+<!-- Skeleton Rows with Subtle Pulse -->
+<div class="divide-y divide-outline-variant/40 flex flex-col">
+<!-- Row 1 -->
+<div class="h-12 px-6 flex items-center transition-colors">
+<div class="w-2/5 min-w-[200px] flex items-center gap-2.5">
+<div class="w-3.5 h-3.5 rounded bg-surface-variant animate-pulse shrink-0"></div>
+<div class="w-44 h-3.5 rounded-md bg-surface-variant animate-pulse"></div>
+</div>
+<div class="flex-1 min-w-[120px]">
+<div class="w-20 h-3.5 rounded-md bg-surface-variant animate-pulse"></div>
+</div>
+<div class="flex-1 min-w-[100px] flex justify-end pr-6">
+<div class="w-16 h-3.5 rounded-md bg-surface-variant animate-pulse"></div>
+</div>
+<div class="flex-1 min-w-[140px]">
+<div class="w-28 h-3.5 rounded-md bg-surface-variant animate-pulse"></div>
+</div>
+<div class="w-28 flex justify-end flex-none">
+<div class="w-16 h-5 rounded-full bg-surface-variant animate-pulse"></div>
+</div>
+</div>
+<!-- Row 2 -->
+<div class="h-12 px-6 flex items-center transition-colors">
+<div class="w-2/5 min-w-[200px] flex items-center gap-2.5">
+<div class="w-3.5 h-3.5 rounded bg-surface-variant animate-pulse shrink-0"></div>
+<div class="w-56 h-3.5 rounded-md bg-surface-variant animate-pulse"></div>
+</div>
+<div class="flex-1 min-w-[120px]">
+<div class="w-24 h-3.5 rounded-md bg-surface-variant animate-pulse"></div>
+</div>
+<div class="flex-1 min-w-[100px] flex justify-end pr-6">
+<div class="w-14 h-3.5 rounded-md bg-surface-variant animate-pulse"></div>
+</div>
+<div class="flex-1 min-w-[140px]">
+<div class="w-32 h-3.5 rounded-md bg-surface-variant animate-pulse"></div>
+</div>
+<div class="w-28 flex justify-end flex-none">
+<div class="w-16 h-5 rounded-full bg-surface-variant animate-pulse"></div>
+</div>
+</div>
+<!-- Row 3 -->
+<div class="h-12 px-6 flex items-center transition-colors">
+<div class="w-2/5 min-w-[200px] flex items-center gap-2.5">
+<div class="w-3.5 h-3.5 rounded bg-surface-variant animate-pulse shrink-0"></div>
+<div class="w-36 h-3.5 rounded-md bg-surface-variant animate-pulse"></div>
+</div>
+<div class="flex-1 min-w-[120px]">
+<div class="w-20 h-3.5 rounded-md bg-surface-variant animate-pulse"></div>
+</div>
+<div class="flex-1 min-w-[100px] flex justify-end pr-6">
+<div class="w-18 h-3.5 rounded-md bg-surface-variant animate-pulse"></div>
+</div>
+<div class="flex-1 min-w-[140px]">
+<div class="w-24 h-3.5 rounded-md bg-surface-variant animate-pulse"></div>
+</div>
+<div class="w-28 flex justify-end flex-none">
+<div class="w-16 h-5 rounded-full bg-surface-variant animate-pulse"></div>
+</div>
+</div>
+<!-- Row 4 -->
+<div class="h-12 px-6 flex items-center transition-colors">
+<div class="w-2/5 min-w-[200px] flex items-center gap-2.5">
+<div class="w-3.5 h-3.5 rounded bg-surface-variant animate-pulse shrink-0"></div>
+<div class="w-48 h-3.5 rounded-md bg-surface-variant animate-pulse"></div>
+</div>
+<div class="flex-1 min-w-[120px]">
+<div class="w-28 h-3.5 rounded-md bg-surface-variant animate-pulse"></div>
+</div>
+<div class="flex-1 min-w-[100px] flex justify-end pr-6">
+<div class="w-16 h-3.5 rounded-md bg-surface-variant animate-pulse"></div>
+</div>
+<div class="flex-1 min-w-[140px]">
+<div class="w-36 h-3.5 rounded-md bg-surface-variant animate-pulse"></div>
+</div>
+<div class="w-28 flex justify-end flex-none">
+<div class="w-16 h-5 rounded-full bg-surface-variant animate-pulse"></div>
+</div>
+</div>
+<!-- Row 5 -->
+<div class="h-12 px-6 flex items-center transition-colors">
+<div class="w-2/5 min-w-[200px] flex items-center gap-2.5">
+<div class="w-3.5 h-3.5 rounded bg-surface-variant animate-pulse shrink-0"></div>
+<div class="w-40 h-3.5 rounded-md bg-surface-variant animate-pulse"></div>
+</div>
+<div class="flex-1 min-w-[120px]">
+<div class="w-20 h-3.5 rounded-md bg-surface-variant animate-pulse"></div>
+</div>
+<div class="flex-1 min-w-[100px] flex justify-end pr-6">
+<div class="w-12 h-3.5 rounded-md bg-surface-variant animate-pulse"></div>
+</div>
+<div class="flex-1 min-w-[140px]">
+<div class="w-20 h-3.5 rounded-md bg-surface-variant animate-pulse"></div>
+</div>
+<div class="w-28 flex justify-end flex-none">
+<div class="w-16 h-5 rounded-full bg-surface-variant animate-pulse"></div>
+</div>
+</div>
+<!-- Row 6 -->
+<div class="h-12 px-6 flex items-center transition-colors">
+<div class="w-2/5 min-w-[200px] flex items-center gap-2.5">
+<div class="w-3.5 h-3.5 rounded bg-surface-variant animate-pulse shrink-0"></div>
+<div class="w-52 h-3.5 rounded-md bg-surface-variant animate-pulse"></div>
+</div>
+<div class="flex-1 min-w-[120px]">
+<div class="w-22 h-3.5 rounded-md bg-surface-variant animate-pulse"></div>
+</div>
+<div class="flex-1 min-w-[100px] flex justify-end pr-6">
+<div class="w-16 h-3.5 rounded-md bg-surface-variant animate-pulse"></div>
+</div>
+<div class="flex-1 min-w-[140px]">
+<div class="w-30 h-3.5 rounded-md bg-surface-variant animate-pulse"></div>
+</div>
+<div class="w-28 flex justify-end flex-none">
+<div class="w-16 h-5 rounded-full bg-surface-variant animate-pulse"></div>
+</div>
+</div>
+</div>
+<!-- Bottom Status Bar / Table Footer -->
+<div class="h-10 px-6 border-t border-outline-variant bg-surface-container-high flex items-center justify-between text-xs select-none">
+<div class="flex items-center gap-2">
+<div class="w-28 h-3 bg-surface-variant rounded-md animate-pulse"></div>
+<span class="text-outline text-[11px]">Cargando reglas activas...</span>
+</div>
+<div class="flex items-center gap-1.5 text-on-surface-variant/80">
+<span class="h-1.5 w-1.5 rounded-full bg-outline"></span>
+<span class="text-xs">Sincronizado con caja</span>
+</div>
+</div>
+</div>
+<!-- System Status Bar -->
+<div class="flex items-center justify-between text-xs text-outline px-1">
+<div class="flex items-center gap-2">
+<span>Servidor local Setpoint v2.4</span>
+<span>•</span>
+<span>Latencia: 14ms</span>
+</div>
+<div>Terminal #01 — Turno matutino</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

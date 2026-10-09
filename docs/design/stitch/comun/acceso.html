@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Acceso - Setpoint PMS</title>
+<!-- Google Fonts: Inter -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS v3 -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Configuration matching Design System Tokens -->
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-tertiary-container": "#5e5822",
+            "on-surface-variant": "#a2aea6",
+            "surface-bright": "#242e28",
+            "primary-fixed": "#bff19c",
+            "inverse-on-surface": "#515652",
+            "on-error": "#450900",
+            "on-secondary-container": "#b6c4a8",
+            "tertiary-dim": "#eee4a0",
+            "surface-container-high": "#19211d",
+            "error-dim": "#c44f34",
+            "tertiary-container": "#f6eda7",
+            "primary-fixed-dim": "#b1e38f",
+            "on-tertiary-fixed-variant": "#6c662e",
+            "on-primary": "#214906",
+            "tertiary": "#fff9e6",
+            "on-error-container": "#ff9b82",
+            "outline-variant": "#404a44",
+            "inverse-primary": "#3f6a25",
+            "surface-container-low": "#0e1511",
+            "on-secondary-fixed": "#37432e",
+            "on-primary-fixed": "#204806",
+            "secondary": "#bdcbaf",
+            "surface-variant": "#1e2822",
+            "primary": "#a3d483",
+            "error-container": "#85230a",
+            "surface-tint": "#a3d483",
+            "on-secondary": "#38442f",
+            "on-tertiary-fixed": "#4e4914",
+            "secondary-fixed": "#d9e7ca",
+            "tertiary-fixed": "#fcf3ad",
+            "error": "#f97758",
+            "tertiary-fixed-dim": "#eee4a0",
+            "surface-container-highest": "#1e2822",
+            "surface-container": "#141b17",
+            "primary-dim": "#96c676",
+            "on-secondary-fixed-variant": "#535f49",
+            "inverse-surface": "#f6fbf5",
+            "primary-container": "#335c19",
+            "surface-dim": "#0a0f0c",
+            "secondary-fixed-dim": "#cbd9bc",
+            "on-tertiary": "#666029",
+            "background": "#0a0f0c",
+            "on-primary-container": "#bff29d",
+            "surface": "#0a0f0c",
+            "surface-container-lowest": "#000000",
+            "secondary-dim": "#afbda2",
+            "secondary-container": "#333f2a",
+            "on-surface": "#dde8df",
+            "outline": "#6d7871",
+            "on-background": "#dde8df",
+            "on-primary-fixed-variant": "#3c6622"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "fontFamily": {
+            "headline": ["Inter", "sans-serif"],
+            "display": ["Inter", "sans-serif"],
+            "body": ["Inter", "sans-serif"],
+            "label": ["Inter", "sans-serif"]
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-surface font-body text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container min-h-screen flex flex-col items-center justify-center p-6 relative">
+<!-- Centered Login Frame -->
+<main class="w-full max-w-[400px] flex flex-col items-center">
+<!-- Card Container -->
+<div class="w-full bg-surface-container border border-outline-variant rounded-xl p-8 shadow-none transition-colors">
+<!-- 1. Brand Header -->
+<header class="flex flex-col items-start">
+<div class="flex items-center gap-1.5">
+<span class="font-headline font-semibold text-xl tracking-tight text-on-surface">Setpoint</span>
+<span class="h-1.5 w-1.5 rounded-full bg-primary inline-block translate-y-[1px]"></span>
+</div>
+<p class="font-body text-xs text-on-surface-variant font-normal mt-1">
+          Sistema de gestión para clubes de pádel
+        </p>
+</header>
+<!-- 2. Screen Title -->
+<h1 class="font-headline text-[20px] font-semibold text-on-surface mt-6 mb-6 leading-tight">
+        Iniciar sesión
+      </h1>
+<!-- Sign-in Form -->
+<form class="space-y-4" onsubmit="event.preventDefault();">
+<!-- 3. Field: Correo electrónico -->
+<div>
+<label class="block font-label text-xs font-medium text-on-surface-variant mb-1.5" for="email">
+            Correo electrónico
+          </label>
+<input autocomplete="email" class="w-full rounded-lg bg-surface-container-high border border-outline-variant px-3 py-2.5 font-body text-sm text-on-surface placeholder:text-outline focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors" id="email" name="email" placeholder="admin@tuclub.com" required="" type="email" value="admin@centralpadel.mx"/>
+</div>
+<!-- 4. Field: Contraseña -->
+<div>
+<div class="flex items-center justify-between mb-1.5">
+<label class="font-label text-xs font-medium text-on-surface-variant" for="password">
+              Contraseña
+            </label>
+<a class="font-label text-xs text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer focus:outline-none focus:underline" href="#recuperar">
+              ¿Olvidaste tu contraseña?
+            </a>
+</div>
+<div class="relative w-full">
+<input autocomplete="current-password" class="w-full rounded-lg bg-surface-container-high border border-outline-variant pl-3 pr-10 py-2.5 font-body text-sm text-on-surface placeholder:text-outline focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors tracking-widest" id="password" name="password" required="" type="password" value="••••••••••••"/>
+<button aria-label="Mostrar u ocultar contraseña" class="absolute inset-y-0 right-0 flex items-center pr-3 text-on-surface-variant hover:text-on-surface focus:outline-none transition-colors" id="toggle-password" type="button">
+<span class="material-symbols-outlined text-[18px] select-none" id="eye-icon">visibility</span>
+</button>
+</div>
+</div>
+<!-- 5. Inline Error Message Block -->
+<div class="border border-error/40 bg-error/10 rounded-lg p-3 flex items-start gap-2.5 my-5" role="alert">
+<span class="material-symbols-outlined text-error text-[18px] shrink-0 translate-y-[0.5px] select-none" data-icon="warning">warning</span>
+<p class="font-body text-xs text-error font-normal leading-relaxed">
+            Credenciales incorrectas. Verifica tu correo y contraseña.
+          </p>
+</div>
+<!-- 6. Primary Action Button -->
+<button class="w-full py-2.5 px-4 rounded-lg bg-primary hover:bg-primary-dim active:bg-primary-dim text-on-primary font-medium text-sm transition-colors text-center cursor-pointer shadow-none focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-surface" type="submit">
+          Iniciar sesión
+        </button>
+</form>
+</div>
+<!-- Contextual Helper Text Under the Card -->
+<footer class="mt-6 text-center">
+<p class="font-body text-xs text-on-surface-variant/80">
+        ¿Problemas para entrar? Pide acceso al propietario del club.
+      </p>
+</footer>
+</main>
+<!-- Interactive script for password visibility toggle -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const toggleBtn = document.getElementById('toggle-password');
+      const passwordInput = document.getElementById('password');
+      const eyeIcon = document.getElementById('eye-icon');
+
+      if (toggleBtn && passwordInput && eyeIcon) {
+        toggleBtn.addEventListener('click', () => {
+          const isPassword = passwordInput.getAttribute('type') === 'password';
+          passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+          eyeIcon.textContent = isPassword ? 'visibility_off' : 'visibility';
+          
+          if (isPassword) {
+            passwordInput.classList.remove('tracking-widest');
+          } else {
+            passwordInput.classList.add('tracking-widest');
+          }
+        });
+      }
+    });
+  </script>
+</body></html>

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Recuperar contraseña — Setpoint PMS</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-error-container": "#ff9b82",
+            "on-tertiary-fixed": "#4e4914",
+            "surface-dim": "#0a0f0c",
+            "tertiary-fixed": "#fcf3ad",
+            "error-dim": "#c44f34",
+            "primary-container": "#335c19",
+            "secondary-container": "#333f2a",
+            "error": "#f97758",
+            "on-secondary-fixed": "#37432e",
+            "on-secondary-container": "#b6c4a8",
+            "surface-container-low": "#0e1511",
+            "on-tertiary": "#666029",
+            "on-primary": "#214906",
+            "on-primary-container": "#bff29d",
+            "primary-fixed-dim": "#b1e38f",
+            "surface-tint": "#a3d483",
+            "secondary": "#bdcbaf",
+            "tertiary-container": "#f6eda7",
+            "surface-container-highest": "#1e2822",
+            "on-secondary-fixed-variant": "#535f49",
+            "inverse-surface": "#f6fbf5",
+            "surface": "#0a0f0c",
+            "outline": "#6d7871",
+            "on-background": "#dde8df",
+            "surface-variant": "#1e2822",
+            "on-primary-fixed": "#204806",
+            "on-secondary": "#38442f",
+            "secondary-fixed": "#d9e7ca",
+            "on-surface-variant": "#a2aea6",
+            "tertiary-dim": "#eee4a0",
+            "secondary-dim": "#afbda2",
+            "on-tertiary-container": "#5e5822",
+            "surface-container": "#141b17",
+            "outline-variant": "#404a44",
+            "background": "#0a0f0c",
+            "tertiary": "#fff9e6",
+            "primary-fixed": "#bff19c",
+            "on-tertiary-fixed-variant": "#6c662e",
+            "primary": "#a3d483",
+            "surface-container-lowest": "#000000",
+            "inverse-on-surface": "#515652",
+            "on-primary-fixed-variant": "#3c6622",
+            "secondary-fixed-dim": "#cbd9bc",
+            "on-surface": "#dde8df",
+            "error-container": "#85230a",
+            "surface-bright": "#242e28",
+            "primary-dim": "#96c676",
+            "tertiary-fixed-dim": "#eee4a0",
+            "on-error": "#450900",
+            "inverse-primary": "#3f6a25",
+            "surface-container-high": "#19211d"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {},
+          "fontFamily": {
+            "headline": [
+              "Inter"
+            ],
+            "display": [
+              "Inter"
+            ],
+            "body": [
+              "Inter"
+            ],
+            "label": [
+              "Inter"
+            ]
+          },
+          "fontSize": {}
+        },
+      },
+    }
+  </script>
+</head>
+<body class="bg-background text-on-surface font-body min-h-screen flex flex-col items-center justify-center p-4 selection:bg-primary-container selection:text-on-primary-container antialiased">
+<main class="w-full flex flex-col items-center justify-center">
+<div class="w-[400px] max-w-full bg-surface-container border border-outline-variant rounded-xl p-8 shadow-none">
+<div class="text-left">
+<div class="font-headline text-lg font-semibold tracking-tight text-on-surface flex items-center gap-1">
+          Setpoint<span class="text-primary leading-none text-xl">•</span>
+</div>
+<p class="text-xs text-on-surface-variant font-normal mt-0.5">
+          Sistema de gestión para clubes de pádel
+        </p>
+</div>
+<div class="mt-7">
+<h1 class="text-[20px] leading-tight font-semibold text-on-surface tracking-tight">
+          Recuperar contraseña
+        </h1>
+<p class="text-sm text-on-surface-variant font-normal mt-1.5 leading-relaxed">
+          Escribe el correo de tu cuenta y te enviaremos un enlace para crear una contraseña nueva.
+        </p>
+</div>
+<form class="mt-6 flex flex-col" id="recovery-form" onsubmit="event.preventDefault();">
+<label class="text-xs font-medium text-on-surface-variant mb-1.5 block" for="email">
+          Correo electrónico
+        </label>
+<input class="w-full bg-surface-container-low border border-outline-variant rounded-lg px-3 py-2.5 text-sm text-on-surface placeholder:text-outline focus:outline-none focus:border-primary transition-colors" id="email" name="email" placeholder="admin@tuclub.com" required="" type="email"/>
+<button class="w-full mt-4 bg-primary text-on-primary font-medium text-sm py-2.5 rounded-lg hover:opacity-90 active:opacity-80 transition-opacity flex items-center justify-center" type="submit">
+          Enviar enlace
+        </button>
+<div class="mt-4 border border-primary/30 bg-primary/10 rounded-lg p-3 flex items-start gap-2.5 text-xs text-on-surface leading-snug" id="status-card">
+<span class="material-symbols-outlined text-primary text-[18px] shrink-0 select-none leading-none mt-0.5" data-icon="check_circle">check_circle</span>
+<span>Si el correo existe, recibirás el enlace en unos minutos.</span>
+</div>
+</form>
+<div class="mt-6 pt-1 flex justify-center">
+<a class="inline-flex items-center gap-1.5 text-sm text-on-surface-variant hover:text-on-surface transition-colors font-normal" href="#">
+<span class="material-symbols-outlined text-[16px] leading-none select-none" data-icon="arrow_back">arrow_back</span>
+<span>Volver a iniciar sesión</span>
+</a>
+</div>
+</div>
+<div class="w-[400px] max-w-full text-center mt-6 px-4">
+<p class="text-xs text-outline font-normal leading-relaxed">
+        ¿Problemas para entrar? Pide acceso al propietario del club.
+      </p>
+</div>
+</main>
+</body></html>

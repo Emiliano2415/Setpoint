@@ -1,0 +1,383 @@
+<!DOCTYPE html><html class="dark" lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Setpoint PMS — Punto de Venta</title>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Tailwind CSS CDN with forms container-queries -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-container": "#141b17",
+            "surface-tint": "#a3d483",
+            "surface-container-lowest": "#000000",
+            "secondary-container": "#333f2a",
+            "outline-variant": "#404a44",
+            "error-dim": "#c44f34",
+            "surface-container-highest": "#1e2822",
+            "tertiary-dim": "#eee4a0",
+            "surface-bright": "#242e28",
+            "primary-fixed": "#bff19c",
+            "on-surface": "#dde8df",
+            "on-primary": "#214906",
+            "primary": "#a3d483",
+            "on-error-container": "#ff9b82",
+            "tertiary-fixed": "#fcf3ad",
+            "inverse-surface": "#f6fbf5",
+            "tertiary-fixed-dim": "#eee4a0",
+            "on-secondary-fixed-variant": "#535f49",
+            "primary-container": "#335c19",
+            "on-tertiary-fixed-variant": "#6c662e",
+            "inverse-on-surface": "#515652",
+            "outline": "#6d7871",
+            "surface": "#0a0f0c",
+            "inverse-primary": "#3f6a25",
+            "error-container": "#85230a",
+            "on-tertiary-fixed": "#4e4914",
+            "on-primary-fixed-variant": "#3c6622",
+            "background": "#0a0f0c",
+            "on-tertiary": "#666029",
+            "secondary-dim": "#afbda2",
+            "surface-container-high": "#19211d",
+            "secondary-fixed-dim": "#cbd9bc",
+            "tertiary-container": "#f6eda7",
+            "primary-dim": "#96c676",
+            "on-primary-fixed": "#204806",
+            "tertiary": "#fff9e6",
+            "surface-container-low": "#0e1511",
+            "on-error": "#450900",
+            "on-secondary-container": "#b6c4a8",
+            "on-secondary-fixed": "#37432e",
+            "secondary-fixed": "#d9e7ca",
+            "primary-fixed-dim": "#b1e38f",
+            "on-primary-container": "#bff29d",
+            "on-tertiary-container": "#5e5822",
+            "secondary": "#bdcbaf",
+            "on-secondary": "#38442f",
+            "error": "#f97758",
+            "surface-variant": "#1e2822",
+            "on-background": "#dde8df",
+            "surface-dim": "#0a0f0c",
+            "on-surface-variant": "#a2aea6"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {},
+          "fontFamily": {
+            "headline": ["Inter", "sans-serif"],
+            "display": ["Inter", "sans-serif"],
+            "body": ["Inter", "sans-serif"],
+            "label": ["Inter", "sans-serif"]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    body {
+      font-feature-settings: "tnum" 1, "cv05" 1;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    .tnum {
+      font-variant-numeric: tabular-nums;
+    }
+  </style>
+</head>
+<!-- ==================== SIDEBAR ==================== -->
+<body class="flex h-screen w-full overflow-hidden bg-background text-on-surface font-sans antialiased"><aside class="w-[232px] min-w-[232px] shrink-0 h-full z-40 bg-surface-container border-r border-outline-variant flex flex-col justify-between p-3 select-none">
+<!-- Header / Brand -->
+<div class="flex flex-col gap-4">
+<div class="flex items-center justify-between px-2 pt-1 pb-1">
+<div class="flex items-center gap-2.5">
+<div class="w-7 h-7 rounded bg-surface-container-highest border border-outline-variant flex items-center justify-center text-primary font-bold text-sm">
+            S
+          </div>
+<div class="leading-tight">
+<div class="flex items-center gap-1.5">
+<span class="font-headline text-base font-semibold text-on-surface tracking-tight">Setpoint</span>
+<span class="text-[10px] font-semibold tracking-wide bg-surface-container-highest px-1.5 py-0.5 rounded text-primary border border-outline-variant/60">PMS</span>
+</div>
+<p class="text-[11px] text-on-surface-variant">Club Central</p>
+</div>
+</div>
+</div>
+<!-- Navigation Links -->
+<nav class="flex flex-col gap-5 overflow-y-auto pr-1">
+<!-- Grupo OPERACIÓN -->
+<div>
+<span class="px-3 text-[10px] font-semibold text-outline tracking-wider uppercase">OPERACIÓN</span>
+<div class="mt-1.5 flex flex-col gap-0.5">
+<!-- 1. Punto de Venta (ACTIVE MATCH) -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-surface-container-highest text-primary font-medium transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="point_of_sale" style="font-variation-settings: 'FILL' 1;">point_of_sale</span>
+<span class="text-sm font-medium">Punto de Venta</span>
+</a>
+<!-- 2. Pistas -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="sports_tennis">sports_tennis</span>
+<span class="text-sm">Pistas</span>
+</a>
+<!-- 3. Comandas -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="receipt_long">receipt_long</span>
+<span class="text-sm">Comandas</span>
+</a>
+<!-- 4. Inventario -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="inventory_2">inventory_2</span>
+<span class="text-sm">Inventario</span>
+</a>
+<!-- 5. Clientes -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="group">group</span>
+<span class="text-sm">Clientes</span>
+</a>
+<!-- 6. Caja -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="point_of_sale">point_of_sale</span>
+<span class="text-sm">Caja</span>
+</a>
+</div>
+</div>
+<!-- Grupo ADMINISTRACIÓN -->
+<div>
+<span class="px-3 text-[10px] font-semibold text-outline tracking-wider uppercase">ADMINISTRACIÓN</span>
+<div class="mt-1.5 flex flex-col gap-0.5">
+<!-- 7. Personal -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="badge">badge</span>
+<span class="text-sm">Personal</span>
+</a>
+<!-- 8. Reportes -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="bar_chart">bar_chart</span>
+<span class="text-sm">Reportes</span>
+</a>
+<!-- 9. Descuentos -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="percent">percent</span>
+<span class="text-sm">Descuentos</span>
+</a>
+<!-- 10. Historial -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="history">history</span>
+<span class="text-sm">Historial</span>
+</a>
+<!-- 11. Cancelaciones -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="cancel">cancel</span>
+<span class="text-sm">Cancelaciones</span>
+</a>
+</div>
+</div>
+</nav>
+</div>
+<!-- Footer Sidebar: Config, Usuario, Cerrar sesión -->
+<div class="pt-3 border-t border-outline-variant flex flex-col gap-2">
+<a class="flex items-center gap-3 px-3 py-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="settings">settings</span>
+<span class="text-sm">Configuración</span>
+</a>
+<!-- User Card -->
+<div class="flex items-center justify-between px-3 py-2 rounded-lg bg-surface-container-high border border-outline-variant">
+<div class="flex items-center gap-2.5">
+<div class="w-6 h-6 rounded bg-surface-container-highest border border-outline-variant text-[11px] font-semibold text-primary flex items-center justify-center">
+            EM
+          </div>
+<div class="leading-tight">
+<p class="text-xs font-medium text-on-surface truncate">Emiliano</p>
+<p class="text-[10px] text-on-surface-variant">Propietario</p>
+</div>
+</div>
+</div>
+<button class="flex items-center gap-3 px-3 py-1.5 rounded-lg text-xs text-on-surface-variant hover:text-error transition-colors w-full text-left" type="button">
+<span class="material-symbols-outlined text-[18px]" data-icon="logout">logout</span>
+<span class="">Cerrar sesión</span>
+</button>
+</div>
+</aside>
+<!-- ==================== MAIN CONTENT WRAPPER ==================== -->
+<div class="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+<!-- Top Bar (56px) -->
+<header class="h-14 bg-surface-container border-b border-outline-variant px-6 flex items-center justify-between shrink-0 select-none z-30 gap-4"><div class="flex items-center gap-4 min-w-0 flex-1"><h1 class="font-headline text-xl font-semibold text-on-surface shrink-0">Punto de Venta</h1><div class="relative max-w-[300px] w-full shrink"><span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-[18px] text-outline pointer-events-none" data-icon="search">search</span><input class="w-full bg-surface-container-high border border-outline-variant rounded-lg pl-9 pr-3 py-1.5 text-xs text-on-surface placeholder:text-outline focus:outline-none focus:border-primary transition-colors" placeholder="Buscar producto o cliente…" type="text"></div><div class="flex items-center gap-1.5 px-2.5 py-1 rounded bg-surface-container-highest border border-outline-variant/80 text-tertiary-dim text-xs whitespace-nowrap shrink-0"><span class="material-symbols-outlined text-[14px] text-tertiary-dim" data-icon="warning">warning</span><span class="">3 con stock bajo</span></div></div><div class="flex items-center gap-3 shrink-0 ml-auto"><div class="flex items-center gap-2 text-xs text-on-surface-variant bg-surface-container-high border border-outline-variant px-3 py-1 rounded-lg whitespace-nowrap shrink-0"><span class="w-2 h-2 rounded-full bg-primary inline-block shrink-0"></span><span class="">Turno abierto · Mariana T. · desde 08:10</span></div><button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-outline-variant text-xs font-medium text-on-surface hover:bg-surface-container-high transition-colors whitespace-nowrap shrink-0" type="button"><span class="material-symbols-outlined text-[16px] text-on-surface-variant" data-icon="history">history</span><span class="">Historial</span></button></div></header>
+<!-- Content Area: Two-column layout -->
+<main class="flex flex-1 min-h-0 overflow-hidden">
+<!-- LEFT COLUMN: Product Catalog (fluid) -->
+<section class="flex-1 min-w-0 p-6 overflow-y-auto flex flex-col">
+<!-- Category Underline Tabs -->
+<div class="border-b border-outline-variant flex items-center gap-6 shrink-0 select-none mb-5">
+<button class="pb-2.5 text-sm font-medium text-primary border-b-2 border-primary transition-colors">
+            Todos
+          </button>
+<button class="pb-2.5 text-sm font-medium text-on-surface-variant hover:text-on-surface border-b-2 border-transparent transition-colors">
+            Cafetería
+          </button>
+<button class="pb-2.5 text-sm font-medium text-on-surface-variant hover:text-on-surface border-b-2 border-transparent transition-colors">
+            Bebidas
+          </button>
+<button class="pb-2.5 text-sm font-medium text-on-surface-variant hover:text-on-surface border-b-2 border-transparent transition-colors">
+            Alquiler material
+          </button>
+<button class="pb-2.5 text-sm font-medium text-on-surface-variant hover:text-on-surface border-b-2 border-transparent transition-colors">
+            Bolas / Grips
+          </button>
+</div>
+<!-- 4-Column Minimalist Product Cards Grid -->
+<div class="flex-1 overflow-y-auto pr-1">
+<div class="grid grid-cols-3 gap-4"><div class="p-3.5 rounded-lg bg-surface-container border border-outline-variant hover:border-outline transition-colors cursor-pointer flex flex-col justify-between min-h-[96px] group"><div><div class="flex items-start justify-between gap-1"><h3 class="text-sm font-semibold text-on-surface leading-snug group-hover:text-primary transition-colors">Agua Mineral 500ml</h3></div><p class="text-xs text-on-surface-variant mt-0.5">Bebidas</p></div><div class="flex items-center justify-between gap-2 mt-3 pt-2 border-t border-outline-variant/40"><span class="text-[11px] text-outline truncate">Stock: 48</span><span class="text-sm font-medium text-on-surface tnum shrink-0">$30.00</span></div></div><div class="p-3.5 rounded-lg bg-surface-container border border-outline-variant hover:border-outline transition-colors cursor-pointer flex flex-col justify-between min-h-[96px] group"><div><div class="flex items-start justify-between gap-1"><h3 class="text-sm font-semibold text-on-surface leading-snug group-hover:text-primary transition-colors">Antivibrador</h3></div><p class="text-xs text-on-surface-variant mt-0.5">Bolas / Grips</p></div><div class="flex items-center justify-between gap-2 mt-3 pt-2 border-t border-outline-variant/40"><span class="text-[11px] text-outline truncate">Stock: 24</span><span class="text-sm font-medium text-on-surface tnum shrink-0">$25.00</span></div></div><div class="p-3.5 rounded-lg bg-surface-container border border-outline-variant hover:border-outline transition-colors cursor-pointer flex flex-col justify-between min-h-[96px] group"><div><div class="flex items-start justify-between gap-1"><h3 class="text-sm font-semibold text-on-surface leading-snug group-hover:text-primary transition-colors">Bebida Isotónica</h3></div><p class="text-xs text-on-surface-variant mt-0.5">Bebidas</p></div><div class="flex items-center justify-between gap-2 mt-3 pt-2 border-t border-outline-variant/40"><span class="text-[11px] text-outline truncate">Stock: 32</span><span class="text-sm font-medium text-on-surface tnum shrink-0">$50.00</span></div></div><div class="p-3.5 rounded-lg bg-surface-container border border-outline-variant hover:border-outline transition-colors cursor-pointer flex flex-col justify-between min-h-[96px] group"><div><div class="flex items-start justify-between gap-2"><h3 class="text-sm font-semibold text-on-surface leading-snug group-hover:text-primary transition-colors">Bocadillo Jamón</h3><span class="shrink-0 px-1.5 py-0.5 rounded text-[10px] font-medium bg-surface-container-highest border border-outline-variant text-secondary-dim whitespace-nowrap">Cocina</span></div><p class="text-xs text-on-surface-variant mt-0.5">Cafetería</p></div><div class="flex items-center justify-between gap-2 mt-3 pt-2 border-t border-outline-variant/40"><span class="text-[11px] text-outline truncate">Elaboración</span><span class="text-sm font-medium text-on-surface tnum shrink-0">$90.00</span></div></div><div class="p-3.5 rounded-lg bg-surface-container border border-outline-variant hover:border-outline transition-colors cursor-pointer flex flex-col justify-between min-h-[96px] group"><div><div class="flex items-start justify-between gap-1"><h3 class="text-sm font-semibold text-on-surface leading-snug group-hover:text-primary transition-colors">Bolsa de Deporte</h3></div><p class="text-xs text-on-surface-variant mt-0.5">Alquiler material</p></div><div class="flex items-center justify-between gap-2 mt-3 pt-2 border-t border-outline-variant/40"><span class="text-[11px] text-outline truncate">Disponibles: 8</span><span class="text-sm font-medium text-on-surface tnum shrink-0">$15.00</span></div></div><div class="p-3.5 rounded-lg bg-surface-container border border-outline-variant hover:border-outline transition-colors cursor-pointer flex flex-col justify-between min-h-[96px] group"><div><div class="flex items-start justify-between gap-1"><h3 class="text-sm font-semibold text-on-surface leading-snug group-hover:text-primary transition-colors">Bote Bolas Head Pro</h3></div><p class="text-xs text-on-surface-variant mt-0.5">Bolas / Grips</p></div><div class="flex items-center justify-between gap-2 mt-3 pt-2 border-t border-outline-variant/40"><span class="text-[11px] text-outline truncate">Stock: 19</span><span class="text-sm font-medium text-on-surface tnum shrink-0">$130.00</span></div></div><div class="p-3.5 rounded-lg bg-surface-container border border-outline-variant hover:border-outline transition-colors cursor-pointer flex flex-col justify-between min-h-[96px] group"><div><div class="flex items-start justify-between gap-2"><h3 class="text-sm font-semibold text-on-surface leading-snug group-hover:text-primary transition-colors">Café Solo</h3><span class="shrink-0 px-1.5 py-0.5 rounded text-[10px] font-medium bg-surface-container-highest border border-outline-variant text-secondary-dim whitespace-nowrap">Cocina</span></div><p class="text-xs text-on-surface-variant mt-0.5">Cafetería</p></div><div class="flex items-center justify-between gap-2 mt-3 pt-2 border-t border-outline-variant/40"><span class="text-[11px] text-outline truncate">Barra</span><span class="text-sm font-medium text-on-surface tnum shrink-0">$28.00</span></div></div><div class="p-3.5 rounded-lg bg-surface-container border border-outline-variant hover:border-outline transition-colors cursor-pointer flex flex-col justify-between min-h-[96px] group"><div><div class="flex items-start justify-between gap-1"><h3 class="text-sm font-semibold text-on-surface leading-snug group-hover:text-primary transition-colors">Cerveza Caña</h3></div><p class="text-xs text-on-surface-variant mt-0.5">Bebidas</p></div><div class="flex items-center justify-between gap-2 mt-3 pt-2 border-t border-outline-variant/40"><span class="text-[11px] text-outline truncate">Grifo</span><span class="text-sm font-medium text-on-surface tnum shrink-0">$45.00</span></div></div><div class="p-3.5 rounded-lg bg-surface-container border border-outline-variant hover:border-outline transition-colors cursor-pointer flex flex-col justify-between min-h-[96px] group"><div><div class="flex items-start justify-between gap-2"><h3 class="text-sm font-semibold text-on-surface leading-snug group-hover:text-primary transition-colors">Fruta de Temporada</h3><span class="shrink-0 px-1.5 py-0.5 rounded text-[10px] font-medium bg-surface-container-highest border border-outline-variant text-secondary-dim whitespace-nowrap">Cocina</span></div><p class="text-xs text-on-surface-variant mt-0.5">Cafetería</p></div><div class="flex items-center justify-between gap-2 mt-3 pt-2 border-t border-outline-variant/40"><span class="text-[11px] text-outline truncate">Fresco</span><span class="text-sm font-medium text-on-surface tnum shrink-0">$40.00</span></div></div><div class="p-3.5 rounded-lg bg-surface-container border border-outline-variant hover:border-outline transition-colors cursor-pointer flex flex-col justify-between min-h-[96px] group"><div><div class="flex items-start justify-between gap-2"><h3 class="text-sm font-semibold text-on-surface leading-snug group-hover:text-primary transition-colors">Grip Overgrip x3</h3><span class="shrink-0 px-1.5 py-0.5 rounded text-[10px] font-medium bg-surface-container-highest border border-outline-variant/90 text-tertiary-dim whitespace-nowrap">Stock bajo</span></div><p class="text-xs text-on-surface-variant mt-0.5">Bolas / Grips</p></div><div class="flex items-center justify-between gap-2 mt-3 pt-2 border-t border-outline-variant/40"><span class="text-[11px] text-tertiary-dim font-medium truncate">Stock: 2 un.</span><span class="text-sm font-medium text-on-surface tnum shrink-0">$120.00</span></div></div><div class="p-3.5 rounded-lg bg-surface-container border border-outline-variant hover:border-outline transition-colors cursor-pointer flex flex-col justify-between min-h-[96px] group"><div><div class="flex items-start justify-between gap-1"><h3 class="text-sm font-semibold text-on-surface leading-snug group-hover:text-primary transition-colors">Pala Nivel 1</h3></div><p class="text-xs text-on-surface-variant mt-0.5">Alquiler material</p></div><div class="flex items-center justify-between gap-2 mt-3 pt-2 border-t border-outline-variant/40"><span class="text-[11px] text-outline truncate">Pista 1-4</span><span class="text-sm font-medium text-on-surface tnum shrink-0">$80.00</span></div></div><div class="p-3.5 rounded-lg bg-surface-container border border-outline-variant hover:border-outline transition-colors cursor-pointer flex flex-col justify-between min-h-[96px] group"><div><div class="flex items-start justify-between gap-2"><h3 class="text-sm font-semibold text-on-surface leading-snug group-hover:text-primary transition-colors">Tostada Aguacate</h3><span class="shrink-0 px-1.5 py-0.5 rounded text-[10px] font-medium bg-surface-container-highest border border-outline-variant text-secondary-dim whitespace-nowrap">Cocina</span></div><p class="text-xs text-on-surface-variant mt-0.5">Cafetería</p></div><div class="flex items-center justify-between gap-2 mt-3 pt-2 border-t border-outline-variant/40"><span class="text-[11px] text-outline truncate">Cocina caliente</span><span class="text-sm font-medium text-on-surface tnum shrink-0">$85.00</span></div></div></div>
+</div>
+</section>
+<!-- RIGHT COLUMN: Order Ticket Panel (400px fixed) -->
+<aside class="w-[360px] shrink-0 border-l border-outline-variant bg-surface-container flex flex-col h-full justify-between overflow-y-auto">
+<!-- Top: Ticket header and item list -->
+<div class="flex flex-col flex-1 overflow-hidden p-5">
+<!-- Ticket Header -->
+<div class="flex items-center justify-between pb-3.5 border-b border-outline-variant">
+<div class="flex items-center gap-2">
+<h2 class="text-sm font-semibold text-on-surface">Ticket actual</h2>
+<span class="text-xs text-outline font-mono">#SP-3160</span>
+</div>
+<span class="text-xs text-on-surface-variant">Mesa / Barra</span>
+</div>
+<!-- Items list (Scrollable) -->
+<div class="flex-1 overflow-y-auto py-3 space-y-2.5">
+<!-- Item 1: Café Solo -->
+<div class="p-2.5 rounded-lg bg-surface-container-high border border-outline-variant flex items-center justify-between text-xs">
+<div class="flex-1 pr-2">
+<p class="font-medium text-on-surface">Café Solo</p>
+<p class="text-[11px] text-outline tnum">$28.00 unitario</p>
+</div>
+<div class="flex items-center gap-3">
+<!-- Quantity Stepper -->
+<div class="flex items-center border border-outline-variant rounded bg-surface-container-highest">
+<button class="px-2 py-0.5 text-on-surface-variant hover:text-on-surface transition-colors" type="button">−</button>
+<span class="px-2 py-0.5 font-medium text-on-surface tnum text-xs">1</span>
+<button class="px-2 py-0.5 text-on-surface-variant hover:text-on-surface transition-colors" type="button">+</button>
+</div>
+<span class="w-16 text-right font-medium text-on-surface tnum">$28.00</span>
+<button class="text-outline hover:text-error transition-colors p-0.5" type="button">
+<span class="material-symbols-outlined text-[16px]" data-icon="delete">delete</span>
+</button>
+</div>
+</div>
+<!-- Item 2: Agua Mineral 500ml -->
+<div class="p-2.5 rounded-lg bg-surface-container-high border border-outline-variant flex items-center justify-between text-xs">
+<div class="flex-1 pr-2">
+<p class="font-medium text-on-surface">Agua Mineral 500ml</p>
+<p class="text-[11px] text-outline tnum">$30.00 unitario</p>
+</div>
+<div class="flex items-center gap-3">
+<div class="flex items-center border border-outline-variant rounded bg-surface-container-highest">
+<button class="px-2 py-0.5 text-on-surface-variant hover:text-on-surface transition-colors" type="button">−</button>
+<span class="px-2 py-0.5 font-medium text-on-surface tnum text-xs">1</span>
+<button class="px-2 py-0.5 text-on-surface-variant hover:text-on-surface transition-colors" type="button">+</button>
+</div>
+<span class="w-16 text-right font-medium text-on-surface tnum">$30.00</span>
+<button class="text-outline hover:text-error transition-colors p-0.5" type="button">
+<span class="material-symbols-outlined text-[16px]" data-icon="delete">delete</span>
+</button>
+</div>
+</div>
+<!-- Item 3: Bocadillo Jamón -->
+<div class="p-2.5 rounded-lg bg-surface-container-high border border-outline-variant flex items-center justify-between text-xs">
+<div class="flex-1 pr-2">
+<p class="font-medium text-on-surface">Bocadillo Jamón</p>
+<p class="text-[11px] text-outline tnum">$90.00 unitario</p>
+</div>
+<div class="flex items-center gap-3">
+<div class="flex items-center border border-outline-variant rounded bg-surface-container-highest">
+<button class="px-2 py-0.5 text-on-surface-variant hover:text-on-surface transition-colors" type="button">−</button>
+<span class="px-2 py-0.5 font-medium text-on-surface tnum text-xs">1</span>
+<button class="px-2 py-0.5 text-on-surface-variant hover:text-on-surface transition-colors" type="button">+</button>
+</div>
+<span class="w-16 text-right font-medium text-on-surface tnum">$90.00</span>
+<button class="text-outline hover:text-error transition-colors p-0.5" type="button">
+<span class="material-symbols-outlined text-[16px]" data-icon="delete">delete</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Discount Selector -->
+<div class="pt-3 border-t border-outline-variant flex items-center justify-between gap-3">
+<label class="text-xs text-on-surface-variant" for="discount-select">Descuento</label>
+<div class="relative w-44">
+<select class="w-full bg-surface-container-high border border-outline-variant rounded-lg text-xs py-1.5 px-2.5 text-on-surface focus:outline-none focus:border-primary" id="discount-select">
+<option value="none">Ninguno</option>
+<option value="member">Socio Club (−10%)</option>
+<option value="staff">Cortesía Personal (−100%)</option>
+</select>
+</div>
+</div>
+<!-- Quiet inline kitchen notice row -->
+<div class="mt-3 p-3 rounded-lg bg-surface-container-highest border border-outline-variant flex flex-col gap-1.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1.5 text-xs text-on-surface font-medium">
+<span class="material-symbols-outlined text-[16px] text-secondary-dim" data-icon="receipt_long">receipt_long</span>
+<span class="">Cocina · 2 productos por enviar</span>
+</div>
+<button class="px-2.5 py-1 text-xs rounded border border-outline-variant text-on-surface hover:bg-surface-container-high transition-colors whitespace-nowrap shrink-0" type="button">
+                Enviar ahora
+              </button>
+</div>
+<p class="text-[11px] text-outline">Sale automáticamente al cobrar</p>
+</div>
+</div>
+<!-- Bottom: Totals & Payment Grid -->
+<div class="p-5 border-t border-outline-variant bg-surface-container flex flex-col gap-4">
+<!-- Totals List -->
+<div class="space-y-1.5 text-xs">
+<div class="flex justify-between text-on-surface-variant">
+<span class="">Subtotal</span>
+<span class="tnum text-on-surface">$148.00</span>
+</div>
+<div class="flex justify-between text-on-surface-variant">
+<span class="">Descuento</span>
+<span class="tnum text-on-surface">−$0.00</span>
+</div>
+<div class="flex justify-between text-on-surface-variant">
+<span class="">IVA (16%)</span>
+<span class="tnum text-on-surface">$23.68</span>
+</div>
+<div class="flex justify-between pt-2 border-t border-outline-variant/60 items-baseline">
+<span class="text-sm font-semibold text-on-surface">Total</span>
+<span class="text-xl font-bold text-primary tnum">$171.68</span>
+</div>
+</div>
+<!-- 2x2 Payment Action Grid -->
+<div class="grid grid-cols-2 gap-2">
+<button class="py-2 px-3 rounded-lg border border-outline-variant text-xs font-medium text-on-surface hover:bg-surface-container-high transition-colors text-center" type="button">
+              Efectivo
+            </button>
+<button class="py-2 px-3 rounded-lg border border-outline-variant text-xs font-medium text-on-surface hover:bg-surface-container-high transition-colors text-center" type="button">
+              Tarjeta
+            </button>
+<button class="py-2 px-3 rounded-lg border border-outline-variant text-xs font-medium text-on-surface hover:bg-surface-container-high transition-colors text-center" type="button">
+              Dividir pago
+            </button>
+<button class="py-2 px-3 rounded-lg border border-outline-variant text-xs font-medium text-on-surface hover:bg-surface-container-high transition-colors text-center" type="button">
+              Dividir cuenta
+            </button>
+</div>
+<!-- Main Primary Action: Cobrar -->
+<button class="w-full py-3 px-4 rounded-lg bg-primary text-on-primary font-semibold text-sm hover:opacity-95 active:opacity-90 transition-opacity flex items-center justify-center gap-2" type="button">
+<span class="">Cobrar</span>
+<span class="tnum font-bold">$171.68</span>
+</button>
+</div>
+</aside>
+</main>
+</div>
+<div class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center backdrop-blur-[2px] p-4 select-none"><div class="w-full max-w-[480px] rounded-xl border border-outline-variant bg-[#1E231F] text-on-surface shadow-2xl flex flex-col overflow-hidden"><div class="border-b border-outline-variant/60 p-5 flex items-start justify-between"><div class="flex flex-col gap-0.5"><h2 class="text-lg font-semibold text-white tracking-tight">Cobro en efectivo</h2><p class="text-xs text-on-surface-variant">Ticket #SP-3160 · 3 productos</p></div><button class="text-outline hover:text-on-surface transition-colors p-1 rounded-lg hover:bg-surface-container-high" type="button"><span class="material-symbols-outlined text-[20px]" data-icon="close">close</span></button></div><div class="p-6 space-y-5"><div class="rounded-lg bg-[#141b17] p-4 border border-outline-variant/60 flex items-center justify-between"><div><span class="text-xs uppercase tracking-wider text-outline font-semibold">Total a cobrar</span><p class="text-xs text-on-surface-variant mt-0.5">IVA 16% incluido</p></div><span class="text-2xl font-bold font-mono tracking-tight text-white tnum">$171.68</span></div><div><label class="text-xs font-medium text-on-surface block mb-1.5">Recibido</label><div class="flex items-center bg-[#0e1511] border border-primary/60 rounded-lg px-3.5 py-2.5 focus-within:border-primary transition-colors gap-2"><span class="text-lg font-mono font-semibold text-outline">$</span><input class="bg-transparent text-xl font-bold font-mono text-white w-full focus:outline-none border-none p-0" type="text" value="200.00"></div><p class="text-[11px] text-outline mt-1.5">Mínimo requerido: $171.68</p></div><div class="flex items-center gap-2"><button class="py-1.5 px-3 rounded-lg text-xs font-medium border border-outline-variant text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" type="button">Exacto</button><button class="py-1.5 px-3 rounded-lg text-xs font-medium border border-primary bg-primary/10 text-primary transition-colors" type="button">$200</button><button class="py-1.5 px-3 rounded-lg text-xs font-medium border border-outline-variant text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" type="button">$500</button><button class="py-1.5 px-3 rounded-lg text-xs font-medium border border-outline-variant text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" type="button">$1,000</button></div><div class="rounded-lg bg-primary/10 border border-primary/20 p-3.5 flex items-center justify-between"><span class="text-sm font-medium text-on-surface">Cambio</span><span class="text-xl font-bold font-mono text-primary tnum">$28.32</span></div><div class="flex items-center gap-2 text-xs text-on-surface-variant pt-1"><span class="material-symbols-outlined text-[16px] text-secondary-dim" data-icon="receipt_long">receipt_long</span><span class="">Se enviarán 2 productos a cocina al confirmar.</span></div></div><div class="border-t border-outline-variant/60 p-4 px-6 bg-[#181e1a] flex items-center justify-between"><button class="px-4 py-2 rounded-lg text-sm font-medium text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" type="button">Cancelar</button><button class="px-5 py-2.5 rounded-lg text-sm font-semibold bg-primary text-on-primary hover:opacity-95 transition-opacity shadow-sm flex items-center gap-1.5" type="button"><span class="material-symbols-outlined text-[18px]" data-icon="check">check</span><span class="">Confirmar pago</span></button></div></div></div>
+
+
+
+</body></html>
