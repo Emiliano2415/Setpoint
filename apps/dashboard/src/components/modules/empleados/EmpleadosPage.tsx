@@ -8,6 +8,8 @@ import { StatCard } from '@/components/ui/StatCard'
 import { Badge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
 import { useAppStore } from '@/store/useAppStore'
+import { useSearchStore } from '@/store/useSearchStore'
+import { coincideBusqueda } from '@/lib/busqueda'
 
 type BadgeVariant = 'lime' | 'blue' | 'yellow' | 'orange' | 'muted' | 'red'
 
@@ -32,6 +34,8 @@ const ROL_LABEL: Record<UserRole, string> = {
 export function EmpleadosPage() {
   const clubId = useAppStore((s) => s.clubId)
   const [empleados, setEmpleados] = useState<EmpleadoRow[]>([])
+  // Buscador de la barra superior: por nombre o rol
+  const busqueda = useSearchStore((s) => s.query)
   const [stats, setStats] = useState<EmpleadoStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -119,7 +123,7 @@ export function EmpleadosPage() {
             </tr>
           </thead>
           <tbody>
-            {empleados.map((e) => (
+            {empleados.filter((e) => coincideBusqueda(busqueda, e.nombre, e.rol)).map((e) => (
               <tr
                 key={e.id}
                 onMouseEnter={(ev) => (ev.currentTarget.style.background = 'rgba(255,255,255,0.015)')}

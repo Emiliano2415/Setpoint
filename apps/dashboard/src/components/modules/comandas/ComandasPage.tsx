@@ -12,6 +12,8 @@ import {
 import { getCajaActiva } from '@/lib/supabase/queries/caja'
 import { CobrarComandaModal } from './CobrarComandaModal'
 import { useAppStore } from '@/store/useAppStore'
+import { useSearchStore } from '@/store/useSearchStore'
+import { coincideBusqueda } from '@/lib/busqueda'
 import { toast } from 'sonner'
 const HIDE_AFTER_MS = 30 * 60 * 1000 // 30 minutos
 
@@ -51,6 +53,8 @@ interface ComandasPageProps {
 export function ComandasPage({ cajaId: cajaIdProp }: ComandasPageProps = {}) {
   const clubId = useAppStore((s) => s.clubId)
   const [comandas, setComandas] = useState<ComandaFromDB[]>([])
+  // Buscador de la barra superior: por ticket, nota o producto
+  const busqueda = useSearchStore((s) => s.query)
   const [loading, setLoading] = useState(true)
   const [showAllDelivered, setShowAllDelivered] = useState(false)
   const [cobrarComanda, setCobrarComanda] = useState<ComandaFromDB | null>(null)
@@ -150,7 +154,16 @@ export function ComandasPage({ cajaId: cajaIdProp }: ComandasPageProps = {}) {
       }}
     >
       {COLUMNS.map((col) => {
-        const allColItems = comandas.filter((c) => c.estado === col.id)
+        const allColItems = comandas.filter(
+          (c) =>
+            c.estado === col.id &&
+            coincideBusqueda(
+              busqueda,
+              c.cuenta_id?.numero_ticket,
+              c.notas,
+              ...c.comanda_items.map((ci) => ci.cuenta_item_id?.producto_id?.nombre ?? ci.producto_id?.nombre),
+            ),
+        )
         const colItems = (col.id === 'entregado' || col.id === 'cobrado') && !showAllDelivered
           ? allColItems.filter(isRecentlyDelivered)
           : allColItems

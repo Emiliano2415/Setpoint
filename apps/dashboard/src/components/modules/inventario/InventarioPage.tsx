@@ -19,6 +19,8 @@ import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 
 import { useAppStore } from '@/store/useAppStore'
+import { useSearchStore } from '@/store/useSearchStore'
+import { coincideBusqueda } from '@/lib/busqueda'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -167,7 +169,11 @@ export function InventarioPage() {
     }
   }
 
-  const productosFiltrados = showInactivos ? productos : productos.filter((p) => p.activo)
+  // Buscador de la barra superior: por nombre o categoría
+  const busqueda = useSearchStore((s) => s.query)
+  const productosFiltrados = (showInactivos ? productos : productos.filter((p) => p.activo)).filter((p) =>
+    coincideBusqueda(busqueda, p.nombre, p.categoria_nombre),
+  )
 
   return (
     <div style={{ padding: '24px', overflowY: 'auto', height: 'calc(100vh - 56px)' }}>

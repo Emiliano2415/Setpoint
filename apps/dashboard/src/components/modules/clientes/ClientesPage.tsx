@@ -19,6 +19,8 @@ import { NewClientModal } from './NewClientModal'
 import { ClientDetailModal } from './ClientDetailModal'
 
 import { useAppStore } from '@/store/useAppStore'
+import { useSearchStore } from '@/store/useSearchStore'
+import { coincideBusqueda } from '@/lib/busqueda'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -92,8 +94,11 @@ export function ClientesPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clubId, refreshKey])
 
-  const clientesFiltrados =
+  // Buscador de la barra superior: por nombre, teléfono o correo
+  const busqueda = useSearchStore((s) => s.query)
+  const clientesFiltrados = (
     filtro === 'todos' ? clientes : clientes.filter((c) => c.categoria === filtro)
+  ).filter((c) => coincideBusqueda(busqueda, c.nombre, c.telefono, c.email))
 
   return (
     <div style={{ padding: '24px', overflowY: 'auto', height: 'calc(100vh - 56px)' }}>
