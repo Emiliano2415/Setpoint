@@ -2,7 +2,8 @@
 
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState, useCallback, useMemo } from 'react'
-import { Search, Bell, Settings } from 'lucide-react'
+import { Search, AlertTriangle } from 'lucide-react'
+import { Button, Input } from '@/components/ds'
 import { createClient } from '@/lib/supabase/client'
 import { poll } from '@/lib/poll'
 import { getProductosBajoStock } from '@/lib/supabase/queries/inventario'
@@ -15,14 +16,16 @@ const MODULE_CONFIG: Record<
   { title: string; search: string; variant: 'clock' | 'terminal' }
 > = {
   '/pos': { title: 'Punto de Venta', search: 'Buscar producto o cliente...', variant: 'terminal' },
-  '/pistas': { title: 'Pistas', search: 'Buscar reserva o socio...', variant: 'clock' },
+  '/pistas': { title: 'Pistas', search: '', variant: 'clock' },
   '/comandas': { title: 'Comandas', search: 'Buscar comanda...', variant: 'terminal' },
   '/inventario': { title: 'Inventario', search: 'Buscar producto...', variant: 'terminal' },
   '/clientes': { title: 'Clientes', search: 'Buscar cliente por nombre o teléfono...', variant: 'terminal' },
   '/caja': { title: 'Caja', search: '', variant: 'terminal' },
   '/empleados': { title: 'Personal', search: 'Buscar empleado...', variant: 'terminal' },
   '/reportes': { title: 'Reportes', search: '', variant: 'terminal' },
-  '/historial': { title: 'Historial Financiero', search: '', variant: 'terminal' },
+  '/descuentos': { title: 'Descuentos', search: '', variant: 'terminal' },
+  '/cancelaciones': { title: 'Cancelaciones', search: '', variant: 'terminal' },
+  '/historial': { title: 'Historial', search: '', variant: 'terminal' },
   '/configuracion': { title: 'Configuración', search: '', variant: 'terminal' },
 }
 
@@ -110,200 +113,83 @@ export function TopBar() {
   }
 
   return (
-    <header
-      style={{
-        height: '56px',
-        background: 'var(--color-bg2)',
-        borderBottom: '1px solid var(--color-border)',
-        display: 'flex',
-        alignItems: 'center',
-        padding: '0 24px',
-        gap: '16px',
-        flexShrink: 0,
-      }}
-    >
+    <header className="relative flex h-14 shrink-0 items-center gap-4 border-b border-outline-variant bg-surface-container px-6">
       {/* Título */}
-      <span
-        style={{
-          fontSize: '18px',
-          fontWeight: 800,
-          letterSpacing: '-0.3px',
-          textTransform: 'uppercase',
-          color: 'var(--color-text)',
-          whiteSpace: 'nowrap',
-        }}
-      >
-        {config.title}
-      </span>
+      <h1 className="shrink-0 text-xl font-semibold text-on-surface">{config.title}</h1>
 
       {/* Búsqueda contextual */}
       {config.search && (
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '0 14px',
-            height: '36px',
-            background: 'var(--color-bg)',
-            border: '1px solid var(--color-border)',
-            borderRadius: '20px',
-            flex: 1,
-            maxWidth: '500px',
-            marginLeft: '16px',
-          }}
-        >
-          <Search size={15} style={{ color: 'var(--color-muted-dim)', flexShrink: 0 }} />
-          <input
+        <div className="w-full max-w-[320px]">
+          <Input
             type="text"
+            aria-label="Buscar"
             placeholder={config.search}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            style={{
-              flex: 1,
-              background: 'transparent',
-              border: 'none',
-              outline: 'none',
-              fontSize: '13px',
-              color: 'var(--color-text)',
-              fontFamily: 'inherit',
-            }}
+            prefix={<Search size={15} />}
+            size="sm"
           />
         </div>
       )}
 
-      <div style={{ flex: 1 }} />
-
-      {/* Stock alert pill */}
+      {/* Aviso de stock bajo */}
       {stockAlertas > 0 && (user?.rol === 'admin' || user?.rol === 'propietario' || user?.rol === 'cajero') && (
         <button
+          type="button"
           onClick={() => setShowStockPanel(!showStockPanel)}
-          style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 10px', background: 'rgba(234,179,8,0.1)', border: '1px solid rgba(234,179,8,0.25)', borderRadius: '8px', color: '#EAB308', fontSize: '11px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}
+          aria-expanded={showStockPanel}
+          className="inline-flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border border-warning/40 bg-warning/10 px-3 text-xs font-medium text-warning"
         >
-          ⚠ {stockAlertas} bajo stock
+          <AlertTriangle size={14} />
+          {stockAlertas} con stock bajo
         </button>
       )}
 
-      {/* Stock panel */}
+      {/* Panel de stock bajo */}
       {showStockPanel && (
-        <div style={{ position: 'fixed', top: '56px', right: '16px', zIndex: 500, background: 'var(--color-bg2)', border: '1px solid var(--color-border)', borderRadius: '12px', width: '260px', boxShadow: '0 8px 32px rgba(0,0,0,0.4)', padding: '16px' }}>
-          <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '10px' }}>Productos bajo stock</div>
-          {productosBajo.map((p, i) => (
-            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', padding: '4px 0', borderBottom: '1px solid var(--color-border-subtle)' }}>
-              <span style={{ color: 'var(--color-text)' }}>{p.nombre}</span>
-              <span style={{ fontFamily: 'var(--font-mono)', color: p.stock_actual === 0 ? '#EF4444' : '#EAB308', fontWeight: 700 }}>
-                {p.stock_actual}/{p.stock_minimo}
-              </span>
-            </div>
-          ))}
-          <button onClick={() => setShowStockPanel(false)} style={{ marginTop: '10px', width: '100%', padding: '7px', background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: '8px', color: 'var(--color-muted)', fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
+        <div className="absolute left-6 top-[52px] z-40 w-80 rounded-xl border border-outline-variant bg-surface-container p-4 shadow-2xl">
+          <p className="text-sm font-semibold text-on-surface">Productos con stock bajo</p>
+          <ul className="mt-3 flex flex-col gap-2">
+            {productosBajo.map((p, i) => (
+              <li key={i} className="flex items-center justify-between gap-3 text-sm">
+                <span className="truncate text-on-surface">{p.nombre}</span>
+                <span className={`shrink-0 tabular-nums ${p.stock_actual === 0 ? 'text-error' : 'text-warning'}`}>
+                  {p.stock_actual} / {p.stock_minimo}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <Button variant="secondary" size="sm" fullWidth className="mt-3" onClick={() => setShowStockPanel(false)}>
             Cerrar
-          </button>
+          </Button>
         </div>
       )}
 
-      {/* Right: Clock o Terminal */}
-      {config.variant === 'clock' ? (
-        <>
-          <div
-            style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: '22px',
-              fontWeight: 700,
-              color: 'var(--color-lime)',
-              letterSpacing: '1px',
-            }}
-          >
-            {time}
+      {/* Derecha: reloj o estado del turno */}
+      <div className="ml-auto flex shrink-0 items-center gap-3">
+        {config.variant === 'clock' ? (
+          <div className="text-right leading-tight">
+            <p className="text-sm font-medium tabular-nums text-on-surface">{time}</p>
+            <p className="text-xs text-outline">{date}</p>
           </div>
-          <div style={{ fontSize: '11px', color: 'var(--color-muted)', textAlign: 'right', lineHeight: 1.2 }}>
-            {date}
-          </div>
-          <div style={{ display: 'flex', gap: '4px' }}>
-            {[Bell, Settings].map((Icon, i) => (
-              <button
-                key={i}
-                style={{
-                  width: '32px',
-                  height: '32px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderRadius: '8px',
-                  border: 'none',
-                  background: 'transparent',
-                  color: 'var(--color-muted)',
-                  cursor: 'pointer',
-                  transition: 'background 0.15s',
-                  fontFamily: 'inherit',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
-                  e.currentTarget.style.color = 'var(--color-text)'
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'transparent'
-                  e.currentTarget.style.color = 'var(--color-muted)'
-                }}
-              >
-                <Icon size={18} />
-              </button>
-            ))}
-          </div>
-        </>
-      ) : (
-        <>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              fontSize: '12px',
-              fontWeight: 500,
-              color: 'var(--color-muted)',
-              letterSpacing: '0.5px',
-              textTransform: 'uppercase',
-            }}
-          >
-            <span
-              style={{
-                width: '6px',
-                height: '6px',
-                borderRadius: '50%',
-                background: 'var(--color-lime)',
-                animation: 'pulse-dot 2s ease infinite',
-                display: 'inline-block',
-              }}
-            />
-            {caja === undefined
-              ? 'Cargando turno…'
-              : caja
-                ? `Turno abierto · ${caja.turno?.empleado?.nombre ?? 'Sin responsable'} · ${new Date(caja.turno?.inicio ?? caja.created_at).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: false })}`
-                : 'Sin turno abierto'}
-          </div>
-          {caja === null && <button
-            style={{
-              padding: '7px 16px',
-              background: 'var(--color-lime)',
-              color: 'var(--color-bg)',
-              fontSize: '12px',
-              fontWeight: 700,
-              borderRadius: '8px',
-              border: 'none',
-              cursor: 'pointer',
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px',
-              fontFamily: 'inherit',
-              transition: 'filter 0.15s',
-            }}
-            onClick={handleNuevoTurno}
-            onMouseEnter={(e) => (e.currentTarget.style.filter = 'brightness(1.1)')}
-            onMouseLeave={(e) => (e.currentTarget.style.filter = 'none')}
-          >
-            Abrir turno
-          </button>}
-        </>
-      )}
+        ) : (
+          <>
+            <div className="inline-flex h-8 items-center gap-2 whitespace-nowrap rounded-lg border border-outline-variant px-3 text-xs text-on-surface-variant">
+              <span aria-hidden="true" className={`h-1.5 w-1.5 shrink-0 rounded-full ${caja ? 'bg-success' : 'bg-outline'}`} />
+              {caja === undefined
+                ? 'Cargando turno…'
+                : caja
+                  ? `Turno abierto · ${caja.turno?.empleado?.nombre ?? 'Sin responsable'} · ${new Date(caja.turno?.inicio ?? caja.created_at).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: false })}`
+                  : 'Sin turno abierto'}
+            </div>
+            {caja === null && (
+              <Button variant="primary" size="sm" onClick={handleNuevoTurno}>
+                Abrir turno
+              </Button>
+            )}
+          </>
+        )}
+      </div>
     </header>
   )
 }

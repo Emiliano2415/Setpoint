@@ -53,73 +53,25 @@ function SidebarUser() {
   }
 
   return (
-    <div
-      style={{
-        padding: '16px',
-        borderTop: '1px solid var(--color-border-subtle)',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: '8px',
-      }}
-    >
-      <div
-        style={{
-          width: '48px',
-          height: '48px',
-          borderRadius: '50%',
-          background: 'rgba(163,212,131,0.10)',
-          border: '2px solid rgba(163,212,131,0.20)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '16px',
-          fontWeight: 700,
-          color: 'var(--color-lime)',
-        }}
-      >
-        {initials}
-      </div>
-      <div style={{ textAlign: 'center' }}>
-        <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text)' }}>
-          {user?.nombre ?? '—'}
+    <>
+      <div className="flex items-center gap-3 rounded-lg border border-outline-variant bg-surface-container-high px-3 py-2">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+          {initials}
         </div>
-        <div
-          style={{
-            fontSize: '10px',
-            fontWeight: 500,
-            letterSpacing: '1px',
-            textTransform: 'uppercase',
-            color: 'var(--color-muted)',
-          }}
-        >
-          {user?.rol ?? '—'}
+        <div className="min-w-0">
+          <div className="truncate text-sm font-medium text-on-surface">{user?.nombre ?? '—'}</div>
+          <div className="truncate text-xs capitalize text-outline">{user?.rol ?? '—'}</div>
         </div>
       </div>
       <button
+        type="button"
         onClick={handleLogout}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '6px',
-          padding: '6px 14px',
-          borderRadius: '8px',
-          border: '1px solid rgba(239,68,68,0.15)',
-          background: 'transparent',
-          color: '#EF4444',
-          fontSize: '12px',
-          fontWeight: 600,
-          cursor: 'pointer',
-          fontFamily: 'inherit',
-          transition: 'background 0.15s',
-        }}
-        onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(239,68,68,0.08)')}
-        onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+        className="flex w-full items-center gap-3 rounded-lg px-3 py-1.5 text-left text-xs text-on-surface-variant transition-colors hover:text-error"
       >
-        <LogOut size={14} />
-        Cerrar Sesión
+        <LogOut size={16} />
+        Cerrar sesión
       </button>
-    </div>
+    </>
   )
 }
 
@@ -130,105 +82,58 @@ export function Sidebar() {
     pathname === href || pathname.startsWith(href + '/')
 
   return (
-    <nav
-      style={{
-        width: '220px',
-        flexShrink: 0,
-        background: 'var(--color-bg2)',
-        borderRight: '1px solid var(--color-border)',
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100vh',
-        overflow: 'hidden',
-      }}
-    >
-      {/* Brand */}
-      <div
-        style={{
-          padding: '20px 20px 16px',
-          borderBottom: '1px solid var(--color-border-subtle)',
-        }}
-      >
-        <div
-          style={{
-            fontSize: '20px',
-            fontWeight: 900,
-            letterSpacing: '-0.5px',
-            color: 'var(--color-text)',
-          }}
-        >
-          SETPOINT
-          <span style={{ color: 'var(--color-lime)' }}>.</span>
+    <aside className="flex w-[232px] shrink-0 flex-col justify-between border-r border-outline-variant bg-surface-container p-3">
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center gap-2 px-2 pt-1">
+          <span className="text-base font-semibold text-on-surface">Setpoint</span>
+          <span className="rounded border border-outline-variant px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-primary">
+            PMS
+          </span>
         </div>
-        <div
-          style={{
-            fontSize: '10px',
-            fontWeight: 500,
-            letterSpacing: '2px',
-            textTransform: 'uppercase',
-            color: 'var(--color-muted-dim)',
-            marginTop: '2px',
-          }}
-        >
-          Padel Management System
-        </div>
+
+        <nav className="flex flex-col gap-5 overflow-y-auto">
+          <div className="flex flex-col gap-0.5">
+            <p className="px-3 pb-1 text-[11px] font-medium uppercase tracking-wider text-outline">
+              Operación
+            </p>
+            {NAV_ITEMS.map(({ href, label, icon: Icon }) => (
+              <NavItem
+                key={href}
+                href={href}
+                label={label}
+                icon={<Icon size={18} />}
+                active={isActive(href)}
+              />
+            ))}
+          </div>
+
+          <div className="flex flex-col gap-0.5">
+            <p className="px-3 pb-1 text-[11px] font-medium uppercase tracking-wider text-outline">
+              Administración
+            </p>
+            {ADMIN_ITEMS.map(({ href, label, icon: Icon }) => (
+              <NavItem
+                key={href}
+                href={href}
+                label={label}
+                icon={<Icon size={18} />}
+                active={isActive(href)}
+              />
+            ))}
+          </div>
+        </nav>
       </div>
 
-      {/* Nav principal */}
-      <div style={{ padding: '16px 12px 8px' }}>
-        {NAV_ITEMS.map(({ href, label, icon: Icon }) => (
-          <NavItem
-            key={href}
-            href={href}
-            label={label}
-            icon={<Icon size={18} />}
-            active={isActive(href)}
-          />
-        ))}
-      </div>
-
-      {/* Sección Administración */}
-      <div style={{ padding: '8px 12px' }}>
-        <div
-          style={{
-            fontSize: '10px',
-            fontWeight: 600,
-            letterSpacing: '1.5px',
-            textTransform: 'uppercase',
-            color: 'var(--color-muted-dim)',
-            padding: '0 8px',
-            marginBottom: '6px',
-          }}
-        >
-          Administración
-        </div>
-        {ADMIN_ITEMS.map(({ href, label, icon: Icon }) => (
-          <NavItem
-            key={href}
-            href={href}
-            label={label}
-            icon={<Icon size={18} />}
-            active={isActive(href)}
-          />
-        ))}
-      </div>
-
-      {/* Spacer */}
-      <div style={{ flex: 1 }} />
-
-      {/* User */}
-      <SidebarUser />
-
-      {/* Config */}
-      <div style={{ padding: '8px 12px 12px', borderTop: '1px solid var(--color-border-subtle)' }}>
+      <div className="flex flex-col gap-2 border-t border-outline-variant pt-3">
         <NavItem
           href="/configuracion"
           label="Configuración"
           icon={<Settings size={18} />}
           active={isActive('/configuracion')}
         />
+        <SidebarUser />
       </div>
-    </nav>
+    </aside>
   )
 }
 
@@ -246,49 +151,14 @@ function NavItem({
   return (
     <Link
       href={href}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '10px',
-        height: '40px',
-        padding: '0 12px',
-        borderRadius: '8px',
-        textDecoration: 'none',
-        fontSize: '13.5px',
-        fontWeight: active ? 600 : 500,
-        color: active ? 'var(--color-lime)' : 'var(--color-muted)',
-        background: active ? 'rgba(163,212,131,0.10)' : 'transparent',
-        transition: 'all 0.15s',
-        position: 'relative',
-        marginBottom: '2px',
-      }}
-      onMouseEnter={(e) => {
-        if (!active) {
-          e.currentTarget.style.background = 'rgba(255,255,255,0.03)'
-          e.currentTarget.style.color = 'var(--color-text-secondary)'
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (!active) {
-          e.currentTarget.style.background = 'transparent'
-          e.currentTarget.style.color = 'var(--color-muted)'
-        }
-      }}
+      aria-current={active ? 'page' : undefined}
+      className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
+        active
+          ? 'bg-surface-container-highest font-medium text-primary'
+          : 'text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface'
+      }`}
     >
-      {active && (
-        <span
-          style={{
-            position: 'absolute',
-            left: 0,
-            top: '6px',
-            bottom: '6px',
-            width: '3px',
-            background: 'var(--color-lime)',
-            borderRadius: '0 3px 3px 0',
-          }}
-        />
-      )}
-      <span style={{ opacity: active ? 1 : 0.7, flexShrink: 0 }}>{icon}</span>
+      {icon}
       {label}
     </Link>
   )
