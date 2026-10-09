@@ -20,6 +20,10 @@ npm run dev             # Start all apps in parallel (dashboard on :3001, landin
 cd apps/dashboard && npm run dev    # http://localhost:3001
 cd apps/landing && npm run dev      # http://localhost:3000 (its /login forwards to :3001)
 
+# Dev server with a memory limit and a fixed lifetime (it once grew to several GB unattended)
+powershell -File scripts/dev-vigilado.ps1                    # dashboard on :3001, 10 min, stops above 2500 MB
+powershell -File scripts/dev-vigilado.ps1 -App landing -Seconds 1800
+
 # Build & validation
 npm run build           # Build all apps via Turbo
 npm run lint            # ESLint across all apps
