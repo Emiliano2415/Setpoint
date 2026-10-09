@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@/lib/supabase/client'
+import { localDayStart, localDayEnd } from '@/lib/format'
 import { insertMovimientoCaja } from './caja'
 import type { MetodoPago } from './caja'
 export type { MetodoPago } from './caja'
@@ -219,16 +220,6 @@ export async function getTicketsDelDia(
   supabase: SupabaseClient,
   clubId: string,
 ): Promise<TicketHistorialItem[]> {
-  // Get today's date in local time as YYYY-MM-DD
-  const today = new Date().toLocaleDateString('sv-SE') // sv-SE always gives YYYY-MM-DD
-
-  // Build UTC timestamps for start and end of local day
-  const tzOffsetMs = new Date().getTimezoneOffset() * 60 * 1000
-  const localMidnight = new Date(today + 'T00:00:00')
-  const startUTC = new Date(localMidnight.getTime() + tzOffsetMs).toISOString()
-  const endOfLocalDay = new Date(today + 'T23:59:59.999')
-  const endUTC = new Date(endOfLocalDay.getTime() + tzOffsetMs).toISOString()
-
   const { data, error } = await supabase
     .from('cuentas')
     .select(`
@@ -242,8 +233,8 @@ export async function getTicketsDelDia(
     `)
     .eq('club_id', clubId)
     .eq('estado', 'pagada')
-    .gte('created_at', startUTC)
-    .lte('created_at', endUTC)
+    .gte('created_at', localDayStart())
+    .lte('created_at', localDayEnd())
     .order('created_at', { ascending: false })
 
   if (error) return []

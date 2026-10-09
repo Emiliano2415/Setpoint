@@ -94,7 +94,7 @@ export async function getTopProductos(
   clubId: string,
   limit = 5,
 ): Promise<TopProducto[]> {
-  const startOfMonth = format(new Date(new Date().getFullYear(), new Date().getMonth(), 1), 'yyyy-MM-dd') + 'T00:00:00'
+  const startOfMonth = localDayStart(new Date(new Date().getFullYear(), new Date().getMonth(), 1))
 
   // Obtener cuentas del mes para el club
   const { data: cuentas } = await supabase

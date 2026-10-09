@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@/lib/supabase/client'
+import { localDayStart, localDayEnd } from '@/lib/format'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -32,8 +33,6 @@ export async function getEmpleados(
   supabase: SupabaseClient,
   clubId: string,
 ): Promise<EmpleadoRow[]> {
-  const today = new Date().toISOString().split('T')[0]
-
   const { data: empleados, error } = await supabase
     .from('empleados')
     .select('id, club_id, nombre, rol, activo')
@@ -51,8 +50,8 @@ export async function getEmpleados(
     .select('id, empleado_id, tipo, inicio, fin')
     .eq('club_id', clubId)
     .in('empleado_id', ids)
-    .gte('inicio', `${today}T00:00:00.000Z`)
-    .lt('inicio', `${today}T23:59:59.999Z`)
+    .gte('inicio', localDayStart())
+    .lte('inicio', localDayEnd())
     .is('fin', null)
 
   if (turnosError) throw turnosError
@@ -77,8 +76,6 @@ export async function getEmpleadoStats(
   supabase: SupabaseClient,
   clubId: string,
 ): Promise<EmpleadoStats> {
-  const today = new Date().toISOString().split('T')[0]
-
   const { data: empleados, error } = await supabase
     .from('empleados')
     .select('id, activo')
@@ -97,8 +94,8 @@ export async function getEmpleadoStats(
     .select('empleado_id')
     .eq('club_id', clubId)
     .in('empleado_id', ids)
-    .gte('inicio', `${today}T00:00:00.000Z`)
-    .lt('inicio', `${today}T23:59:59.999Z`)
+    .gte('inicio', localDayStart())
+    .lte('inicio', localDayEnd())
     .is('fin', null)
 
   if (turnosError) throw turnosError
