@@ -1,7 +1,9 @@
 'use client'
 
 import { useState } from 'react'
+import { ArrowLeft, CheckCircle2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { Button, Field, Input } from '@/components/ds'
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
@@ -20,106 +22,54 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: 'var(--color-bg)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontFamily: 'var(--font-sans)',
-      }}
-    >
-      <div style={{ width: '100%', maxWidth: '400px', padding: '0 24px' }}>
-        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-          <span style={{ fontSize: '24px', fontWeight: 800, color: 'var(--color-text)' }}>
-            SETPOINT<span style={{ color: 'var(--color-lime)' }}>.</span>
-          </span>
-        </div>
-        <div
-          style={{
-            background: 'var(--color-bg2)',
-            border: '1px solid var(--color-border)',
-            borderRadius: '20px',
-            padding: '32px',
-          }}
-        >
+    <div className="flex h-screen items-center justify-center bg-background p-4">
+      <div className="w-full max-w-[400px]">
+        <div className="rounded-xl border border-outline-variant bg-surface-container p-8">
+          <p className="text-xl font-semibold text-on-surface">
+            Setpoint<span className="text-primary"> •</span>
+          </p>
+          <h1 className="mt-6 text-xl font-semibold text-on-surface">Recuperar contraseña</h1>
+
           {sent ? (
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '32px', marginBottom: '12px' }}>✉️</div>
-              <h2 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--color-text)', marginBottom: '8px' }}>
-                Revisa tu email
-              </h2>
-              <p style={{ fontSize: '13px', color: 'var(--color-muted)' }}>
-                Si existe una cuenta con ese email, recibirás un enlace para restablecer tu contraseña.
-              </p>
-              <a
-                href="/login"
-                style={{
-                  display: 'inline-block',
-                  marginTop: '20px',
-                  fontSize: '12px',
-                  color: 'var(--color-lime)',
-                  textDecoration: 'none',
-                }}
+            <div className="mt-6">
+              <div
+                role="status"
+                className="flex items-start gap-2 rounded-lg border border-success/40 bg-success/10 px-3 py-2.5 text-sm text-success"
               >
-                ← Volver al login
-              </a>
+                <CheckCircle2 size={16} className="mt-0.5 shrink-0" />
+                <span>Si el correo existe, recibirás el enlace en unos minutos.</span>
+              </div>
             </div>
           ) : (
             <>
-              <h1 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--color-text)', marginBottom: '4px' }}>
-                Recuperar contraseña
-              </h1>
-              <p style={{ fontSize: '13px', color: 'var(--color-muted)', marginBottom: '24px' }}>
-                Ingresa tu email y te enviaremos un enlace de recuperación.
+              <p className="mt-2 text-sm text-on-surface-variant">
+                Escribe el correo de tu cuenta y te enviaremos un enlace para crear una contraseña nueva.
               </p>
-              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@tuclub.com"
-                  required
-                  style={{
-                    width: '100%',
-                    background: 'var(--color-bg)',
-                    border: '1px solid var(--color-border)',
-                    borderRadius: '8px',
-                    padding: '9px 12px',
-                    fontSize: '13px',
-                    color: 'var(--color-text)',
-                    outline: 'none',
-                    boxSizing: 'border-box',
-                  }}
-                />
-                <button
-                  type="submit"
-                  disabled={loading}
-                  style={{
-                    background: 'var(--color-lime)',
-                    color: 'var(--color-bg)',
-                    border: 'none',
-                    borderRadius: '8px',
-                    padding: '11px 16px',
-                    fontSize: '13px',
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
-                    cursor: 'pointer',
-                  }}
-                >
-                  {loading ? 'Enviando...' : 'Enviar enlace'}
-                </button>
-                <a
-                  href="/login"
-                  style={{ textAlign: 'center', fontSize: '12px', color: 'var(--color-muted)', textDecoration: 'none' }}
-                >
-                  ← Volver al login
-                </a>
+              <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
+                <Field label="Correo electrónico" htmlFor="forgot-email">
+                  <Input
+                    id="forgot-email"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="admin@tuclub.com"
+                  />
+                </Field>
+                <Button type="submit" variant="primary" size="lg" fullWidth loading={loading}>
+                  Enviar enlace
+                </Button>
               </form>
             </>
           )}
+
+          <a
+            href="/login"
+            className="mt-6 flex items-center justify-center gap-1.5 text-sm text-on-surface-variant hover:text-on-surface"
+          >
+            <ArrowLeft size={14} /> Volver a iniciar sesión
+          </a>
         </div>
       </div>
     </div>

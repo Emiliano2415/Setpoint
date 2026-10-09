@@ -2,7 +2,9 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { AlertTriangle, Eye, EyeOff } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { Button, Field, Input } from '@/components/ds'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -10,6 +12,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [verClave, setVerClave] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -30,232 +33,78 @@ export default function LoginPage() {
   }
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: 'var(--color-bg)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontFamily: 'var(--font-sans)',
-      }}
-    >
-      {/* Background subtle grid */}
-      <div
-        style={{
-          position: 'fixed',
-          inset: 0,
-          backgroundImage:
-            'radial-gradient(circle at 20% 50%, rgba(163,212,131,0.04) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(163,212,131,0.02) 0%, transparent 40%)',
-          pointerEvents: 'none',
-        }}
-      />
-
-      <div
-        style={{
-          position: 'relative',
-          width: '100%',
-          maxWidth: '400px',
-          padding: '0 24px',
-        }}
-      >
-        {/* Brand */}
-        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-              marginBottom: '8px',
-            }}
-          >
-            <span
-              style={{
-                fontSize: '24px',
-                fontWeight: 800,
-                color: 'var(--color-text)',
-                letterSpacing: '-0.5px',
-              }}
-            >
-              SETPOINT
-              <span style={{ color: 'var(--color-lime)' }}>.</span>
-            </span>
-          </div>
-          <p
-            style={{
-              fontSize: '13px',
-              color: 'var(--color-muted)',
-              letterSpacing: '0.5px',
-              textTransform: 'uppercase',
-            }}
-          >
-            Padel Management System
+    <div className="flex h-screen items-center justify-center bg-background p-4">
+      <div className="w-full max-w-[400px]">
+        <div className="rounded-xl border border-outline-variant bg-surface-container p-8">
+          <p className="text-xl font-semibold text-on-surface">
+            Setpoint<span className="text-primary"> •</span>
           </p>
-        </div>
+          <p className="mt-1 text-sm text-on-surface-variant">Sistema de gestión para clubes de pádel</p>
 
-        {/* Card */}
-        <div
-          style={{
-            background: 'var(--color-bg2)',
-            border: '1px solid var(--color-border)',
-            borderRadius: '20px',
-            padding: '32px',
-          }}
-        >
-          <h1
-            style={{
-              fontSize: '18px',
-              fontWeight: 700,
-              color: 'var(--color-text)',
-              marginBottom: '4px',
-            }}
-          >
-            Iniciar Sesión
-          </h1>
-          <p style={{ fontSize: '13px', color: 'var(--color-muted)', marginBottom: '28px' }}>
-            Accede al panel de gestión del club
-          </p>
+          <h1 className="mt-6 text-xl font-semibold text-on-surface">Iniciar sesión</h1>
 
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {/* Email */}
-            <div>
-              <label
-                htmlFor="email"
-                style={{
-                  display: 'block',
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px',
-                  color: 'var(--color-muted)',
-                  marginBottom: '6px',
-                }}
-              >
-                Email
-              </label>
-              <input
-                id="email"
+          <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
+            <Field label="Correo electrónico" htmlFor="login-email">
+              <Input
+                id="login-email"
                 type="email"
+                autoComplete="email"
+                required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@tuclub.com"
-                required
-                style={{
-                  width: '100%',
-                  background: 'var(--color-bg)',
-                  border: '1px solid var(--color-border)',
-                  borderRadius: '8px',
-                  padding: '9px 12px',
-                  fontSize: '13px',
-                  color: 'var(--color-text)',
-                  outline: 'none',
-                  boxSizing: 'border-box',
-                  transition: 'border-color 150ms ease',
-                }}
-                onFocus={(e) => (e.target.style.borderColor = 'rgba(163,212,131,0.3)')}
-                onBlur={(e) => (e.target.style.borderColor = 'var(--color-border)')}
               />
-            </div>
+            </Field>
 
-            {/* Password */}
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                <label
-                  htmlFor="password"
-                  style={{
-                    fontSize: '11px',
-                    fontWeight: 600,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
-                    color: 'var(--color-muted)',
-                  }}
-                >
+              <div className="flex items-center justify-between">
+                <label htmlFor="login-password" className="text-xs font-medium text-on-surface-variant">
                   Contraseña
                 </label>
-                <a
-                  href="/forgot-password"
-                  style={{
-                    fontSize: '11px',
-                    color: 'var(--color-lime)',
-                    textDecoration: 'none',
-                  }}
-                >
+                <a href="/forgot-password" className="text-xs text-on-surface-variant hover:text-primary">
                   ¿Olvidaste tu contraseña?
                 </a>
               </div>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-                style={{
-                  width: '100%',
-                  background: 'var(--color-bg)',
-                  border: '1px solid var(--color-border)',
-                  borderRadius: '8px',
-                  padding: '9px 12px',
-                  fontSize: '13px',
-                  color: 'var(--color-text)',
-                  outline: 'none',
-                  boxSizing: 'border-box',
-                  transition: 'border-color 150ms ease',
-                }}
-                onFocus={(e) => (e.target.style.borderColor = 'rgba(163,212,131,0.3)')}
-                onBlur={(e) => (e.target.style.borderColor = 'var(--color-border)')}
-              />
+              <div className="relative mt-1.5">
+                <Input
+                  id="login-password"
+                  type={verClave ? 'text' : 'password'}
+                  autoComplete="current-password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  aria-label={verClave ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                  onClick={() => setVerClave((v) => !v)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-outline hover:text-on-surface"
+                >
+                  {verClave ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
             </div>
 
-            {/* Error */}
             {error && (
               <div
-                style={{
-                  background: 'rgba(239,68,68,0.1)',
-                  border: '1px solid rgba(239,68,68,0.3)',
-                  borderRadius: '8px',
-                  padding: '10px 12px',
-                  fontSize: '13px',
-                  color: '#EF4444',
-                }}
+                role="alert"
+                className="flex items-start gap-2 rounded-lg border border-error/40 bg-error/10 px-3 py-2.5 text-sm text-error"
               >
-                {error}
+                <AlertTriangle size={16} className="mt-0.5 shrink-0" />
+                <span>{error}</span>
               </div>
             )}
 
-            {/* Submit */}
-            <button
-              type="submit"
-              disabled={loading}
-              style={{
-                background: loading ? 'rgba(163,212,131,0.5)' : 'var(--color-lime)',
-                color: 'var(--color-bg)',
-                border: 'none',
-                borderRadius: '8px',
-                padding: '11px 16px',
-                fontSize: '13px',
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px',
-                cursor: loading ? 'not-allowed' : 'pointer',
-                transition: 'all 150ms ease',
-                marginTop: '4px',
-              }}
-            >
-              {loading ? 'Iniciando sesión...' : 'Ingresar al Sistema'}
-            </button>
+            <Button type="submit" variant="primary" size="lg" fullWidth loading={loading}>
+              Iniciar sesión
+            </Button>
           </form>
         </div>
 
-        <p
-          style={{
-            textAlign: 'center',
-            marginTop: '24px',
-            fontSize: '12px',
-            color: 'var(--color-muted-dim)',
-          }}
-        >
-          Setpoint PMS · v0.1.0
+        <p className="mt-4 text-center text-xs text-outline">
+          ¿Problemas para entrar? Pide acceso al propietario del club.
         </p>
       </div>
     </div>
