@@ -17,6 +17,7 @@ const MODULE_CONFIG: Record<
 > = {
   '/pos': { title: 'Punto de Venta', search: 'Buscar producto o cliente...', variant: 'terminal' },
   '/pistas': { title: 'Pistas', search: '', variant: 'clock' },
+  '/mantenimiento': { title: 'Mantenimiento', search: '', variant: 'terminal' },
   '/comandas': { title: 'Comandas', search: 'Buscar comanda...', variant: 'terminal' },
   '/inventario': { title: 'Inventario', search: 'Buscar producto...', variant: 'terminal' },
   '/clientes': { title: 'Clientes', search: 'Buscar cliente por nombre o teléfono...', variant: 'terminal' },

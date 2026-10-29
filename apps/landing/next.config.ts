@@ -19,6 +19,7 @@ const RUTAS_SISTEMA = [
   "forgot-password",
   "pos",
   "pistas",
+  "mantenimiento",
   "comandas",
   "inventario",
   "clientes",

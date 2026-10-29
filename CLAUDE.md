@@ -33,6 +33,7 @@ npm run typecheck       # tsc --noEmit across all apps
 node scripts/migrate.mjs status     # Which migrations are applied / pending
 node scripts/migrate.mjs up         # Apply pending migrations, in order
 node scripts/seed-neon.mjs          # Demo users in Neon Auth + supabase/seed.sql (fails if already seeded)
+# Maintenance module demo data (after seed.sql; idempotent): psql "$DATABASE_URL_UNPOOLED" -f supabase/seed-mantenimiento.sql
 npx neon env pull                   # Regenerate the root .env.local
 ```
 
@@ -59,7 +60,7 @@ neon.ts             # Neon project config (Auth + Data API)
 
 - **`app/`** — Next.js App Router with two layout groups:
   - `(auth)/` — unauthenticated routes: `/login`, `/forgot-password`
-  - `(dashboard)/` — protected routes: `/pos`, `/pistas`, `/comandas`, `/clientes`, `/caja`, `/empleados`, `/inventario`, `/descuentos`, `/reportes`, `/historial`, `/cancelaciones`, `/configuracion`
+  - `(dashboard)/` — protected routes: `/pos`, `/pistas`, `/comandas`, `/clientes`, `/caja`, `/empleados`, `/inventario`, `/descuentos`, `/reportes`, `/mantenimiento`, `/historial`, `/cancelaciones`, `/configuracion`
   - Root `/` redirects to `/pos`
 - **`components/modules/{feature}/`** — all feature UI lives here, organized by module
 - **`components/layout/`** — Sidebar and TopBar

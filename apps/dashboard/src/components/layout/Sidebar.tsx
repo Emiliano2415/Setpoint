@@ -16,6 +16,7 @@ import {
   Tag,
   History,
   XCircle,
+  Wrench,
 } from 'lucide-react'
 import { useAppStore } from '@/store'
 import { createClient } from '@/lib/supabase/client'
@@ -23,6 +24,7 @@ import { createClient } from '@/lib/supabase/client'
 const NAV_ITEMS = [
   { href: '/pos', label: 'Punto de Venta', icon: Monitor },
   { href: '/pistas', label: 'Pistas', icon: Grid2x2 },
+  { href: '/mantenimiento', label: 'Mantenimiento', icon: Wrench },
   { href: '/comandas', label: 'Comandas', icon: Clock },
   { href: '/inventario', label: 'Inventario', icon: Package },
   { href: '/clientes', label: 'Clientes', icon: Users },
