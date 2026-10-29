@@ -50,7 +50,6 @@ export function TicketPanel({ items, onUpdateQty, onRemove, onClear, onHistoryOp
     cargarCaja()
     return poll(cargarCaja, 30_000)
   }, [supabase, clubId])
-  const [ticketId, setTicketId] = useState('#SP-0000')
   // Modal de pago simple
   const [payModal, setPayModal] = useState<{ open: boolean; metodo: MetodoPago }>({ open: false, metodo: 'efectivo' })
   const [recibido, setRecibido] = useState('')
@@ -64,10 +63,6 @@ export function TicketPanel({ items, onUpdateQty, onRemove, onClear, onHistoryOp
   const [splitAccountOpen, setSplitAccountOpen] = useState(false)
   const [splitEfectivo, setSplitEfectivo] = useState('')
   const splitEfectivoRef = useRef<HTMLInputElement>(null)
-
-  useEffect(() => {
-    setTicketId(`#SP-${Math.floor(Math.random() * 9000 + 1000)}`)
-  }, [])
 
   useEffect(() => {
     if (payModal.open && payModal.metodo === 'efectivo') {
@@ -153,7 +148,6 @@ export function TicketPanel({ items, onUpdateQty, onRemove, onClear, onHistoryOp
 
   function resetTicket() {
     onClear?.()
-    setTicketId(`#SP-${Math.floor(Math.random() * 9000 + 1000)}`)
     setEnviado({})
     setComandaIds([])
     setActiveRuleId(null)
@@ -258,10 +252,11 @@ export function TicketPanel({ items, onUpdateQty, onRemove, onClear, onHistoryOp
     // los productos y un pago por persona. Antes se creaba una cuenta por persona
     // con todos los productos, y el total completo quedaba registrado N veces.
     // Por persona, cada quien tiene sus productos y su propia cuenta.
-    const cuentas: { quien: string; items: PersonSplit['items']; pagos: PagoInput[] | MetodoPago }[] =
+    // El descuento va completo en la cuenta única, o repartido (s.descuento) por persona.
+    const cuentas: { quien: string; items: PersonSplit['items']; pagos: PagoInput[] | MetodoPago; descuento: number }[] =
       modo === 'iguales'
-        ? [{ quien: 'la cuenta dividida', items: buildCuentaItems(), pagos: splits.map((s) => ({ metodo: s.metodo, monto: s.total })) }]
-        : splits.map((s) => ({ quien: `a ${s.nombre}`, items: s.items, pagos: s.metodo }))
+        ? [{ quien: 'la cuenta dividida', items: buildCuentaItems(), pagos: splits.map((s) => ({ metodo: s.metodo, monto: s.total })), descuento: discount }]
+        : splits.map((s) => ({ quien: `a ${s.nombre}`, items: s.items, pagos: s.metodo, descuento: s.descuento }))
     for (const cuenta of cuentas) {
       const { data, error } = await createCuenta(
         supabase,
@@ -269,7 +264,7 @@ export function TicketPanel({ items, onUpdateQty, onRemove, onClear, onHistoryOp
         cuenta.items,
         cuenta.pagos,
         undefined,
-        0,
+        cuenta.descuento,
         cajaId ?? undefined,
       )
       if (error || !data) {
@@ -321,7 +316,7 @@ export function TicketPanel({ items, onUpdateQty, onRemove, onClear, onHistoryOp
               Pago Dividido
             </div>
             <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginBottom: '20px' }}>
-              {ticketId} — Efectivo + Tarjeta
+              {`${items.length} productos`} — Efectivo + Tarjeta
             </div>
 
             {/* Total a cobrar */}
@@ -451,6 +446,7 @@ export function TicketPanel({ items, onUpdateQty, onRemove, onClear, onHistoryOp
           open={splitAccountOpen}
           items={items}
           cajaId={cajaId}
+          descuento={discount}
           onConfirm={handleConfirmSplitAccount}
           onCancel={() => setSplitAccountOpen(false)}
         />
@@ -478,7 +474,7 @@ export function TicketPanel({ items, onUpdateQty, onRemove, onClear, onHistoryOp
               {payModal.metodo === 'efectivo' ? 'Pago en Efectivo' : payModal.metodo === 'credito' ? 'Pago con Tarjeta de Crédito' : 'Pago con Tarjeta de Débito'}
             </div>
             <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginBottom: '20px' }}>
-              {ticketId}
+              {`${items.length} productos`}
             </div>
 
             {/* Total a cobrar */}
@@ -596,13 +592,6 @@ export function TicketPanel({ items, onUpdateQty, onRemove, onClear, onHistoryOp
         </div>
       )}
 
-      {/* Caja warning */}
-      {cajaId === null && (
-        <div style={{ background: '#854d0e20', border: '1px solid #854d0e', borderRadius: 8, padding: '8px 12px', marginBottom: 12, fontSize: 12, color: '#fbbf24', margin: '12px 20px 0' }}>
-          Sin turno activo — los cobros no se registran en caja
-        </div>
-      )}
-
       {/* Header */}
       <div style={{ padding: '20px', borderBottom: '1px solid var(--color-border-subtle)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -619,7 +608,7 @@ export function TicketPanel({ items, onUpdateQty, onRemove, onClear, onHistoryOp
               Historial
             </span>
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--color-lime)' }}>
-              {ticketId}
+              Nuevo ticket
             </span>
           </div>
         </div>

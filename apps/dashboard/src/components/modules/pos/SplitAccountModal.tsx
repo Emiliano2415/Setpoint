@@ -19,7 +19,10 @@ export interface PersonSplit {
   nombre: string
   items: { producto_id: string; nombre: string; precio_unitario: number; cantidad: number }[]
   metodo: MetodoPago
+  /** Suma de precio × cantidad, antes del descuento */
   subtotal: number
+  /** Parte del descuento del ticket que corresponde a esta persona */
+  descuento: number
   iva: number
   total: number
 }
@@ -34,6 +37,8 @@ interface SplitAccountModalProps {
   open: boolean
   items: TicketItem[]
   cajaId: string | null | undefined
+  /** Descuento total del ticket (en pesos, antes de IVA). 0 si no hay. */
+  descuento?: number
   onConfirm: (splits: PersonSplit[], modo: SplitMode) => Promise<void>
   onCancel: () => void
 }
@@ -51,11 +56,22 @@ const METODOS: { key: MetodoPago; label: string; icon: string }[] = [
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function calcPersonTotal(
+function round2(n: number): number {
+  return Math.round(n * 100) / 100
+}
+
+interface PersonTotals {
+  subtotal: number
+  descuento: number
+  iva: number
+  total: number
+}
+
+function calcPersonSubtotal(
   personId: string,
   items: TicketItem[],
   assignments: AssignmentMap
-): { subtotal: number; iva: number; total: number } {
+): number {
   let subtotal = 0
   for (const item of items) {
     const assigned = assignments.get(item.id) ?? []
@@ -65,9 +81,47 @@ function calcPersonTotal(
       }
     }
   }
-  const iva = subtotal * TAX_RATE
-  const total = subtotal + iva
-  return { subtotal, iva, total }
+  return subtotal
+}
+
+/**
+ * Totales por persona con el descuento del ticket repartido en proporción al
+ * subtotal de cada una (redondeado a centavos). Con todo asignado, la diferencia
+ * de redondeo va a la última persona con productos para que la suma cuadre.
+ * Misma fórmula que createCuenta: base = subtotal − descuento; iva = base × 16 %.
+ */
+function calcPersonTotals(
+  persons: Person[],
+  items: TicketItem[],
+  assignments: AssignmentMap,
+  descuento: number
+): Map<string, PersonTotals> {
+  const grandSubtotal = items.reduce((s, it) => s + it.price * it.qty, 0)
+  const subtotales = persons.map((p) => calcPersonSubtotal(p.id, items, assignments))
+  const descuentos = subtotales.map((s) =>
+    descuento > 0 && grandSubtotal > 0 ? round2((descuento * s) / grandSubtotal) : 0
+  )
+  if (descuento > 0 && totalUnassignedQty(items, assignments) === 0) {
+    let last = -1
+    subtotales.forEach((s, i) => { if (s > 0) last = i })
+    if (last >= 0) {
+      const otros = descuentos.reduce((sum, d, i) => (i === last ? sum : sum + d), 0)
+      descuentos[last] = round2(descuento - otros)
+    }
+  }
+  const result = new Map<string, PersonTotals>()
+  persons.forEach((p, i) => {
+    const subtotal = subtotales[i]
+    const base = subtotal - descuentos[i]
+    const iva = base * TAX_RATE
+    result.set(p.id, {
+      subtotal,
+      descuento: descuentos[i],
+      iva: round2(iva),
+      total: round2(base + iva),
+    })
+  })
+  return result
 }
 
 function totalUnassignedQty(items: TicketItem[], assignments: AssignmentMap): number {
@@ -130,6 +184,7 @@ interface TabPorPersonaProps {
   items: TicketItem[]
   persons: Person[]
   assignments: AssignmentMap
+  personTotals: Map<string, PersonTotals>
   newPersonName: string
   metodoMap: Map<string, MetodoPago>
   activeItemId: string | null
@@ -147,6 +202,7 @@ function TabPorPersona({
   items,
   persons,
   assignments,
+  personTotals,
   newPersonName,
   metodoMap,
   activeItemId,
@@ -444,7 +500,7 @@ function TabPorPersona({
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {persons.map((p) => {
-              const { total } = calcPersonTotal(p.id, items, assignments)
+              const total = personTotals.get(p.id)?.total ?? 0
               const selectedMetodo = metodoMap.get(p.id)
               return (
                 <div
@@ -731,6 +787,7 @@ export function SplitAccountModal({
   open,
   items,
   cajaId: _cajaId,
+  descuento = 0,
   onConfirm,
   onCancel,
 }: SplitAccountModalProps) {
@@ -755,9 +812,12 @@ export function SplitAccountModal({
   if (!open) return null
 
   // Derived
+  // Misma fórmula que createCuenta: base = subtotal − descuento; total = base + IVA
   const grandTotal = items.reduce((s, it) => s + it.price * it.qty, 0)
-  const grandIva = grandTotal * TAX_RATE
-  const grandTotalWithTax = grandTotal + grandIva
+  const grandBase = grandTotal - descuento
+  const grandIva = grandBase * TAX_RATE
+  const grandTotalWithTax = round2(grandBase + grandIva)
+  const personTotals = calcPersonTotals(persons, items, assignments, descuento)
   const unassignedQty = totalUnassignedQty(items, assignments)
   const canConfirmPersona =
     persons.length >= 1 &&
@@ -845,14 +905,15 @@ export function SplitAccountModal({
           })
         }
       }
-      const { subtotal, iva, total } = calcPersonTotal(p.id, items, assignments)
+      const t = personTotals.get(p.id) ?? { subtotal: 0, descuento: 0, iva: 0, total: 0 }
       return {
         nombre: p.nombre,
         items: personItems,
         metodo: metodoMap.get(p.id)!,
-        subtotal,
-        iva,
-        total,
+        subtotal: t.subtotal,
+        descuento: t.descuento,
+        iva: t.iva,
+        total: t.total,
       }
     })
     try {
@@ -876,16 +937,22 @@ export function SplitAccountModal({
       cantidad: it.qty,
     }))
 
+    // Parte informativa del descuento por persona; la cuenta única lleva el descuento total
+    const descuentoBase = round2(descuento / numPersons)
     const splits: PersonSplit[] = Array.from({ length: numPersons }, (_, i) => {
       const isLast = i === numPersons - 1
-      const total = isLast ? baseAmount + remainder : baseAmount
-      const subtotal = Math.round((total / (1 + TAX_RATE)) * 100) / 100
-      const iva = Math.round((total - subtotal) * 100) / 100
+      const total = round2(isLast ? baseAmount + remainder : baseAmount)
+      const base = round2(total / (1 + TAX_RATE))
+      const iva = round2(total - base)
+      const personDescuento = isLast
+        ? round2(descuento - descuentoBase * (numPersons - 1))
+        : descuentoBase
       return {
         nombre: `Persona ${i + 1}`,
         items: allItems,
         metodo: metodoIguales.get(i)!,
-        subtotal,
+        subtotal: round2(base + personDescuento),
+        descuento: personDescuento,
         iva,
         total,
       }
@@ -1007,6 +1074,7 @@ export function SplitAccountModal({
               items={items}
               persons={persons}
               assignments={assignments}
+              personTotals={personTotals}
               newPersonName={newPersonName}
               metodoMap={metodoMap}
               activeItemId={activeItemId}

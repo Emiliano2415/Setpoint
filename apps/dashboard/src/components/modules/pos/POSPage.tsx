@@ -15,6 +15,7 @@ import {
 import { useAppStore } from '@/store/useAppStore'
 import { useSearchStore } from '@/store/useSearchStore'
 import { coincideBusqueda } from '@/lib/busqueda'
+import { toast } from 'sonner'
 
 // imgClass mapping — coincide con nombres de categorías en DB
 const IMG_CLASS_BY_CATEGORY: Record<string, string> = {
@@ -82,13 +83,24 @@ export function POSPage() {
     const id = clubId
     async function fetchCategories() {
       setLoadingCategories(true)
-      const { data, error } = await getCategories(supabase, id)
-      if (!error && data) {
-        const tabs: CategoryTab[] = [
-          { id: ALL_CATEGORY_ID, label: 'Todos' },
-          ...data.map((c) => ({ id: c.id, label: c.nombre })),
-        ]
-        setCategories(tabs)
+      let ok = false
+      try {
+        const { data, error } = await getCategories(supabase, id)
+        if (!error && data) {
+          const tabs: CategoryTab[] = [
+            { id: ALL_CATEGORY_ID, label: 'Todos' },
+            ...data.map((c) => ({ id: c.id, label: c.nombre })),
+          ]
+          setCategories(tabs)
+          ok = true
+        }
+      } catch {
+        // se trata igual que un error de la consulta
+      }
+      if (!ok) {
+        // Sin categorías el efecto de productos no corre: hay que cerrar la carga aquí
+        toast.error('No se pudieron cargar las categorías del menú')
+        setLoadingProducts(false)
       }
       setLoadingCategories(false)
     }
@@ -150,7 +162,10 @@ export function POSPage() {
       setLoadingProducts(false)
     }
 
-    fetchProducts()
+    fetchProducts().catch(() => {
+      toast.error('No se pudieron cargar los productos')
+      setLoadingProducts(false)
+    })
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeCategory, categories])
 
@@ -236,6 +251,19 @@ export function POSPage() {
             }}
           >
             Cargando...
+          </div>
+        ) : productosVisibles.length === 0 ? (
+          <div
+            style={{
+              flex: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '13px',
+              color: 'var(--color-muted)',
+            }}
+          >
+            Sin productos
           </div>
         ) : (
           <ProductGrid products={productosVisibles} onAdd={addProduct} />

@@ -14,6 +14,16 @@ function fmtHora(iso: string): string {
   return new Date(iso).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
 }
 
+const METODO_LABEL: Record<string, string> = {
+  efectivo: 'Efectivo',
+  credito: 'Crédito',
+  debito: 'Débito',
+  cortesia: 'Cortesía',
+  cuenta_cliente: 'Cuenta cliente',
+  bono: 'Bono',
+  dividido: 'Dividido',
+}
+
 function fmtMonto(n: number): string {
   return `$${n.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
@@ -84,7 +94,6 @@ export function TicketHistory({ onClose }: TicketHistoryProps) {
           ) : (
             tickets.map((t) => {
               const isExp = expanded === t.id
-              const shortId = t.id.slice(-6).toUpperCase()
               const isSplit = t.metodo === 'dividido'
               const isCard = !isSplit && (t.metodo.includes('tarjeta') || t.metodo === 'credito' || t.metodo === 'debito')
 
@@ -124,7 +133,7 @@ export function TicketHistory({ onClose }: TicketHistoryProps) {
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-text)' }}>
-                        #{shortId}
+                        #{t.numero_ticket}
                       </div>
                       <div style={{ fontSize: '11px', color: 'var(--color-muted)' }}>
                         {fmtHora(t.created_at)} · {t.items.length} productos
@@ -135,7 +144,7 @@ export function TicketHistory({ onClose }: TicketHistoryProps) {
                         {fmtMonto(t.total)}
                       </div>
                       <div style={{ fontSize: '10px', color: isSplit ? '#EAB308' : isCard ? '#60a5fa' : 'var(--color-lime)', fontWeight: 600 }}>
-                        {isSplit ? 'Dividido' : isCard ? 'Tarjeta' : 'Efectivo'}
+                        {METODO_LABEL[t.metodo] ?? t.metodo}
                       </div>
                       <div style={{
                         display: 'inline-block',
