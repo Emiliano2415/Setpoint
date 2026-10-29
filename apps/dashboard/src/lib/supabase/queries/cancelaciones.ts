@@ -79,13 +79,16 @@ export async function getCancelaciones(
   // Día local del club, no el día UTC: con límites UTC lo cancelado después
   // de las 18:00 caía en "mañana" y no aparecía.
   const dia = new Date(`${fecha}T12:00:00`)
+  // De ítems y de ventas completas (estas no tienen cuenta_item_id)
   const [delDia, pendientes] = await Promise.all([
     base()
-      .not('cuenta_item_id', 'is', null)
+      .not('cuenta_id', 'is', null)
+      .is('reserva_id', null)
       .gte('created_at', localDayStart(dia))
       .lte('created_at', localDayEnd(dia)),
     base()
-      .not('cuenta_item_id', 'is', null)
+      .not('cuenta_id', 'is', null)
+      .is('reserva_id', null)
       .eq('estado', 'pendiente'),
   ])
   if (delDia.error) throw delDia.error
@@ -162,6 +165,27 @@ export async function solicitarCancelacionPostCobro(
   if (error) throw error
   return data as string
 }
+
+/**
+ * Pide el reembolso de una venta completa: una solicitud pendiente por método
+ * de pago con lo cobrado por ese método. Devuelve cuántas se crearon.
+ * El club y el empleado salen de la sesión.
+ */
+export async function solicitarCancelacionCuenta(
+  supabase: SupabaseClient,
+  cuentaId: string,
+  motivo: string,
+): Promise<number> {
+  const { data, error } = await supabase.rpc('rpc_solicitar_cancelacion_cuenta', {
+    p_cuenta_id: cuentaId,
+    p_motivo: motivo,
+  })
+  if (error) throw error
+  return data as number
+}
+
+/** Estados de una cancelación que siguen vigentes: impiden pedir otra por lo mismo */
+export const CANCELACION_ACTIVA: CancelacionEstado[] = ['pendiente', 'aprobada', 'reembolsada']
 
 export async function aprobarCancelacion(
   supabase: SupabaseClient,

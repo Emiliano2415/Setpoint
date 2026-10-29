@@ -67,7 +67,7 @@ export function CancelacionDetalle({ cancelacion, cajaId, onAction }: Props) {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflowY: 'auto', padding: '20px' }}>
       <div style={{ marginBottom: '20px' }}>
         <div style={{ fontSize: '14px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>
-          {isReserva ? 'Cancelación de Reserva' : 'Cancelación de Ítem'}
+          {isReserva ? 'Cancelación de Reserva' : cancelacion.cuenta_item_id ? 'Cancelación de Ítem' : 'Cancelación de venta completa'}
         </div>
         <div style={{ fontSize: '11px', color: 'var(--color-muted)' }}>
           {new Date(cancelacion.created_at).toLocaleString('es-MX')}

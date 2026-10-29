@@ -45,7 +45,7 @@ export function CancelacionesList({ rows, loading, selected, onSelect }: Props) 
         const title = row.reservas
           ? `Reserva — ${row.reservas.pistas?.nombre ?? '—'}`
           : row.cuentas?.numero_ticket
-            ? `Ticket ${row.cuentas.numero_ticket}`
+            ? `Ticket ${row.cuentas.numero_ticket}${row.cuenta_item_id ? '' : ' · venta completa'}`
             : '—'
         const subtitle = row.reservas
           ? (row.reservas.nombre_cliente ?? row.reservas.clientes?.nombre ?? 'Sin cliente')

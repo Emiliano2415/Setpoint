@@ -11,6 +11,8 @@ export interface VentaPOS {
   cliente_nombre: string | null
   metodos_pago: { metodo: string; monto: number }[]
   items: { id: string; nombre: string; cantidad: number; precio_unitario: number; subtotal: number; estado: string }[]
+  /** Cancelaciones post-cobro de la venta: de un ítem (cuenta_item_id) o de la venta completa (null) */
+  cancelaciones: { cuenta_item_id: string | null; estado: string; monto: number }[]
 }
 
 export interface RentaCancha {
@@ -65,6 +67,7 @@ export async function getHistorialVentas(
       descuento_total,
       clientes ( nombre ),
       pagos ( metodo, monto ),
+      cancelaciones ( cuenta_item_id, estado, monto ),
       cuenta_items (
         id,
         estado,
@@ -93,6 +96,7 @@ export async function getHistorialVentas(
     descuento_total: c.descuento_total as number,
     cliente_nombre: (c.clientes as unknown as { nombre: string } | null)?.nombre ?? null,
     metodos_pago: ((c.pagos as { metodo: string; monto: number }[]) ?? []),
+    cancelaciones: ((c.cancelaciones as { cuenta_item_id: string | null; estado: string; monto: number }[]) ?? []),
     items: ((c.cuenta_items as unknown as {
       id: string
       estado: string

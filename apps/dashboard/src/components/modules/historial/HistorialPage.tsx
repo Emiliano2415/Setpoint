@@ -16,7 +16,7 @@ import {
   type RentaCancha,
   type MovimientoCajaHistorial,
 } from '@/lib/supabase/queries/historial'
-import { solicitarCancelacionPostCobro } from '@/lib/supabase/queries/cancelaciones'
+import { solicitarCancelacionPostCobro, solicitarCancelacionCuenta, CANCELACION_ACTIVA } from '@/lib/supabase/queries/cancelaciones'
 import { useAppStore } from '@/store/useAppStore'
 import { toast } from 'sonner'
 
@@ -42,6 +42,35 @@ function MetodoBadge({ metodo }: { metodo: string }) {
       color: isDividido ? '#EAB308' : isCard ? '#60a5fa' : 'var(--color-lime)',
     }}>
       {isDividido ? 'Dividido' : isCard ? 'Tarjeta' : metodo === 'cortesia' ? 'Cortesía' : 'Efectivo'}
+    </span>
+  )
+}
+
+/** Lo que se va a cancelar: un producto de la venta o la venta completa */
+type CancelTarget =
+  | { tipo: 'item'; cuentaItemId: string; nombre: string; metodo: string }
+  | { tipo: 'venta'; cuentaId: string; ticket: string; total: number }
+
+/** Estado de cancelación vigente de una venta: la de la venta completa y la de cada ítem */
+function cancelacionesActivas(v: VentaPOS) {
+  const activas = v.cancelaciones.filter((c) => (CANCELACION_ACTIVA as string[]).includes(c.estado))
+  const deVenta = activas.filter((c) => c.cuenta_item_id === null)
+  const porItem = new Map(activas.filter((c) => c.cuenta_item_id !== null).map((c) => [c.cuenta_item_id as string, c.estado]))
+  // Con varias solicitudes de venta (una por método de pago) basta una pendiente para que siga pendiente
+  const venta = deVenta.length === 0 ? null : deVenta.some((c) => c.estado === 'pendiente') ? 'pendiente' : 'reembolsada'
+  return { venta, porItem, alguna: activas.length > 0 }
+}
+
+function EstadoCancelacionBadge({ estado }: { estado: string }) {
+  const pendiente = estado === 'pendiente'
+  return (
+    <span style={{
+      fontSize: '9px', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', letterSpacing: '0.3px',
+      background: pendiente ? 'rgba(249,115,22,0.12)' : 'rgba(239,68,68,0.12)',
+      color: pendiente ? '#F97316' : '#EF4444',
+      textDecoration: 'none', display: 'inline-block', whiteSpace: 'nowrap',
+    }}>
+      {pendiente ? 'CANCELACIÓN PENDIENTE' : 'REEMBOLSADO'}
     </span>
   )
 }
@@ -104,20 +133,30 @@ export function HistorialPage() {
   const [loading, setLoading] = useState(true)
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [totalReembolsos, setTotalReembolsos] = useState(0)
-  const [cancelItem, setCancelItem] = useState<{ cuentaItemId: string; nombre: string; metodo: string } | null>(null)
+  const [cancelItem, setCancelItem] = useState<CancelTarget | null>(null)
   const [cancelMotivo, setCancelMotivo] = useState('')
   const [cancelSaving, setCancelSaving] = useState(false)
+  // Se incrementa para volver a cargar el periodo (tras pedir una cancelación)
+  const [recarga, setRecarga] = useState(0)
 
   async function handleSolicitarCancelacion() {
     if (!cancelItem || !cancelMotivo.trim() || !clubId || !user?.empleadoId) return
     setCancelSaving(true)
     try {
-      await solicitarCancelacionPostCobro(createClient(), clubId, cancelItem.cuentaItemId, cancelMotivo, user.empleadoId, cancelItem.metodo)
-      toast.success('Solicitud de cancelación registrada')
+      if (cancelItem.tipo === 'venta') {
+        await solicitarCancelacionCuenta(createClient(), cancelItem.cuentaId, cancelMotivo.trim())
+        toast.success(`Solicitud de cancelación de ${cancelItem.ticket} registrada`)
+      } else {
+        await solicitarCancelacionPostCobro(createClient(), clubId, cancelItem.cuentaItemId, cancelMotivo, user.empleadoId, cancelItem.metodo)
+        toast.success('Solicitud de cancelación registrada')
+      }
       setCancelItem(null)
       setCancelMotivo('')
-    } catch {
-      toast.error('Error al solicitar la cancelación')
+      setRecarga((n) => n + 1)
+    } catch (e) {
+      // Los avisos de la base (venta ya cancelada, sin pagos…) se muestran tal cual
+      const mensaje = (e as { message?: string })?.message
+      toast.error(mensaje || 'Error al solicitar la cancelación')
     } finally {
       setCancelSaving(false)
     }
@@ -149,7 +188,7 @@ export function HistorialPage() {
       setMovimientos(m)
       setTotalReembolsos(r)
     }).catch(console.error).finally(() => setLoading(false))
-  }, [clubId, desde, hasta])
+  }, [clubId, desde, hasta, recarga])
 
   const kpiCards = [
     { label: 'Ventas POS', value: fmtMXN(totalVentas), sub: `${ventas.length} ticket${ventas.length !== 1 ? 's' : ''}`, color: 'var(--color-lime)' },
@@ -170,14 +209,20 @@ export function HistorialPage() {
           <div style={{ background: 'var(--color-bg2)', border: '1px solid var(--color-border)', borderRadius: '16px', width: '400px', boxShadow: '0 24px 64px rgba(0,0,0,0.5)' }}>
             <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--color-border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <div style={{ fontSize: '14px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Solicitar Cancelación</div>
-                <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginTop: '2px' }}>{cancelItem.nombre}</div>
+                <div style={{ fontSize: '14px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  {cancelItem.tipo === 'venta' ? 'Cancelar venta' : 'Solicitar Cancelación'}
+                </div>
+                <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginTop: '2px' }}>
+                  {cancelItem.tipo === 'venta' ? `${cancelItem.ticket} · ${fmtMonto(cancelItem.total)}` : cancelItem.nombre}
+                </div>
               </div>
               <button onClick={() => { setCancelItem(null); setCancelMotivo('') }} style={{ background: 'none', border: 'none', color: 'var(--color-muted)', cursor: 'pointer', fontSize: '18px', lineHeight: 1 }}>×</button>
             </div>
             <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div style={{ padding: '10px 12px', background: 'rgba(249,115,22,0.08)', border: '1px solid rgba(249,115,22,0.2)', borderRadius: '8px', fontSize: '12px', color: '#F97316' }}>
-                Cancelación post-cobro — requiere aprobación de admin
+                {cancelItem.tipo === 'venta'
+                  ? `Se solicitará el reembolso de toda la venta (${fmtMonto(cancelItem.total)}, IVA incluido) — requiere aprobación de admin`
+                  : 'Cancelación post-cobro — requiere aprobación de admin'}
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '10px', fontWeight: 700, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>
@@ -313,6 +358,7 @@ export function HistorialPage() {
               </div>
             ) : ventas.map((v) => {
               const isExp = expandedId === v.id
+              const canc = cancelacionesActivas(v)
               const metodoLabel = v.metodos_pago.length > 1 ? 'dividido' : v.metodos_pago[0]?.metodo ?? 'efectivo'
               return (
                 <div key={v.id} onClick={() => setExpandedId(isExp ? null : v.id)}
@@ -329,6 +375,7 @@ export function HistorialPage() {
                         {v.cliente_nombre ? ` · ${v.cliente_nombre}` : ''}
                       </div>
                     </div>
+                    {canc.venta && <EstadoCancelacionBadge estado={canc.venta} />}
                     <MetodoBadge metodo={metodoLabel} />
                     <div style={{ fontFamily: 'var(--font-mono)', fontSize: '14px', fontWeight: 700, color: 'var(--color-lime)', minWidth: '80px', textAlign: 'right' }}>
                       {fmtMonto(v.total)}
@@ -340,6 +387,7 @@ export function HistorialPage() {
                       <div style={{ marginBottom: '10px' }}>
                         {v.items.map((item, i) => {
                           const isCancelled = item.estado === 'cancelado'
+                          const cancItem = canc.porItem.get(item.id)
                           return (
                             <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', color: 'var(--color-muted)', padding: '3px 0', opacity: isCancelled ? 0.5 : 1, textDecoration: isCancelled ? 'line-through' : 'none' }}>
                               <span>
@@ -352,11 +400,12 @@ export function HistorialPage() {
                               </span>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <span style={{ fontFamily: 'var(--font-mono)' }}>{fmtMonto(item.subtotal)}</span>
-                                {!isCancelled && (
+                                {cancItem && <EstadoCancelacionBadge estado={cancItem} />}
+                                {!isCancelled && !cancItem && !canc.venta && (
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation()
-                                      setCancelItem({ cuentaItemId: item.id, nombre: item.nombre, metodo: v.metodos_pago[0]?.metodo ?? 'efectivo' })
+                                      setCancelItem({ tipo: 'item', cuentaItemId: item.id, nombre: item.nombre, metodo: v.metodos_pago[0]?.metodo ?? 'efectivo' })
                                       setCancelMotivo('')
                                     }}
                                     style={{ padding: '2px 7px', background: 'transparent', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '5px', color: '#EF4444', fontSize: '10px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.3px' }}
@@ -377,6 +426,21 @@ export function HistorialPage() {
                         <span>IVA 16%</span><span style={{ textAlign: 'right', fontFamily: 'var(--font-mono)' }}>{fmtMonto(v.iva)}</span>
                         <span style={{ fontWeight: 700, color: 'var(--color-text)' }}>Total</span><span style={{ textAlign: 'right', fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--color-lime)' }}>{fmtMonto(v.total)}</span>
                       </div>
+                      {/* Venta completa: solo si nada de ella está ya en cancelación o reembolsado */}
+                      {!canc.alguna && v.items.some((i) => i.estado !== 'cancelado') && (
+                        <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'flex-end' }}>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setCancelItem({ tipo: 'venta', cuentaId: v.id, ticket: v.numero_ticket, total: v.total })
+                              setCancelMotivo('')
+                            }}
+                            style={{ padding: '6px 12px', background: 'transparent', border: '1px solid rgba(239,68,68,0.4)', borderRadius: '7px', color: '#EF4444', fontSize: '11px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.3px' }}
+                          >
+                            Cancelar venta completa
+                          </button>
+                        </div>
+                      )}
                       {v.metodos_pago.length > 1 && (
                         <div style={{ marginTop: '8px', borderTop: '1px solid var(--color-border-subtle)', paddingTop: '8px' }}>
                           {v.metodos_pago.map((p, i) => (
