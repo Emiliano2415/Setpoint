@@ -1,6 +1,5 @@
 import type { SupabaseClient } from '@/lib/supabase/client'
 import { localDayStart, localDayEnd } from '@/lib/format'
-import { insertMovimientoCaja } from './caja'
 import type { MetodoPago } from './caja'
 export type { MetodoPago } from './caja'
 
@@ -113,97 +112,38 @@ export async function createCuenta(
   clienteId?: string,
   descuentoTotal: number = 0,
   cajaId?: string,
-): Promise<{ data: { id: string } | null; error: Error | null }> {
+): Promise<{ data: { id: string; numero_ticket: string } | null; error: Error | null }> {
+  // El club lo resuelve la base con current_club_id(); clubId se conserva en
+  // la firma por compatibilidad con los llamadores.
+
+  // Normalizar: acepta MetodoPago legacy o PagoInput[]. El total se calcula
+  // igual que en rpc_registrar_venta, que vuelve a calcularlo y lo valida.
   const subtotalBase = items.reduce((sum, item) => sum + item.precio_unitario * item.cantidad, 0)
   const base = subtotalBase - descuentoTotal
-  const iva = base * TAX_RATE
-  const total = base + iva
-
-  // Normalizar: acepta MetodoPago legacy o PagoInput[]
+  const total = base + base * TAX_RATE
   const pagos: PagoInput[] = typeof pagosInput === 'string'
     ? [{ metodo: pagosInput, monto: total }]
     : pagosInput
 
-  // Número de ticket legible
-  const numero_ticket = `SP-${Date.now().toString().slice(-6)}`
-
-  // 1. Insert cuenta con todos los campos requeridos
-  const { data: cuenta, error: cuentaError } = await supabase
-    .from('cuentas')
-    .insert({
-      club_id: clubId,
-      numero_ticket,
-      cliente_id: clienteId ?? null,
-      subtotal: base,
-      iva,
-      total,
-      descuento_total: descuentoTotal,
-      estado: 'pagada',
-      caja_id: cajaId ?? null,
-    })
-    .select('id')
-    .single()
-
-  if (cuentaError || !cuenta) {
-    return { data: null, error: cuentaError }
-  }
-
-  // 2. Insert cuenta_items — sin campo 'nombre' (no existe en DB), incluye iva y total por item
-  const itemsPayload = items.map((item) => {
-    const itemSubtotal = item.precio_unitario * item.cantidad
-    const itemIva = itemSubtotal * TAX_RATE
-    const itemTotal = itemSubtotal + itemIva
-    return {
-      cuenta_id: cuenta.id,
+  // Cuenta, ítems, pagos, movimientos de caja, stock y número de ticket en una
+  // sola transacción (supabase/migrations/20261029000001_rpc_registrar_venta.sql):
+  // si algo falla no se guarda nada.
+  const { data, error } = await supabase.rpc('rpc_registrar_venta', {
+    p_items: items.map((item) => ({
       producto_id: item.producto_id,
       precio_unitario: item.precio_unitario,
       cantidad: item.cantidad,
-      subtotal: itemSubtotal,
-      iva: itemIva,
-      total: itemTotal,
-    }
+    })),
+    p_pagos: pagos.map((p) => ({ metodo: p.metodo, monto: p.monto })),
+    p_descuento: descuentoTotal,
+    p_cliente_id: clienteId ?? null,
+    p_caja_id: cajaId ?? null,
   })
 
-  const { error: itemsError } = await supabase
-    .from('cuenta_items')
-    .insert(itemsPayload)
-
-  if (itemsError) {
-    return { data: null, error: itemsError }
-  }
-
-  // 3. Insert uno o múltiples pagos
-  const pagosPayload = pagos.map((p) => ({
-    cuenta_id: cuenta.id,
-    metodo: p.metodo,
-    monto: p.monto,
-  }))
-
-  const { error: pagoError } = await supabase.from('pagos').insert(pagosPayload)
-
-  if (pagoError) {
-    return { data: null, error: pagoError }
-  }
-
-  // 4. Register each payment in caja if cajaId is provided
-  if (cajaId) {
-    try {
-      for (const pago of pagos) {
-        await insertMovimientoCaja(supabase, {
-          caja_id: cajaId,
-          tipo: 'ingreso',
-          concepto: `Venta POS #${numero_ticket}`,
-          monto: pago.monto,
-          metodo: pago.metodo,
-        })
-      }
-    } catch (err) {
-      console.error('[createCuenta] Failed to register movement in caja:', err)
-      // sale is complete — caja write failure is non-fatal
-    }
-  }
-
-  return { data: { id: cuenta.id }, error: null }
+  if (error) return { data: null, error: new Error(error.message, { cause: error }) }
+  const venta = data as { id: string; numero_ticket: string } | null
+  if (!venta?.id) return { data: null, error: new Error('La venta no devolvió su identificador') }
+  return { data: { id: venta.id, numero_ticket: venta.numero_ticket }, error: null }
 }
 
 export interface TicketHistorialItem {
