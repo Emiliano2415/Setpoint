@@ -16,6 +16,8 @@ import { useAppStore } from '@/store/useAppStore'
 import { useSearchStore } from '@/store/useSearchStore'
 import { coincideBusqueda } from '@/lib/busqueda'
 import { toast } from 'sonner'
+import { Button, EmptyState, Skeleton } from '@/components/ds'
+import { Package, Settings } from 'lucide-react'
 
 // imgClass mapping — coincide con nombres de categorías en DB
 const IMG_CLASS_BY_CATEGORY: Record<string, string> = {
@@ -196,74 +198,47 @@ export function POSPage() {
   const clearTicket = () => setTicketItems([])
 
   return (
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 360px',
-        height: 'calc(100vh - 56px)',
-        overflow: 'hidden',
-      }}
-    >
+    <div className="grid h-[calc(100vh-56px)] grid-cols-[minmax(0,1fr)_360px] overflow-hidden">
       {/* Historial de tickets */}
       {showHistory && <TicketHistory onClose={() => setShowHistory(false)} />}
       {/* Gestión del menú */}
       {showMenu && <MenuManagementModal onClose={() => setShowMenu(false)} />}
 
       {/* Left: Products */}
-      <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '8px 24px 0', flexShrink: 0 }}>
-          <span
-            onClick={() => setShowMenu(true)}
-            style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-muted)', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.5px', transition: 'color 0.15s' }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-lime)')}
-            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--color-muted)')}
-          >
-            ⚙ Gestionar Menú
-          </span>
+      <div className="flex min-h-0 min-w-0 flex-col overflow-hidden">
+        <div className="flex shrink-0 justify-end px-6 pt-3">
+          <Button variant="ghost" size="sm" onClick={() => setShowMenu(true)}>
+            <Settings className="size-4" aria-hidden="true" />
+            Gestionar Menú
+          </Button>
         </div>
-        {loadingCategories ? (
-          <div
-            style={{
-              padding: '16px 24px',
-              fontSize: '13px',
-              color: 'var(--color-muted)',
-            }}
-          >
-            Cargando...
-          </div>
-        ) : (
-          <CategoryTabs
-            categories={categories}
-            active={activeCategory}
-            onChange={setActiveCategory}
-          />
-        )}
+        <div className="mb-5 mt-1 shrink-0 px-6">
+          {loadingCategories ? (
+            <div aria-busy="true" className="flex gap-6 border-b border-outline-variant pb-2.5">
+              <span className="sr-only">Cargando...</span>
+              {[0, 1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-5 w-20" />
+              ))}
+            </div>
+          ) : (
+            <CategoryTabs
+              categories={categories}
+              active={activeCategory}
+              onChange={setActiveCategory}
+            />
+          )}
+        </div>
 
         {loadingProducts ? (
-          <div
-            style={{
-              flex: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '13px',
-              color: 'var(--color-muted)',
-            }}
-          >
-            Cargando...
+          <div aria-busy="true" className="grid min-h-0 flex-1 grid-cols-2 content-start gap-4 overflow-hidden px-6 pb-6 xl:grid-cols-3">
+            <span className="sr-only">Cargando...</span>
+            {[0, 1, 2, 3, 4, 5].map((i) => (
+              <Skeleton key={i} className="h-24" />
+            ))}
           </div>
         ) : productosVisibles.length === 0 ? (
-          <div
-            style={{
-              flex: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '13px',
-              color: 'var(--color-muted)',
-            }}
-          >
-            Sin productos
+          <div className="flex min-h-0 flex-1 items-center justify-center px-6 pb-6">
+            <EmptyState icon={<Package />} title="Sin productos" />
           </div>
         ) : (
           <ProductGrid products={productosVisibles} onAdd={addProduct} />

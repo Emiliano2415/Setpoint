@@ -1,6 +1,8 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, type ReactNode } from 'react'
+import { Minus, Plus, TriangleAlert, X } from 'lucide-react'
+import { Button, IconButton, Input, Modal, Money, SegmentedControl, Tabs } from '@/components/ds'
 import type { TicketItem } from './POSPage'
 import type { MetodoPago } from '@/lib/supabase/queries/pos'
 
@@ -9,6 +11,7 @@ import type { MetodoPago } from '@/lib/supabase/queries/pos'
 interface Person {
   id: string
   nombre: string
+  /** Clase fija de punto de color (bg-…), tomada de PERSON_COLORS */
   color: string
 }
 
@@ -46,12 +49,13 @@ interface SplitAccountModalProps {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const TAX_RATE = 0.16
-const PERSON_COLORS = ['#a3d483', '#60a5fa', '#f472b6', '#fb923c', '#a78bfa', '#34d399']
-const METODOS: { key: MetodoPago; label: string; icon: string }[] = [
-  { key: 'efectivo', label: 'Efectivo', icon: '💵' },
-  { key: 'credito', label: 'Crédito', icon: '💳' },
-  { key: 'debito', label: 'Débito', icon: '🏦' },
-  { key: 'cortesia', label: 'Cortesía', icon: '🎁' },
+// Puntos de color de las personas, en el mismo orden que antes: lima, azul, rosa, naranja, morado, verde
+const PERSON_COLORS = ['bg-primary', 'bg-info', 'bg-error', 'bg-warning', 'bg-secondary', 'bg-success']
+const METODOS: { value: MetodoPago; label: string }[] = [
+  { value: 'efectivo', label: 'Efectivo' },
+  { value: 'credito', label: 'Crédito' },
+  { value: 'debito', label: 'Débito' },
+  { value: 'cortesia', label: 'Cortesía' },
 ]
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -138,6 +142,14 @@ function fmtMoney(n: number): string {
   return n.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })
 }
 
+function SectionLabel({ children }: { children: ReactNode }) {
+  return (
+    <span className="text-[11px] font-semibold uppercase tracking-wider text-on-surface-variant">
+      {children}
+    </span>
+  )
+}
+
 // ─── Method Selector ──────────────────────────────────────────────────────────
 
 interface MethodSelectorProps {
@@ -147,33 +159,15 @@ interface MethodSelectorProps {
 
 function MethodSelector({ selected, onSelect }: MethodSelectorProps) {
   return (
-    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
-      {METODOS.map((m) => {
-        const isActive = selected === m.key
-        return (
-          <button
-            key={m.key}
-            onClick={() => onSelect(m.key)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 4,
-              padding: '5px 10px',
-              borderRadius: 6,
-              border: isActive ? '1.5px solid var(--color-lime)' : '1.5px solid var(--color-border)',
-              background: isActive ? 'rgba(163,212,131,0.08)' : 'transparent',
-              color: isActive ? 'var(--color-lime)' : 'var(--color-muted)',
-              fontSize: 12,
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-              transition: 'all 0.15s',
-            }}
-          >
-            <span>{m.icon}</span>
-            <span>{m.label}</span>
-          </button>
-        )
-      })}
+    <div className="flex [&>*]:flex-1 [&_button]:flex-1 [&_button]:px-2">
+      <SegmentedControl
+        label="Método de cobro"
+        value={selected ?? ''}
+        onChange={(m) => {
+          if (m) onSelect(m)
+        }}
+        options={METODOS}
+      />
     </div>
   )
 }
@@ -216,342 +210,169 @@ function TabPorPersona({
   onSetMetodo,
 }: TabPorPersonaProps) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      {/* Section 1: Add persons */}
-      <div>
-        <div
-          style={{
-            fontSize: 12,
-            textTransform: 'uppercase',
-            letterSpacing: '0.05em',
-            color: 'var(--color-muted)',
-            marginBottom: 8,
-          }}
-        >
-          Personas
-        </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <input
-            ref={nameInputRef}
-            value={newPersonName}
-            onChange={(e) => onNewPersonNameChange(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') onAddPerson()
-            }}
-            placeholder="Nombre de persona..."
-            style={{
-              flex: 1,
-              padding: '8px 12px',
-              borderRadius: 8,
-              border: '1px solid var(--color-border)',
-              background: 'var(--color-bg)',
-              color: 'var(--color-text)',
-              fontSize: 14,
-              fontFamily: 'inherit',
-              outline: 'none',
-            }}
-          />
-          <button
-            onClick={onAddPerson}
-            disabled={!newPersonName.trim()}
-            style={{
-              padding: '8px 14px',
-              borderRadius: 8,
-              border: 'none',
-              background: newPersonName.trim() ? 'var(--color-lime)' : 'var(--color-border)',
-              color: newPersonName.trim() ? '#000' : 'var(--color-muted)',
-              fontSize: 14,
-              fontWeight: 600,
-              cursor: newPersonName.trim() ? 'pointer' : 'not-allowed',
-              fontFamily: 'inherit',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            + Agregar
-          </button>
+    <div className="flex flex-col gap-6 md:grid md:grid-cols-[minmax(0,1fr)_340px] md:gap-6">
+      {/* Columna izquierda: personas e ítems */}
+      <div className="flex min-w-0 flex-col gap-6">
+        {/* Personas */}
+        <div className="flex flex-col gap-2.5">
+          <SectionLabel>Personas</SectionLabel>
+          <div className="flex gap-2">
+            <Input
+              ref={nameInputRef}
+              size="md"
+              value={newPersonName}
+              onChange={(e) => onNewPersonNameChange(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') onAddPerson()
+              }}
+              placeholder="Nombre de persona..."
+            />
+            <Button variant="secondary" onClick={onAddPerson} disabled={!newPersonName.trim()} className="shrink-0 whitespace-nowrap">
+              + Agregar
+            </Button>
+          </div>
+
+          {persons.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              {persons.map((p) => (
+                <span
+                  key={p.id}
+                  className="inline-flex items-center gap-2 rounded-full border border-outline-variant bg-surface-container-high px-2.5 py-1 text-xs text-on-surface"
+                >
+                  <span className={`h-2 w-2 shrink-0 rounded-full ${p.color}`} />
+                  <span className="font-medium">{p.nombre}</span>
+                  <button
+                    type="button"
+                    onClick={() => onRemovePerson(p.id)}
+                    aria-label={`Remover ${p.nombre}`}
+                    className="flex items-center text-on-surface-variant transition-colors hover:text-error"
+                  >
+                    <X size={14} />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
+        {/* Ítems (solo si hay personas) */}
         {persons.length > 0 && (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
-            {persons.map((p) => (
-              <div
-                key={p.id}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  padding: '4px 10px 4px 8px',
-                  borderRadius: 999,
-                  border: `1.5px solid ${p.color}60`,
-                  background: `${p.color}15`,
-                  fontSize: 13,
-                  color: 'var(--color-text)',
-                }}
-              >
-                <span
-                  style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: '50%',
-                    background: p.color,
-                    flexShrink: 0,
-                  }}
-                />
-                <span>{p.nombre}</span>
-                <button
-                  onClick={() => onRemovePerson(p.id)}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    color: 'var(--color-muted)',
-                    cursor: 'pointer',
-                    padding: 0,
-                    lineHeight: 1,
-                    fontSize: 14,
-                    display: 'flex',
-                    alignItems: 'center',
-                  }}
-                >
-                  ×
-                </button>
-              </div>
-            ))}
+          <div className="flex flex-col gap-2.5">
+            <SectionLabel>Ítems — toca para asignar</SectionLabel>
+            <div className="flex flex-col gap-2">
+              {items.map((item) => {
+                const assigned = assignments.get(item.id) ?? []
+                const assignedQty = assigned.reduce((s, a) => s + a.qty, 0)
+                const isFullyAssigned = assignedQty >= item.qty
+                const assignedPersonId = assigned[0]?.personId
+                const assignedPerson = persons.find((p) => p.id === assignedPersonId)
+                const isOpen = activeItemId === item.id
+
+                return (
+                  <div
+                    key={item.id}
+                    className={
+                      isFullyAssigned
+                        ? 'rounded-lg border border-outline-variant bg-surface-container-low'
+                        : 'rounded-lg border border-warning/40 bg-warning/10'
+                    }
+                  >
+                    <button
+                      type="button"
+                      onClick={() => onSetActiveItem(isOpen ? null : item.id)}
+                      className="flex w-full items-center justify-between gap-3 rounded-lg p-3 text-left transition-colors hover:bg-surface-container-high/60"
+                    >
+                      <span className="flex min-w-0 items-center gap-2.5">
+                        {!isFullyAssigned && (
+                          <TriangleAlert size={16} className="shrink-0 text-warning" />
+                        )}
+                        {isFullyAssigned && assignedPerson && (
+                          <span className={`h-2 w-2 shrink-0 rounded-full ${assignedPerson.color}`} />
+                        )}
+                        <span className="flex min-w-0 flex-col">
+                          <span className="text-xs font-medium leading-tight text-on-surface">
+                            {item.qty}× {item.name}
+                          </span>
+                          {isFullyAssigned && assignedPerson && (
+                            <span className="text-[11px] text-on-surface-variant">
+                              → {assignedPerson.nombre}
+                            </span>
+                          )}
+                        </span>
+                      </span>
+                      <Money
+                        value={item.price * item.qty}
+                        className="shrink-0 text-xs font-medium text-on-surface"
+                      />
+                    </button>
+
+                    {/* Selector de asignación, desplegado al tocar el ítem */}
+                    {isOpen && (
+                      <div className="flex flex-wrap items-center gap-2 border-t border-outline-variant/60 px-3 pb-3 pt-2.5">
+                        <span className="shrink-0 text-[11px] text-on-surface-variant">Asignar a:</span>
+                        {persons.map((p) => {
+                          const isAssignedToThis = assignedPersonId === p.id && isFullyAssigned
+                          return (
+                            <button
+                              key={p.id}
+                              type="button"
+                              onClick={() => onAssignItem(item.id, p.id)}
+                              className={
+                                isAssignedToThis
+                                  ? 'inline-flex items-center gap-1.5 rounded-full border border-outline bg-surface-container-highest px-2.5 py-1 text-[11px] font-medium text-on-surface'
+                                  : 'inline-flex items-center gap-1.5 rounded-full border border-outline-variant bg-surface-container-high px-2.5 py-1 text-[11px] text-on-surface transition-colors hover:border-outline'
+                              }
+                            >
+                              <span className={`h-1.5 w-1.5 rounded-full ${p.color}`} />
+                              {p.nombre}
+                            </button>
+                          )
+                        })}
+                        {isFullyAssigned && (
+                          <button
+                            type="button"
+                            onClick={() => onUnassignItem(item.id)}
+                            className="inline-flex items-center rounded-full border border-outline-variant px-2.5 py-1 text-[11px] text-on-surface-variant transition-colors hover:bg-surface-container-high"
+                          >
+                            Sin asignar
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
           </div>
         )}
       </div>
 
-      {/* Section 2: Items (only if persons > 0) */}
+      {/* Columna derecha: cobro por persona (solo si hay personas) */}
       {persons.length > 0 && (
-        <div>
-          <div
-            style={{
-              fontSize: 12,
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-              color: 'var(--color-muted)',
-              marginBottom: 8,
-            }}
-          >
-            Ítems — toca para asignar
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {items.map((item) => {
-              const assigned = assignments.get(item.id) ?? []
-              const assignedQty = assigned.reduce((s, a) => s + a.qty, 0)
-              const isFullyAssigned = assignedQty >= item.qty
-              const assignedPersonId = assigned[0]?.personId
-              const assignedPerson = persons.find((p) => p.id === assignedPersonId)
-              const isOpen = activeItemId === item.id
-
-              return (
-                <div key={item.id}>
-                  <div
-                    onClick={() => onSetActiveItem(isOpen ? null : item.id)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '10px 12px',
-                      borderRadius: 8,
-                      border: isFullyAssigned
-                        ? `1.5px solid ${assignedPerson?.color ?? 'var(--color-border)'}60`
-                        : '1.5px solid rgba(251,191,36,0.5)',
-                      background: isFullyAssigned
-                        ? `${assignedPerson?.color ?? '#ffffff'}10`
-                        : 'rgba(251,191,36,0.06)',
-                      cursor: 'pointer',
-                      userSelect: 'none',
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      {!isFullyAssigned && (
-                        <span style={{ fontSize: 14 }}>⚠</span>
-                      )}
-                      {isFullyAssigned && assignedPerson && (
-                        <span
-                          style={{
-                            width: 8,
-                            height: 8,
-                            borderRadius: '50%',
-                            background: assignedPerson.color,
-                            flexShrink: 0,
-                          }}
-                        />
-                      )}
-                      <span style={{ fontSize: 14, color: 'var(--color-text)' }}>
-                        {item.qty}× {item.name}
-                      </span>
-                      {isFullyAssigned && assignedPerson && (
-                        <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>
-                          → {assignedPerson.nombre}
-                        </span>
-                      )}
-                    </div>
-                    <span
-                      style={{
-                        fontSize: 13,
-                        color: 'var(--color-muted)',
-                        fontFamily: 'var(--font-mono)',
-                      }}
-                    >
-                      {fmtMoney(item.price * item.qty)}
-                    </span>
-                  </div>
-
-                  {/* Popover when open */}
-                  {isOpen && (
-                    <div
-                      style={{
-                        marginTop: 4,
-                        padding: '10px 12px',
-                        borderRadius: 8,
-                        border: '1px solid var(--color-border)',
-                        background: 'var(--color-bg)',
-                        display: 'flex',
-                        flexWrap: 'wrap',
-                        gap: 6,
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: '100%',
-                          fontSize: 11,
-                          color: 'var(--color-muted)',
-                          marginBottom: 4,
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.05em',
-                        }}
-                      >
-                        Asignar a:
-                      </div>
-                      {persons.map((p) => {
-                        const isAssignedToThis = assignedPersonId === p.id && isFullyAssigned
-                        return (
-                          <button
-                            key={p.id}
-                            onClick={() => onAssignItem(item.id, p.id)}
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 6,
-                              padding: '5px 12px',
-                              borderRadius: 999,
-                              border: isAssignedToThis
-                                ? `1.5px solid ${p.color}`
-                                : `1.5px solid ${p.color}60`,
-                              background: isAssignedToThis ? `${p.color}20` : `${p.color}10`,
-                              color: 'var(--color-text)',
-                              fontSize: 13,
-                              cursor: 'pointer',
-                              fontFamily: 'inherit',
-                            }}
-                          >
-                            <span
-                              style={{
-                                width: 8,
-                                height: 8,
-                                borderRadius: '50%',
-                                background: p.color,
-                              }}
-                            />
-                            {p.nombre}
-                          </button>
-                        )
-                      })}
-                      {isFullyAssigned && (
-                        <button
-                          onClick={() => onUnassignItem(item.id)}
-                          style={{
-                            padding: '5px 12px',
-                            borderRadius: 999,
-                            border: '1.5px solid var(--color-border)',
-                            background: 'transparent',
-                            color: 'var(--color-muted)',
-                            fontSize: 13,
-                            cursor: 'pointer',
-                            fontFamily: 'inherit',
-                          }}
-                        >
-                          Sin asignar
-                        </button>
-                      )}
-                    </div>
-                  )}
+        <div className="flex flex-col gap-3 md:border-l md:border-outline-variant/60 md:pl-6">
+          <SectionLabel>Cobro</SectionLabel>
+          {persons.map((p) => {
+            const total = personTotals.get(p.id)?.total ?? 0
+            const selectedMetodo = metodoMap.get(p.id)
+            return (
+              <div
+                key={p.id}
+                className="flex flex-col gap-2.5 rounded-lg border border-outline-variant bg-surface-container-low p-3"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <span className="flex min-w-0 items-center gap-2">
+                    <span className={`h-2 w-2 shrink-0 rounded-full ${p.color}`} />
+                    <span className="truncate text-xs font-semibold text-on-surface">{p.nombre}</span>
+                  </span>
+                  <Money value={total} className="shrink-0 text-xs font-semibold text-on-surface" />
                 </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Section 3: Cobro (only if persons > 0) */}
-      {persons.length > 0 && (
-        <div>
-          <div
-            style={{
-              fontSize: 12,
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-              color: 'var(--color-muted)',
-              marginBottom: 8,
-            }}
-          >
-            Cobro
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {persons.map((p) => {
-              const total = personTotals.get(p.id)?.total ?? 0
-              const selectedMetodo = metodoMap.get(p.id)
-              return (
-                <div
-                  key={p.id}
-                  style={{
-                    padding: '12px 14px',
-                    borderRadius: 10,
-                    border: '1px solid var(--color-border)',
-                    background: 'rgba(255,255,255,0.02)',
-                  }}
-                >
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span
-                        style={{
-                          width: 10,
-                          height: 10,
-                          borderRadius: '50%',
-                          background: p.color,
-                          flexShrink: 0,
-                        }}
-                      />
-                      <span style={{ fontSize: 14, color: 'var(--color-text)', fontWeight: 500 }}>
-                        {p.nombre}
-                      </span>
-                    </div>
-                    <span
-                      style={{
-                        fontSize: 16,
-                        fontWeight: 700,
-                        color: 'var(--color-lime)',
-                        fontFamily: 'var(--font-mono)',
-                      }}
-                    >
-                      {fmtMoney(total)}
-                    </span>
-                  </div>
-                  <MethodSelector
-                    selected={selectedMetodo}
-                    onSelect={(m) => onSetMetodo(p.id, m)}
-                  />
-                </div>
-              )
-            })}
-          </div>
+                <MethodSelector
+                  selected={selectedMetodo}
+                  onSelect={(m) => onSetMetodo(p.id, m)}
+                />
+              </div>
+            )
+          })}
         </div>
       )}
     </div>
@@ -581,201 +402,83 @@ function TabIguales({
   const isEven = remainder === 0
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      {/* Total display */}
-      <div
-        style={{
-          textAlign: 'center',
-          padding: '20px 16px',
-          borderRadius: 12,
-          border: '1px solid var(--color-border)',
-          background: 'rgba(255,255,255,0.02)',
-        }}
-      >
-        <div
-          style={{
-            fontSize: 12,
-            textTransform: 'uppercase',
-            letterSpacing: '0.05em',
-            color: 'var(--color-muted)',
-            marginBottom: 6,
-          }}
-        >
-          Total a dividir
-        </div>
-        <div
-          style={{
-            fontSize: 32,
-            fontWeight: 700,
-            color: 'var(--color-lime)',
-            fontFamily: 'var(--font-mono)',
-          }}
-        >
-          {fmtMoney(grandTotalWithTax)}
-        </div>
+    <div className="flex flex-col gap-5">
+      {/* Total a dividir */}
+      <div className="flex flex-col items-center gap-1 rounded-lg border border-outline-variant bg-surface-container-low p-4 text-center">
+        <SectionLabel>Total a dividir</SectionLabel>
+        <Money value={grandTotalWithTax} className="text-3xl font-bold tracking-tight text-on-surface" />
       </div>
 
-      {/* Stepper */}
-      <div>
-        <div
-          style={{
-            fontSize: 12,
-            textTransform: 'uppercase',
-            letterSpacing: '0.05em',
-            color: 'var(--color-muted)',
-            marginBottom: 10,
-          }}
-        >
-          ¿Cuántas personas?
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button
-            onClick={() => onSetNumPersons(Math.max(2, numPersons - 1))}
-            disabled={numPersons <= 2}
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 8,
-              border: '1px solid var(--color-border)',
-              background: numPersons <= 2 ? 'transparent' : 'var(--color-bg2)',
-              color: numPersons <= 2 ? 'var(--color-muted-dim)' : 'var(--color-text)',
-              fontSize: 18,
-              cursor: numPersons <= 2 ? 'not-allowed' : 'pointer',
-              fontFamily: 'inherit',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            −
-          </button>
-          <span
-            style={{
-              fontSize: 24,
-              fontWeight: 700,
-              color: 'var(--color-text)',
-              fontFamily: 'var(--font-mono)',
-              minWidth: 32,
-              textAlign: 'center',
-            }}
-          >
-            {numPersons}
-          </span>
-          <button
-            onClick={() => onSetNumPersons(Math.min(10, numPersons + 1))}
-            disabled={numPersons >= 10}
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 8,
-              border: '1px solid var(--color-border)',
-              background: numPersons >= 10 ? 'transparent' : 'var(--color-bg2)',
-              color: numPersons >= 10 ? 'var(--color-muted-dim)' : 'var(--color-text)',
-              fontSize: 18,
-              cursor: numPersons >= 10 ? 'not-allowed' : 'pointer',
-              fontFamily: 'inherit',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            +
-          </button>
-          <span style={{ fontSize: 13, color: 'var(--color-muted)', marginLeft: 4 }}>
-            {fmtMoney(baseAmount)} / persona
+      {/* Número de personas */}
+      <div className="flex items-center justify-between gap-4 rounded-lg border border-outline-variant bg-surface-container-low p-3.5">
+        <div className="flex min-w-0 flex-col gap-0.5">
+          <span className="text-sm font-medium text-on-surface">¿Cuántas personas?</span>
+          <span className="text-xs text-on-surface-variant">
+            <Money value={baseAmount} className="font-medium text-on-surface" /> / persona
             {!isEven && (
-              <span style={{ color: 'rgba(251,191,36,0.9)', marginLeft: 6 }}>
-                (último: {fmtMoney(baseAmount + remainder)})
+              <span className="ml-1.5 text-warning">
+                (último: <Money value={baseAmount + remainder} />)
               </span>
             )}
           </span>
         </div>
-        {!isEven && (
-          <div
-            style={{
-              marginTop: 8,
-              fontSize: 12,
-              color: 'rgba(251,191,36,0.9)',
-              padding: '6px 10px',
-              borderRadius: 6,
-              background: 'rgba(251,191,36,0.06)',
-              border: '1px solid rgba(251,191,36,0.2)',
-            }}
-          >
-            El monto no es divisible de manera exacta. La diferencia de{' '}
-            {fmtMoney(Math.abs(remainder))} se agrega a la última persona.
-          </div>
-        )}
+        <div className="flex shrink-0 items-center gap-2">
+          <IconButton
+            variant="secondary"
+            icon={<Minus size={16} />}
+            label="Restar persona"
+            disabled={numPersons <= 2}
+            onClick={() => onSetNumPersons(Math.max(2, numPersons - 1))}
+          />
+          <span className="w-8 text-center text-base font-semibold tabular-nums text-on-surface">
+            {numPersons}
+          </span>
+          <IconButton
+            variant="secondary"
+            icon={<Plus size={16} />}
+            label="Sumar persona"
+            disabled={numPersons >= 10}
+            onClick={() => onSetNumPersons(Math.min(10, numPersons + 1))}
+          />
+        </div>
       </div>
 
-      {/* Per-person method selectors */}
-      <div>
-        <div
-          style={{
-            fontSize: 12,
-            textTransform: 'uppercase',
-            letterSpacing: '0.05em',
-            color: 'var(--color-muted)',
-            marginBottom: 10,
-          }}
-        >
-          Cobro por persona
+      {!isEven && (
+        <div className="flex items-center gap-2.5 rounded-lg border border-warning/40 bg-surface-container-low p-3 text-xs text-warning">
+          <TriangleAlert size={16} className="shrink-0" />
+          <span>
+            El monto no es divisible de manera exacta. La diferencia de{' '}
+            <Money value={Math.abs(remainder)} /> se agrega a la última persona.
+          </span>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {Array.from({ length: numPersons }, (_, i) => {
-            const isLast = i === numPersons - 1
-            const amount = isLast ? baseAmount + remainder : baseAmount
-            const color = PERSON_COLORS[i % PERSON_COLORS.length]
-            return (
-              <div
-                key={i}
-                style={{
-                  padding: '12px 14px',
-                  borderRadius: 10,
-                  border: '1px solid var(--color-border)',
-                  background: 'rgba(255,255,255,0.02)',
-                }}
-              >
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span
-                      style={{
-                        width: 10,
-                        height: 10,
-                        borderRadius: '50%',
-                        background: color,
-                        flexShrink: 0,
-                      }}
-                    />
-                    <span style={{ fontSize: 14, color: 'var(--color-text)', fontWeight: 500 }}>
-                      Persona {i + 1}
-                    </span>
-                  </div>
-                  <span
-                    style={{
-                      fontSize: 16,
-                      fontWeight: 700,
-                      color: 'var(--color-lime)',
-                      fontFamily: 'var(--font-mono)',
-                    }}
-                  >
-                    {fmtMoney(amount)}
-                  </span>
-                </div>
+      )}
+
+      {/* Método de cobro por persona */}
+      <div className="flex flex-col gap-2.5">
+        <SectionLabel>Cobro por persona</SectionLabel>
+        {Array.from({ length: numPersons }, (_, i) => {
+          const isLast = i === numPersons - 1
+          const amount = isLast ? baseAmount + remainder : baseAmount
+          const color = PERSON_COLORS[i % PERSON_COLORS.length]
+          return (
+            <div
+              key={i}
+              className="flex flex-col gap-3 rounded-lg border border-outline-variant bg-surface-container-low p-3 md:flex-row md:items-center md:justify-between md:gap-4"
+            >
+              <div className="flex items-center gap-2">
+                <span className={`h-2 w-2 shrink-0 rounded-full ${color}`} />
+                <span className="text-sm font-medium text-on-surface">Persona {i + 1}</span>
+                <Money value={amount} className="text-xs text-on-surface-variant" />
+              </div>
+              <div className="w-full shrink-0 md:w-72">
                 <MethodSelector
                   selected={metodoIguales.get(i)}
                   onSelect={(m) => onSetMetodoIguales(i, m)}
                 />
               </div>
-            )
-          })}
-        </div>
+            </div>
+          )
+        })}
       </div>
     </div>
   )
@@ -968,187 +671,73 @@ export function SplitAccountModal({
   const handleConfirm = tab === 'persona' ? handleConfirmPersona : handleConfirmIguales
 
   return (
-    <div
-      onClick={e => { if (e.target === e.currentTarget) onCancel() }}
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 1050,
-        background: 'rgba(0,0,0,0.75)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 16,
-      }}
-    >
-      {/* Modal card */}
-      <div
-        style={{
-          background: 'var(--color-bg2)',
-          border: '1px solid var(--color-border)',
-          borderRadius: 16,
-          width: '100%',
-          maxWidth: 600,
-          maxHeight: '85vh',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-        }}
-      >
-        {/* Header */}
-        <div style={{ padding: '20px 24px 0' }}>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginBottom: 16,
-            }}
-          >
-            <h2
-              style={{
-                margin: 0,
-                fontSize: 18,
-                fontWeight: 700,
-                color: 'var(--color-text)',
-              }}
-            >
-              Dividir Cuenta
-            </h2>
-            <button
-              onClick={onCancel}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: 'var(--color-muted)',
-                fontSize: 22,
-                cursor: 'pointer',
-                lineHeight: 1,
-                padding: '0 4px',
-              }}
-            >
-              ×
-            </button>
-          </div>
-
-          {/* Tabs */}
-          <div style={{ display: 'flex', gap: 4, borderBottom: '1px solid var(--color-border)' }}>
-            {(
-              [
-                { key: 'persona', label: 'Por persona' },
-                { key: 'iguales', label: 'Partes iguales' },
-              ] as const
-            ).map((t) => {
-              const isActive = tab === t.key
-              return (
-                <button
-                  key={t.key}
-                  onClick={() => setTab(t.key)}
-                  style={{
-                    padding: '8px 16px',
-                    border: 'none',
-                    borderBottom: isActive
-                      ? '2px solid var(--color-lime)'
-                      : '2px solid transparent',
-                    background: isActive ? 'rgba(163,212,131,0.06)' : 'transparent',
-                    color: isActive ? 'var(--color-lime)' : 'var(--color-muted)',
-                    fontSize: 14,
-                    fontWeight: isActive ? 600 : 400,
-                    cursor: 'pointer',
-                    fontFamily: 'inherit',
-                    borderRadius: '6px 6px 0 0',
-                    marginBottom: -1,
-                  }}
-                >
-                  {t.label}
-                </button>
-              )
-            })}
-          </div>
-        </div>
-
-        {/* Body */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
-          {tab === 'persona' ? (
-            <TabPorPersona
-              items={items}
-              persons={persons}
-              assignments={assignments}
-              personTotals={personTotals}
-              newPersonName={newPersonName}
-              metodoMap={metodoMap}
-              activeItemId={activeItemId}
-              nameInputRef={nameInputRef}
-              onNewPersonNameChange={setNewPersonName}
-              onAddPerson={addPerson}
-              onRemovePerson={removePerson}
-              onAssignItem={assignItem}
-              onUnassignItem={unassignItem}
-              onSetActiveItem={setActiveItemId}
-              onSetMetodo={setMetodo}
-            />
-          ) : (
-            <TabIguales
-              grandTotalWithTax={grandTotalWithTax}
-              numPersons={numPersons}
-              metodoIguales={metodoIguales}
-              onSetNumPersons={setNumPersons}
-              onSetMetodoIguales={(idx, m) => {
-                setMetodoIguales((prev) => {
-                  const next = new Map(prev)
-                  next.set(idx, m)
-                  return next
-                })
-              }}
-            />
-          )}
-        </div>
-
-        {/* Footer */}
-        <div
-          style={{
-            padding: '16px 24px',
-            borderTop: '1px solid var(--color-border)',
-            display: 'flex',
-            justifyContent: 'flex-end',
-            gap: 10,
-          }}
-        >
-          <button
-            onClick={onCancel}
-            style={{
-              padding: '9px 18px',
-              borderRadius: 8,
-              border: '1px solid var(--color-border)',
-              background: 'transparent',
-              color: 'var(--color-muted)',
-              fontSize: 14,
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-            }}
-          >
+    <Modal
+      open={open}
+      onClose={onCancel}
+      dismissable={!confirming}
+      title="Dividir Cuenta"
+      description={`Total ${fmtMoney(grandTotalWithTax)}`}
+      size="lg"
+      footer={
+        <>
+          <Button variant="ghost" onClick={onCancel}>
             Cancelar
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="primary"
             onClick={handleConfirm}
-            disabled={!canConfirm || confirming}
-            style={{
-              padding: '9px 20px',
-              borderRadius: 8,
-              border: 'none',
-              background: 'var(--color-lime)',
-              color: '#000',
-              fontSize: 14,
-              fontWeight: 700,
-              cursor: canConfirm && !confirming ? 'pointer' : 'not-allowed',
-              opacity: canConfirm && !confirming ? 1 : 0.4,
-              fontFamily: 'inherit',
-            }}
+            disabled={!canConfirm}
+            loading={confirming}
           >
-            {confirming ? 'Procesando...' : 'Cobrar todo'}
-          </button>
-        </div>
+            Cobrar todo
+          </Button>
+        </>
+      }
+    >
+      <Tabs
+        value={tab}
+        onChange={setTab}
+        tabs={[
+          { value: 'persona', label: 'Por persona' },
+          { value: 'iguales', label: 'Partes iguales' },
+        ]}
+      />
+
+      <div className="mt-5">
+        {tab === 'persona' ? (
+          <TabPorPersona
+            items={items}
+            persons={persons}
+            assignments={assignments}
+            personTotals={personTotals}
+            newPersonName={newPersonName}
+            metodoMap={metodoMap}
+            activeItemId={activeItemId}
+            nameInputRef={nameInputRef}
+            onNewPersonNameChange={setNewPersonName}
+            onAddPerson={addPerson}
+            onRemovePerson={removePerson}
+            onAssignItem={assignItem}
+            onUnassignItem={unassignItem}
+            onSetActiveItem={setActiveItemId}
+            onSetMetodo={setMetodo}
+          />
+        ) : (
+          <TabIguales
+            grandTotalWithTax={grandTotalWithTax}
+            numPersons={numPersons}
+            metodoIguales={metodoIguales}
+            onSetNumPersons={setNumPersons}
+            onSetMetodoIguales={(idx, m) => {
+              setMetodoIguales((prev) => {
+                const next = new Map(prev)
+                next.set(idx, m)
+                return next
+              })
+            }}
+          />
+        )}
       </div>
-    </div>
+    </Modal>
   )
 }

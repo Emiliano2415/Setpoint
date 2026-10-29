@@ -1,58 +1,22 @@
 'use client'
 
+import { Tabs } from '@/components/ds'
+
 interface CategoryTabsProps {
   categories: { id: string; label: string }[]
   active: string
   onChange: (id: string) => void
 }
 
+// Con muchas categorías la fila se desplaza en horizontal en lugar de encoger las pestañas
 export function CategoryTabs({ categories, active, onChange }: CategoryTabsProps) {
   return (
-    <div
-      style={{
-        display: 'flex',
-        gap: '8px',
-        padding: '20px 24px 0',
-        flexShrink: 0,
-      }}
-    >
-      {categories.map((cat) => {
-        const isActive = cat.id === active
-        return (
-          <button
-            key={cat.id}
-            onClick={() => onChange(cat.id)}
-            style={{
-              padding: '10px 20px',
-              borderRadius: '8px',
-              fontSize: '12px',
-              fontWeight: 700,
-              cursor: 'pointer',
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px',
-              fontFamily: 'inherit',
-              border: `1px solid ${isActive ? 'var(--color-lime)' : 'var(--color-border)'}`,
-              background: isActive ? 'var(--color-lime)' : 'transparent',
-              color: isActive ? 'var(--color-bg)' : 'var(--color-muted)',
-              transition: 'all 0.15s',
-            }}
-            onMouseEnter={(e) => {
-              if (!isActive) {
-                e.currentTarget.style.borderColor = 'rgba(163,212,131,0.20)'
-                e.currentTarget.style.color = 'var(--color-text)'
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!isActive) {
-                e.currentTarget.style.borderColor = 'var(--color-border)'
-                e.currentTarget.style.color = 'var(--color-muted)'
-              }
-            }}
-          >
-            {cat.label}
-          </button>
-        )
-      })}
+    <div className="overflow-x-auto [&_[role=tablist]]:min-w-full [&_[role=tablist]]:w-max [&_button]:whitespace-nowrap">
+      <Tabs
+        value={active}
+        onChange={onChange}
+        tabs={categories.map((cat) => ({ value: cat.id, label: cat.label }))}
+      />
     </div>
   )
 }

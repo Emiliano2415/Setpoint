@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { X, Plus } from 'lucide-react'
+import { Check, Plus, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import {
   getAllProducts,
@@ -12,6 +12,7 @@ import type { Producto, Categoria } from '@/lib/supabase/queries/pos'
 import { toast } from 'sonner'
 import { AddProductWizard } from './AddProductWizard'
 import { useAppStore } from '@/store/useAppStore'
+import { Button, IconButton, Input, Modal, Money, Switch } from '@/components/ds'
 
 interface Props {
   onClose: () => void
@@ -84,61 +85,25 @@ export function MenuManagementModal({ onClose }: Props) {
   const filtered = selectedCatId ? products.filter((p) => p.categoria_id === selectedCatId) : products
 
   return (
-    <div
-      style={{
-        position: 'fixed', inset: 0, zIndex: 1000,
-        background: 'rgba(0,0,0,0.75)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}
-      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
-    >
-      <div style={{
-        background: 'var(--color-bg2)',
-        border: '1px solid var(--color-border)',
-        borderRadius: '16px',
-        width: '480px',
-        maxHeight: '80vh',
-        display: 'flex', flexDirection: 'column',
-        boxShadow: '0 24px 64px rgba(0,0,0,0.5)',
-      }}>
-        {/* Header */}
-        <div style={{
-          padding: '16px 20px 0',
-          flexShrink: 0,
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-            <div>
-              <div style={{ fontSize: '15px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                Menú
-              </div>
-              <div style={{ fontSize: '11px', color: 'var(--color-muted)', marginTop: '1px' }}>
-                {activeCount} activos · {products.length} total
-              </div>
-            </div>
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-              <button
-                onClick={() => setShowWizard(true)}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '4px',
-                  padding: '5px 10px', background: 'var(--color-lime)', color: 'var(--color-bg)',
-                  border: 'none', borderRadius: '7px', fontSize: '11px', fontWeight: 700,
-                  cursor: 'pointer', fontFamily: 'inherit',
-                }}
-              >
-                <Plus size={11} /> Agregar
-              </button>
-              <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--color-muted)', cursor: 'pointer', padding: '4px', lineHeight: 0 }}>
-                <X size={16} />
-              </button>
-            </div>
+    <>
+      <Modal
+        open
+        onClose={onClose}
+        title="Menú"
+        description={`${activeCount} activos · ${products.length} total`}
+        size="md"
+        dismissable={!showWizard}
+      >
+        <div className="space-y-4">
+          <div className="flex justify-end">
+            <Button variant="secondary" size="sm" onClick={() => setShowWizard(true)}>
+              <Plus size={16} />
+              Agregar
+            </Button>
           </div>
 
-          {/* Category filter tabs */}
-          <div style={{
-            display: 'flex', gap: '4px', overflowX: 'auto',
-            paddingBottom: '12px',
-            scrollbarWidth: 'none',
-          }}>
+          {/* Filtro por categoría */}
+          <div className="flex gap-2 overflow-x-auto pb-1">
             {categories.map((cat) => {
               const count = products.filter((p) => p.categoria_id === cat.id)
               const activeInCat = count.filter((p) => p.activo).length
@@ -146,27 +111,16 @@ export function MenuManagementModal({ onClose }: Props) {
               return (
                 <button
                   key={cat.id}
+                  type="button"
                   onClick={() => setSelectedCatId(cat.id)}
-                  style={{
-                    flexShrink: 0,
-                    padding: '5px 11px',
-                    borderRadius: '20px',
-                    border: isActive ? '1px solid var(--color-lime)' : '1px solid var(--color-border-subtle)',
-                    background: isActive ? 'rgba(163,212,131,0.12)' : 'transparent',
-                    color: isActive ? 'var(--color-lime)' : 'var(--color-muted)',
-                    fontSize: '11px', fontWeight: isActive ? 700 : 500,
-                    cursor: 'pointer', fontFamily: 'inherit',
-                    transition: 'all 0.15s',
-                    whiteSpace: 'nowrap',
-                  }}
+                  className={`cursor-pointer whitespace-nowrap rounded-full border px-3 py-1.5 text-xs transition-colors ${
+                    isActive
+                      ? 'border-primary/30 bg-primary/10 font-medium text-primary'
+                      : 'border-outline-variant/60 bg-surface-container-high/40 text-on-surface-variant hover:text-on-surface'
+                  }`}
                 >
                   {cat.nombre}
-                  <span style={{
-                    marginLeft: '5px',
-                    fontSize: '10px',
-                    opacity: 0.7,
-                    fontFamily: 'var(--font-mono)',
-                  }}>
+                  <span className="ml-1.5 font-mono tabular-nums opacity-70">
                     {activeInCat}/{count.length}
                   </span>
                 </button>
@@ -174,131 +128,114 @@ export function MenuManagementModal({ onClose }: Props) {
             })}
           </div>
 
-          <div style={{ height: '1px', background: 'var(--color-border-subtle)', marginLeft: '-20px', marginRight: '-20px' }} />
-        </div>
-
-        {/* Product list */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '4px 0 8px' }}>
-          {loading ? (
-            <div style={{ padding: '32px', textAlign: 'center', color: 'var(--color-muted)', fontSize: '13px' }}>
-              Cargando...
+          {/* Lista de productos de la categoría */}
+          <div className="overflow-hidden rounded-lg border border-outline-variant/50 bg-surface-container-low/40">
+            <div className="flex items-center border-b border-outline-variant/50 bg-surface-container-high/30 px-3 py-2 text-[11px] font-medium uppercase tracking-wider text-on-surface-variant">
+              <span className="w-14 text-center">Activo</span>
+              <span className="w-14 text-center">Cocina</span>
+              <span className="flex-1 px-2 text-left">Producto</span>
+              <span className="w-44 text-right">Precio</span>
             </div>
-          ) : filtered.length === 0 ? (
-            <div style={{ padding: '32px', textAlign: 'center', color: 'var(--color-muted)', fontSize: '12px' }}>
-              Sin productos en esta categoría
-            </div>
-          ) : (
-            filtered.map((p) => (
-              <div
-                key={p.id}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '10px',
-                  padding: '7px 20px',
-                  transition: 'background 0.1s',
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.03)')}
-                onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-              >
-                {/* Toggle */}
-                <div
-                  onClick={() => toggleActivo(p)}
-                  style={{
-                    width: '28px', height: '16px', borderRadius: '8px',
-                    background: p.activo ? 'var(--color-lime)' : 'var(--color-border)',
-                    position: 'relative', cursor: 'pointer', flexShrink: 0, transition: 'background 0.2s',
-                  }}
-                >
-                  <div style={{
-                    position: 'absolute', top: '2px',
-                    left: p.activo ? '14px' : '2px',
-                    width: '12px', height: '12px', borderRadius: '50%',
-                    background: p.activo ? 'var(--color-bg)' : 'var(--color-muted-dim)',
-                    transition: 'left 0.2s',
-                  }} />
-                </div>
 
-                {/* Cocina toggle */}
-                <div
-                  onClick={() => toggleCocina(p)}
-                  title="Requiere preparación en cocina"
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: '4px',
-                    cursor: 'pointer', flexShrink: 0,
-                  }}
-                >
-                  <div
-                    style={{
-                      width: '28px', height: '16px', borderRadius: '8px',
-                      background: p.requiere_cocina ? '#F97316' : 'var(--color-border)',
-                      position: 'relative', transition: 'background 0.2s',
-                    }}
-                  >
-                    <div style={{
-                      position: 'absolute', top: '2px',
-                      left: p.requiere_cocina ? '14px' : '2px',
-                      width: '12px', height: '12px', borderRadius: '50%',
-                      background: p.requiere_cocina ? 'var(--color-bg)' : 'var(--color-muted-dim)',
-                      transition: 'left 0.2s',
-                    }} />
-                  </div>
-                  <span style={{ fontSize: '10px', color: p.requiere_cocina ? '#F97316' : 'var(--color-muted-dim)', fontWeight: 600 }}>
-                    🍳
-                  </span>
-                </div>
-
-                {/* Name */}
-                <div style={{
-                  flex: 1, minWidth: 0,
-                  fontSize: '13px', fontWeight: 500,
-                  color: p.activo ? 'var(--color-text)' : 'var(--color-muted)',
-                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                  transition: 'color 0.15s',
-                }}>
-                  {p.nombre}
-                </div>
-
-                {/* Price (editable) */}
-                {editingId === p.id ? (
-                  <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
-                    <input
-                      type="number"
-                      value={editPrice}
-                      onChange={(e) => setEditPrice(e.target.value)}
-                      onKeyDown={(e) => { if (e.key === 'Enter') savePrice(p); if (e.key === 'Escape') setEditingId(null) }}
-                      autoFocus
-                      style={{
-                        width: '72px', padding: '3px 7px',
-                        background: 'var(--color-bg)',
-                        border: '1px solid var(--color-lime)',
-                        borderRadius: '5px', color: 'var(--color-text)',
-                        fontSize: '12px', fontFamily: 'var(--font-mono)',
-                        fontWeight: 700, outline: 'none',
-                      }}
-                    />
-                    <button onClick={() => savePrice(p)} style={{ ...smallConfirmBtn }}>✓</button>
-                    <button onClick={() => setEditingId(null)} style={{ ...smallCancelBtn }}>✕</button>
-                  </div>
-                ) : (
-                  <div
-                    onClick={() => { setEditingId(p.id); setEditPrice(String(p.precio)) }}
-                    title="Clic para editar"
-                    style={{
-                      fontFamily: 'var(--font-mono)', fontSize: '12px', fontWeight: 600,
-                      color: p.activo ? 'var(--color-text)' : 'var(--color-muted)',
-                      cursor: 'pointer', padding: '2px 6px', borderRadius: '4px',
-                      border: '1px solid transparent', transition: 'border-color 0.15s',
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--color-border)')}
-                    onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'transparent')}
-                  >
-                    ${p.precio.toFixed(2)}
-                  </div>
-                )}
+            {loading ? (
+              <div className="px-3 py-8 text-center text-sm text-on-surface-variant">
+                Cargando...
               </div>
-            ))
-          )}
+            ) : filtered.length === 0 ? (
+              <div className="px-3 py-8 text-center text-xs text-on-surface-variant">
+                Sin productos en esta categoría
+              </div>
+            ) : (
+              <div className="divide-y divide-outline-variant/30">
+                {filtered.map((p) => (
+                  <div
+                    key={p.id}
+                    className={`flex h-11 items-center px-3 text-sm transition-colors ${
+                      editingId === p.id
+                        ? 'bg-surface-container-high/50'
+                        : 'hover:bg-surface-container-high/30'
+                    }`}
+                  >
+                    <div className="flex w-14 items-center justify-center">
+                      <Switch
+                        checked={p.activo}
+                        onChange={() => toggleActivo(p)}
+                        label={`Activo: ${p.nombre}`}
+                      />
+                    </div>
+
+                    <div
+                      className="flex w-14 items-center justify-center"
+                      title="Requiere preparación en cocina"
+                    >
+                      <Switch
+                        checked={p.requiere_cocina}
+                        onChange={() => toggleCocina(p)}
+                        label={`Cocina: ${p.nombre}`}
+                      />
+                    </div>
+
+                    <div
+                      className={`min-w-0 flex-1 truncate px-2 font-medium ${
+                        p.activo ? 'text-on-surface' : 'text-outline'
+                      }`}
+                    >
+                      {p.nombre}
+                    </div>
+
+                    {editingId === p.id ? (
+                      <div className="flex w-44 items-center justify-end gap-1">
+                        <div className="w-24">
+                          <Input
+                            type="number"
+                            size="sm"
+                            prefix="$"
+                            className="text-right tabular-nums"
+                            value={editPrice}
+                            onChange={(e) => setEditPrice(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') savePrice(p)
+                              if (e.key === 'Escape') {
+                                // Escape cancela la edición y no debe cerrar el modal
+                                e.stopPropagation()
+                                setEditingId(null)
+                              }
+                            }}
+                            autoFocus
+                          />
+                        </div>
+                        <IconButton
+                          icon={<Check size={16} />}
+                          label="Confirmar precio"
+                          onClick={() => savePrice(p)}
+                        />
+                        <IconButton
+                          icon={<X size={16} />}
+                          label="Cancelar edición"
+                          onClick={() => setEditingId(null)}
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex w-44 justify-end">
+                        <button
+                          type="button"
+                          onClick={() => { setEditingId(p.id); setEditPrice(String(p.precio)) }}
+                          title="Clic para editar"
+                          className={`cursor-pointer rounded border border-transparent px-1.5 py-0.5 hover:border-outline-variant ${
+                            p.activo ? 'text-on-surface' : 'text-outline'
+                          }`}
+                        >
+                          <Money value={p.precio} className="font-mono" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      </Modal>
 
       <AddProductWizard
         open={showWizard}
@@ -307,21 +244,6 @@ export function MenuManagementModal({ onClose }: Props) {
         onSuccess={() => { setShowWizard(false); load() }}
         onCancel={() => setShowWizard(false)}
       />
-    </div>
+    </>
   )
-}
-
-const smallConfirmBtn: React.CSSProperties = {
-  padding: '3px 8px',
-  background: 'var(--color-lime)', border: 'none', borderRadius: '5px',
-  color: 'var(--color-bg)', fontSize: '11px', fontWeight: 700,
-  cursor: 'pointer', fontFamily: 'inherit',
-}
-
-const smallCancelBtn: React.CSSProperties = {
-  padding: '3px 8px',
-  background: 'var(--color-bg)',
-  border: '1px solid var(--color-border)', borderRadius: '5px',
-  color: 'var(--color-muted)', fontSize: '11px', fontWeight: 700,
-  cursor: 'pointer', fontFamily: 'inherit',
 }

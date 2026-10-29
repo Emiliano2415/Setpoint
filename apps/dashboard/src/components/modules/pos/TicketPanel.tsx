@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef, useMemo, type ReactNode } from 'react'
 import type { TicketItem } from './POSPage'
-import { Minus, Plus } from 'lucide-react'
+import { Banknote, Check, ChefHat, CreditCard, Minus, Plus, ShoppingBag, SplitSquareHorizontal, Users } from 'lucide-react'
+import { Button, Field, Input, Modal, Money, Select } from '@/components/ds'
 import { createClient } from '@/lib/supabase/client'
 import { createCuenta, type MetodoPago, type PagoInput } from '@/lib/supabase/queries/pos'
 import { createComanda, updateComanda } from '@/lib/supabase/queries/comandas'
@@ -284,161 +285,96 @@ export function TicketPanel({ items, onUpdateQty, onRemove, onClear, onHistoryOp
   }
 
   return (
-    <div
-      style={{
-        background: 'var(--color-bg2)',
-        borderLeft: '1px solid var(--color-border)',
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100%',
-        overflow: 'hidden',
-      }}
-    >
+    <div className="flex h-full flex-col overflow-hidden border-l border-outline-variant bg-surface-container">
       {/* Modal de pago dividido */}
-      {splitOpen && (
-        <div
-          style={{
-            position: 'fixed', inset: 0, zIndex: 1000,
-            background: 'rgba(0,0,0,0.75)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}
-          onClick={(e) => { if (e.target === e.currentTarget) setSplitOpen(false) }}
-        >
-          <div style={{
-            background: 'var(--color-bg2)',
-            border: '1px solid var(--color-border)',
-            borderRadius: '16px',
-            padding: '28px',
-            width: '380px',
-            boxShadow: '0 24px 64px rgba(0,0,0,0.5)',
-          }}>
-            <div style={{ fontSize: '16px', fontWeight: 800, marginBottom: '4px' }}>
-              Pago Dividido
-            </div>
-            <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginBottom: '20px' }}>
-              {`${items.length} productos`} — Efectivo + Tarjeta
-            </div>
+      <Modal
+        open={splitOpen}
+        onClose={() => setSplitOpen(false)}
+        dismissable={!paying}
+        title="Pago Dividido"
+        description={`${items.length} productos — Efectivo + Tarjeta`}
+        size="sm"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setSplitOpen(false)}>
+              Cancelar
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleConfirmSplit}
+              disabled={paying || !splitEfectivo || !splitValid}
+            >
+              {paying ? 'Procesando...' : 'Confirmar pago'}
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-5">
+          <TotalACobrar total={total} />
 
-            {/* Total a cobrar */}
-            <div style={{
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              padding: '14px 16px', background: 'var(--color-bg)',
-              borderRadius: '10px', marginBottom: '20px',
-            }}>
-              <span style={{ fontSize: '13px', color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.3px' }}>Total a Cobrar</span>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '22px', fontWeight: 700, color: 'var(--color-lime)' }}>
-                ${total.toFixed(2)}
-              </span>
-            </div>
-
-            {/* Efectivo */}
-            <div style={{ marginBottom: '14px' }}>
-              <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="4" width="20" height="16" rx="2"/><circle cx="12" cy="12" r="3"/></svg>
-                Monto en Efectivo
-              </div>
-              <input
+          <Field label="Monto en Efectivo" htmlFor="split-efectivo">
+            <div className="[&_input]:text-lg [&_input]:font-semibold [&_input]:tabular-nums">
+              <Input
+                id="split-efectivo"
                 ref={splitEfectivoRef}
                 type="number"
+                min="0"
+                placeholder="0.00"
+                prefix="$"
                 value={splitEfectivo}
                 onChange={(e) => setSplitEfectivo(e.target.value)}
-                placeholder="0.00"
-                min="0"
-                style={{
-                  width: '100%', padding: '12px 14px',
-                  background: 'var(--color-bg)',
-                  border: `1px solid ${splitEfectivoNum > total + 0.01 ? 'rgba(234,179,8,0.5)' : 'var(--color-border)'}`,
-                  borderRadius: '10px', color: 'var(--color-text)',
-                  fontSize: '18px', fontFamily: 'var(--font-mono)', fontWeight: 700,
-                  outline: 'none', boxSizing: 'border-box', marginBottom: '8px',
-                }}
+                invalid={splitEfectivoNum > total + 0.01}
               />
-              {/* Atajos rápidos */}
-              <div style={{ display: 'flex', gap: '6px' }}>
-                {[50, 100, 200, 500].map((v) => (
-                  <button
-                    key={v}
-                    onClick={() => setSplitEfectivo(String(v))}
-                    style={{
-                      flex: 1, padding: '7px 4px', background: 'var(--color-bg)',
-                      border: `1px solid ${splitEfectivoNum === v ? 'var(--color-lime)' : 'var(--color-border)'}`,
-                      borderRadius: '7px', color: splitEfectivoNum === v ? 'var(--color-lime)' : 'var(--color-muted)',
-                      fontSize: '11px', fontFamily: 'var(--font-mono)', fontWeight: 700,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    ${v}
-                  </button>
-                ))}
-              </div>
             </div>
-
-            {/* Tarjeta (auto) */}
-            <div style={{ marginBottom: '16px' }}>
-              <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-                Monto en Tarjeta
-              </div>
-              <div style={{
-                padding: '12px 16px', background: 'var(--color-bg)',
-                border: '1px solid var(--color-border)', borderRadius: '10px',
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              }}>
-                <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>Auto-calculado</span>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '18px', fontWeight: 700, color: splitTarjeta > 0 ? 'var(--color-text)' : 'var(--color-muted-dim)' }}>
-                  ${splitTarjeta.toFixed(2)}
-                </span>
-              </div>
+            {/* Atajos rápidos */}
+            <div className="grid grid-cols-4 gap-2">
+              {[50, 100, 200, 500].map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  onClick={() => setSplitEfectivo(String(v))}
+                  className={`rounded-lg border py-1.5 text-xs font-medium tabular-nums transition-colors ${
+                    splitEfectivoNum === v
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'border-outline-variant text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface'
+                  }`}
+                >
+                  ${v}
+                </button>
+              ))}
             </div>
+          </Field>
 
-            {/* Cambio o pendiente */}
-            {splitEfectivo && (
-              <div style={{
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                padding: '10px 14px', marginBottom: '16px',
-                background: splitCambio > 0 ? 'rgba(163,212,131,0.06)' : 'transparent',
-                border: `1px solid ${splitCambio > 0 ? 'rgba(163,212,131,0.20)' : 'var(--color-border-subtle)'}`,
-                borderRadius: '10px',
-              }}>
-                <span style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.3px', color: 'var(--color-muted)' }}>
-                  {splitCambio > 0 ? 'Cambio en Efectivo' : 'Cubierto por Tarjeta'}
-                </span>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '16px', fontWeight: 700, color: splitCambio > 0 ? 'var(--color-lime)' : 'var(--color-muted)' }}>
-                  {splitCambio > 0 ? `$${splitCambio.toFixed(2)}` : `$${splitTarjeta.toFixed(2)}`}
-                </span>
-              </div>
-            )}
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-              <button
-                onClick={() => setSplitOpen(false)}
-                style={{
-                  padding: '13px', background: 'var(--color-bg)',
-                  border: '1px solid var(--color-border)', borderRadius: '10px',
-                  color: 'var(--color-muted)', fontSize: '13px', fontWeight: 700,
-                  cursor: 'pointer', fontFamily: 'inherit',
-                }}
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleConfirmSplit}
-                disabled={paying || !splitEfectivo || !splitValid}
-                style={{
-                  padding: '13px',
-                  background: (paying || !splitEfectivo || !splitValid) ? 'rgba(163,212,131,0.3)' : 'var(--color-lime)',
-                  border: 'none', borderRadius: '10px',
-                  color: 'var(--color-bg)', fontSize: '13px', fontWeight: 800,
-                  cursor: (paying || !splitEfectivo || !splitValid) ? 'not-allowed' : 'pointer',
-                  fontFamily: 'inherit', textTransform: 'uppercase', letterSpacing: '0.3px',
-                }}
-              >
-                {paying ? 'Procesando...' : 'Confirmar Pago'}
-              </button>
+          {/* Tarjeta (automático) */}
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-on-surface-variant">Monto en Tarjeta</p>
+            <div className="flex items-center justify-between rounded-lg border border-outline-variant bg-background px-3.5 py-2.5">
+              <span className="text-xs text-outline">Auto-calculado</span>
+              <Money
+                value={splitTarjeta}
+                className={splitTarjeta > 0 ? 'text-base font-semibold text-on-surface' : 'text-base font-semibold text-outline'}
+              />
             </div>
           </div>
+
+          {/* Cambio o cubierto por tarjeta */}
+          {splitEfectivo && (
+            <div
+              className={`flex items-center justify-between rounded-lg border px-3.5 py-2.5 ${
+                splitCambio > 0 ? 'border-primary/20 bg-primary/10' : 'border-outline-variant'
+              }`}
+            >
+              <span className="text-xs font-semibold uppercase tracking-wide text-on-surface-variant">
+                {splitCambio > 0 ? 'Cambio en Efectivo' : 'Cubierto por Tarjeta'}
+              </span>
+              <Money
+                value={splitCambio > 0 ? splitCambio : splitTarjeta}
+                className={splitCambio > 0 ? 'text-base font-semibold text-primary' : 'text-base font-semibold text-on-surface-variant'}
+              />
+            </div>
+          )}
         </div>
-      )}
+      </Modal>
 
       {/* Modal de dividir cuenta */}
       {splitAccountOpen && (
@@ -453,524 +389,290 @@ export function TicketPanel({ items, onUpdateQty, onRemove, onClear, onHistoryOp
       )}
 
       {/* Modal de pago */}
-      {payModal.open && (
-        <div
-          style={{
-            position: 'fixed', inset: 0, zIndex: 1000,
-            background: 'rgba(0,0,0,0.75)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}
-          onClick={(e) => { if (e.target === e.currentTarget) setPayModal({ ...payModal, open: false }) }}
-        >
-          <div style={{
-            background: 'var(--color-bg2)',
-            border: '1px solid var(--color-border)',
-            borderRadius: '16px',
-            padding: '28px',
-            width: '360px',
-            boxShadow: '0 24px 64px rgba(0,0,0,0.5)',
-          }}>
-            <div style={{ fontSize: '16px', fontWeight: 800, marginBottom: '4px' }}>
-              {payModal.metodo === 'efectivo' ? 'Pago en Efectivo' : payModal.metodo === 'credito' ? 'Pago con Tarjeta de Crédito' : 'Pago con Tarjeta de Débito'}
-            </div>
-            <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginBottom: '20px' }}>
-              {`${items.length} productos`}
-            </div>
-
-            {/* Total a cobrar */}
-            <div style={{
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              padding: '14px 16px', background: 'var(--color-bg)',
-              borderRadius: '10px', marginBottom: '16px',
-            }}>
-              <span style={{ fontSize: '13px', color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.3px' }}>Total a Cobrar</span>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '22px', fontWeight: 700, color: 'var(--color-lime)' }}>
-                ${total.toFixed(2)}
-              </span>
-            </div>
-
-            {payModal.metodo === 'efectivo' && (
-              <>
-                <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>
-                  Monto Recibido
-                </div>
-                <input
-                  ref={recibidoRef}
-                  type="number"
-                  value={recibido}
-                  onChange={(e) => setRecibido(e.target.value)}
-                  placeholder={`Mínimo $${total.toFixed(2)}`}
-                  onKeyDown={(e) => { if (e.key === 'Enter' && recibidoNum >= total) handleConfirmPay() }}
-                  style={{
-                    width: '100%',
-                    padding: '12px 14px',
-                    background: 'var(--color-bg)',
-                    border: '1px solid var(--color-border)',
-                    borderRadius: '10px',
-                    color: 'var(--color-text)',
-                    fontSize: '18px',
-                    fontFamily: 'var(--font-mono)',
-                    fontWeight: 700,
-                    outline: 'none',
-                    boxSizing: 'border-box',
-                    marginBottom: '12px',
-                  }}
-                />
-                {/* Cambio */}
-                <div style={{
-                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                  padding: '10px 14px',
-                  background: cambio >= 0 && recibido ? 'rgba(163,212,131,0.06)' : 'transparent',
-                  border: `1px solid ${cambio >= 0 && recibido ? 'rgba(163,212,131,0.20)' : 'var(--color-border-subtle)'}`,
-                  borderRadius: '10px', marginBottom: '20px',
-                  transition: 'all 0.2s',
-                }}>
-                  <span style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.3px', color: 'var(--color-muted)' }}>Cambio</span>
-                  <span style={{
-                    fontFamily: 'var(--font-mono)', fontSize: '20px', fontWeight: 700,
-                    color: cambio >= 0 && recibido ? 'var(--color-lime)' : 'var(--color-muted-dim)',
-                  }}>
-                    {recibido ? `$${Math.max(0, cambio).toFixed(2)}` : '—'}
-                  </span>
-                </div>
-                {/* Atajos rápidos */}
-                <div style={{ display: 'flex', gap: '6px', marginBottom: '16px' }}>
-                  {[Math.ceil(total / 100) * 100, Math.ceil(total / 500) * 500, Math.ceil(total / 1000) * 1000].filter((v, i, a) => a.indexOf(v) === i).slice(0, 3).map((v) => (
-                    <button
-                      key={v}
-                      onClick={() => setRecibido(String(v))}
-                      style={{
-                        flex: 1, padding: '8px', background: 'var(--color-bg)',
-                        border: `1px solid ${recibidoNum === v ? 'var(--color-lime)' : 'var(--color-border)'}`,
-                        borderRadius: '8px', color: recibidoNum === v ? 'var(--color-lime)' : 'var(--color-text)',
-                        fontSize: '12px', fontFamily: 'var(--font-mono)', fontWeight: 700,
-                        cursor: 'pointer',
-                      }}
-                    >
-                      ${v}
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
-
-            {payModal.metodo !== 'efectivo' && (
-              <div style={{ fontSize: '13px', color: 'var(--color-muted)', textAlign: 'center', padding: '16px 0', marginBottom: '16px' }}>
-                Presenta la terminal al cliente para que realice el pago con tarjeta.
-              </div>
-            )}
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-              <button
-                onClick={() => setPayModal({ ...payModal, open: false })}
-                style={{
-                  padding: '13px', background: 'var(--color-bg)',
-                  border: '1px solid var(--color-border)', borderRadius: '10px',
-                  color: 'var(--color-muted)', fontSize: '13px', fontWeight: 700,
-                  cursor: 'pointer', fontFamily: 'inherit',
-                }}
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleConfirmPay}
-                disabled={paying || (payModal.metodo === 'efectivo' && (!recibido || recibidoNum < total))}
-                style={{
-                  padding: '13px',
-                  background: (paying || (payModal.metodo === 'efectivo' && (!recibido || recibidoNum < total)))
-                    ? 'rgba(163,212,131,0.3)' : 'var(--color-lime)',
-                  border: 'none', borderRadius: '10px',
-                  color: 'var(--color-bg)', fontSize: '13px', fontWeight: 800,
-                  cursor: (paying || (payModal.metodo === 'efectivo' && (!recibido || recibidoNum < total))) ? 'not-allowed' : 'pointer',
-                  fontFamily: 'inherit', textTransform: 'uppercase', letterSpacing: '0.3px',
-                }}
-              >
-                {paying ? 'Procesando...' : 'Confirmar Pago'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Header */}
-      <div style={{ padding: '20px', borderBottom: '1px solid var(--color-border-subtle)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '15px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--color-text)' }}>
-            Ticket Actual
-          </span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span
-              onClick={onHistoryOpen}
-              style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-muted)', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.5px', transition: 'color 0.15s' }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-lime)')}
-              onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--color-muted)')}
+      <Modal
+        open={payModal.open}
+        onClose={() => setPayModal({ ...payModal, open: false })}
+        dismissable={!paying}
+        title={
+          payModal.metodo === 'efectivo'
+            ? 'Pago en Efectivo'
+            : payModal.metodo === 'credito'
+              ? 'Pago con Tarjeta de Crédito'
+              : 'Pago con Tarjeta de Débito'
+        }
+        description={`${items.length} productos`}
+        size="sm"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setPayModal({ ...payModal, open: false })}>
+              Cancelar
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleConfirmPay}
+              disabled={paying || (payModal.metodo === 'efectivo' && (!recibido || recibidoNum < total))}
             >
-              Historial
-            </span>
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--color-lime)' }}>
-              Nuevo ticket
-            </span>
-          </div>
-        </div>
+              {paying ? 'Procesando...' : 'Confirmar pago'}
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-5">
+          <TotalACobrar total={total} />
 
-        {/* Descuento rules */}
-        {discountRules.length > 0 && (
-          <div style={{ marginTop: '12px' }}>
-            {discountRules.length === 1 ? (
-              /* Single rule — toggle UI */
+          {payModal.metodo === 'efectivo' ? (
+            <>
+              <Field label="Monto Recibido" htmlFor="pay-recibido">
+                <div className="[&_input]:text-lg [&_input]:font-semibold [&_input]:tabular-nums">
+                  <Input
+                    id="pay-recibido"
+                    ref={recibidoRef}
+                    type="number"
+                    prefix="$"
+                    value={recibido}
+                    onChange={(e) => setRecibido(e.target.value)}
+                    placeholder={`Mínimo $${total.toFixed(2)}`}
+                    onKeyDown={(e) => { if (e.key === 'Enter' && recibidoNum >= total) handleConfirmPay() }}
+                  />
+                </div>
+              </Field>
+
+              {/* Cambio */}
               <div
-                onClick={() => setActiveRuleId(activeRuleId ? null : discountRules[0].id)}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '10px',
-                  padding: '10px 12px',
-                  background: activeRuleId ? 'rgba(163,212,131,0.06)' : 'var(--color-bg)',
-                  border: `1px solid ${activeRuleId ? 'rgba(163,212,131,0.20)' : 'var(--color-border)'}`,
-                  borderRadius: '8px', cursor: 'pointer', transition: 'all 0.15s',
-                }}
+                className={`flex items-center justify-between rounded-lg border px-3.5 py-3 ${
+                  cambio >= 0 && recibido ? 'border-primary/20 bg-primary/10' : 'border-outline-variant'
+                }`}
               >
-                <div style={{
-                  width: '32px', height: '32px', borderRadius: '50%',
-                  background: activeRuleId ? 'rgba(163,212,131,0.15)' : 'rgba(255,255,255,0.04)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: activeRuleId ? 'var(--color-lime)' : 'var(--color-muted)',
-                  flexShrink: 0, transition: 'all 0.15s',
-                }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>
-                  </svg>
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text)' }}>
-                    {activeRuleId ? `${discountRules[0].nombre} activo` : `Aplicar ${discountRules[0].nombre}`}
-                  </div>
-                  <div style={{ fontSize: '10px', color: activeRuleId ? 'var(--color-lime)' : 'var(--color-muted-dim)' }}>
-                    {activeRuleId
-                      ? discountRules[0].tipo === 'porcentaje' ? `−${discountRules[0].valor}% aplicado` : `−$${discountRules[0].valor} aplicado`
-                      : discountRules[0].tipo === 'porcentaje' ? `Clic para activar −${discountRules[0].valor}%` : `Clic para activar −$${discountRules[0].valor}`
-                    }
-                  </div>
-                </div>
-                <div style={{
-                  width: '36px', height: '20px', borderRadius: '10px',
-                  background: activeRuleId ? 'var(--color-lime)' : 'var(--color-border)',
-                  position: 'relative', transition: 'background 0.2s', flexShrink: 0,
-                }}>
-                  <div style={{
-                    position: 'absolute', top: '2px',
-                    left: activeRuleId ? '18px' : '2px',
-                    width: '16px', height: '16px', borderRadius: '50%',
-                    background: activeRuleId ? 'var(--color-bg)' : 'var(--color-muted)',
-                    transition: 'left 0.2s',
-                  }} />
-                </div>
+                <span className="text-xs font-semibold uppercase tracking-wide text-on-surface-variant">Cambio</span>
+                <span className={`text-xl font-semibold tabular-nums ${cambio >= 0 && recibido ? 'text-primary' : 'text-outline'}`}>
+                  {recibido ? <Money value={Math.max(0, cambio)} /> : '—'}
+                </span>
               </div>
-            ) : (
-              /* Multiple rules — chip selector */
-              <div>
-                <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>
-                  Aplicar Descuento
-                </div>
-                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                  {discountRules.map((r) => {
-                    const isActive = activeRuleId === r.id
-                    return (
-                      <button
-                        key={r.id}
-                        onClick={() => setActiveRuleId(isActive ? null : r.id)}
-                        style={{
-                          padding: '5px 10px', borderRadius: '7px', border: '1px solid',
-                          borderColor: isActive ? 'var(--color-lime)' : 'var(--color-border)',
-                          background: isActive ? 'rgba(163,212,131,0.08)' : 'var(--color-bg)',
-                          color: isActive ? 'var(--color-lime)' : 'var(--color-muted)',
-                          fontSize: '11px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
-                          transition: 'all 0.15s',
-                        }}
-                      >
-                        {r.nombre}{' '}
-                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px' }}>
-                          {r.tipo === 'porcentaje' ? `${r.valor}%` : `$${r.valor}`}
-                        </span>
-                      </button>
-                    )
-                  })}
-                </div>
+
+              {/* Atajos rápidos */}
+              <div className="flex gap-2">
+                {[Math.ceil(total / 100) * 100, Math.ceil(total / 500) * 500, Math.ceil(total / 1000) * 1000].filter((v, i, a) => a.indexOf(v) === i).slice(0, 3).map((v) => (
+                  <button
+                    key={v}
+                    type="button"
+                    onClick={() => setRecibido(String(v))}
+                    className={`flex-1 rounded-lg border py-1.5 text-xs font-medium tabular-nums transition-colors ${
+                      recibidoNum === v
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-outline-variant text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface'
+                    }`}
+                  >
+                    ${v}
+                  </button>
+                ))}
               </div>
-            )}
-          </div>
-        )}
+            </>
+          ) : (
+            <div className="flex flex-col items-center gap-3 rounded-lg border border-outline-variant bg-background px-4 py-6 text-center">
+              <CreditCard size={28} className="text-primary" />
+              <p className="text-sm text-on-surface">Presenta la terminal al cliente para que realice el pago con tarjeta.</p>
+            </div>
+          )}
+        </div>
+      </Modal>
+
+      {/* Encabezado */}
+      <div className="flex shrink-0 items-center justify-between border-b border-outline-variant px-5 py-4">
+        <h2 className="text-sm font-semibold text-on-surface">Ticket actual</h2>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={onHistoryOpen}
+            className="text-xs font-medium text-on-surface-variant transition-colors hover:text-primary"
+          >
+            Historial
+          </button>
+          <span className="text-xs text-primary">Nuevo ticket</span>
+        </div>
       </div>
 
-      {/* Items */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '12px 20px' }}>
+      {/* Lista de ítems */}
+      <div className="min-h-0 flex-1 overflow-y-auto px-5 py-3">
         {items.length === 0 ? (
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              height: '120px',
-              gap: '8px',
-              color: 'var(--color-muted-dim)',
-            }}
-          >
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" opacity="0.4">
-              <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>
-            </svg>
-            <span style={{ fontSize: '13px' }}>Agrega productos al ticket</span>
+          <div className="flex flex-col items-center justify-center gap-2 py-10 text-outline">
+            <ShoppingBag size={28} strokeWidth={1.5} className="opacity-40" />
+            <span className="text-sm">Agrega productos al ticket</span>
           </div>
         ) : (
-          items.map((item) => (
-            <TicketItemRow key={item.id} item={item} onUpdateQty={onUpdateQty} onRemove={onRemove} />
-          ))
+          <div className="space-y-2.5">
+            {items.map((item) => (
+              <TicketItemRow key={item.id} item={item} onUpdateQty={onUpdateQty} onRemove={onRemove} />
+            ))}
+          </div>
         )}
       </div>
 
-      {/* Totales */}
-      <div style={{ padding: '16px 20px', borderTop: '1px solid var(--color-border)' }}>
-        <TotalRow label="Subtotal" value={`$ ${subtotal.toFixed(2)} MXN`} />
-        {activeRule && discount > 0 && (
-          <TotalRow
-            label={`${activeRule.nombre} (${activeRule.tipo === 'porcentaje' ? `${activeRule.valor}%` : `$${activeRule.valor}`})`}
-            value={`−$ ${discount.toFixed(2)} MXN`}
-            accent="lime"
-          />
+      {/* Descuento, cocina y avisos de cocina */}
+      <div className="shrink-0 space-y-3 px-5 pt-3">
+        {discountRules.length > 0 && (
+          <div className="flex items-center justify-between gap-3">
+            <label htmlFor="ticket-descuento" className="text-xs text-on-surface-variant">
+              Descuento
+            </label>
+            <div className="w-44">
+              <Select
+                id="ticket-descuento"
+                value={activeRuleId ?? ''}
+                onChange={(e) => setActiveRuleId(e.target.value || null)}
+              >
+                <option value="">Ninguno</option>
+                {discountRules.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {`${r.nombre} (${r.tipo === 'porcentaje' ? `−${r.valor}%` : `−$${r.valor}`})`}
+                  </option>
+                ))}
+              </Select>
+            </div>
+          </div>
         )}
-        <TotalRow label="IVA (16%)" value={`$ ${tax.toFixed(2)} MXN`} />
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', paddingTop: '10px', marginTop: '6px', borderTop: '1px solid var(--color-border)' }}>
-          <span style={{ fontSize: '14px', fontWeight: 800, textTransform: 'uppercase', color: 'var(--color-text)' }}>Total</span>
-          <span>
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '26px', fontWeight: 700, color: 'var(--color-lime)' }}>
-              $ {total.toFixed(2)}
-            </span>
-            <span style={{ fontSize: '12px', color: 'var(--color-muted)', marginLeft: '4px' }}>MXN</span>
-          </span>
-        </div>
-      </div>
 
-      {/* Kitchen send section */}
         {itemsParaCocina.length > 0 && (
-          <div style={{
-            marginBottom: '12px',
-            padding: '10px 14px',
-            background: 'var(--color-bg)',
-            border: '1px solid var(--color-border-subtle)',
-            borderRadius: '10px',
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px',
-            margin: '0 20px 12px',
-          }}>
-            <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
-              {pendientesCocina.length > 0
-                ? `🍳 ${pendientesCocina.length} item${pendientesCocina.length !== 1 ? 's' : ''} para cocina · sale al cobrar`
-                : '🍳 Todo enviado a cocina'}
-            </span>
-            <button
-              type="button"
+          <div className="flex items-center justify-between gap-2 rounded-lg border border-outline-variant bg-surface-container-highest p-3">
+            <div className="flex min-w-0 items-center gap-1.5 text-xs font-medium text-on-surface">
+              <ChefHat size={16} className="shrink-0 text-secondary-dim" />
+              <span className="truncate">
+                {pendientesCocina.length > 0
+                  ? `${pendientesCocina.length} item${pendientesCocina.length !== 1 ? 's' : ''} para cocina · sale al cobrar`
+                  : 'Todo enviado a cocina'}
+              </span>
+            </div>
+            <Button
+              variant="secondary"
+              size="sm"
+              className="shrink-0"
               onClick={handleEnviarACocina}
               disabled={pendientesCocina.length === 0 || enviandoComanda}
-              style={{
-                padding: '5px 12px',
-                background: 'transparent',
-                border: pendientesCocina.length === 0
-                  ? '1px solid var(--color-border-subtle)'
-                  : '1px solid var(--color-lime)',
-                borderRadius: '6px',
-                color: pendientesCocina.length === 0 ? 'var(--color-muted)' : 'var(--color-lime)',
-                fontSize: '11px', fontWeight: 700,
-                cursor: (pendientesCocina.length === 0 || enviandoComanda) ? 'not-allowed' : 'pointer',
-                fontFamily: 'inherit',
-                whiteSpace: 'nowrap',
-              }}
             >
-              {enviandoComanda ? 'Enviando...' : pendientesCocina.length === 0 ? '✓ Enviado' : 'Enviar ahora'}
-            </button>
+              {enviandoComanda ? (
+                'Enviando...'
+              ) : pendientesCocina.length === 0 ? (
+                <>
+                  <Check size={14} />
+                  Enviado
+                </>
+              ) : (
+                'Enviar ahora'
+              )}
+            </Button>
           </div>
         )}
         {/* Sin productos de cocina no hay nada que enviar: se dice, para que no parezca un fallo */}
         {items.length > 0 && itemsParaCocina.length === 0 && (
-          <div style={{ margin: '0 20px 12px', fontSize: '11px', color: 'var(--color-muted-dim)', lineHeight: 1.4 }}>
+          <p className="text-[11px] leading-snug text-outline">
             Este ticket no genera comanda: ningún producto está marcado para cocina (se marca en Gestionar menú).
-          </div>
+          </p>
         )}
-
-      {/* Botones de pago */}
-      <div style={{ padding: '0 20px 12px', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
-        <PayButton icon="cash" label="Efectivo" onClick={() => openPayModal('efectivo')} disabled={items.length === 0} />
-        <PayButton icon="card" label="Tarjeta" onClick={() => openPayModal('credito')} disabled={items.length === 0} />
-        <PayButton icon="split" label="Dividir Pago" onClick={openSplitModal} disabled={items.length === 0} />
-        <PayButton icon="split" label="Dividir Cuenta" onClick={openSplitAccountModal} disabled={items.length === 0} />
       </div>
 
-      {/* Botón PAY principal */}
-      <div style={{ padding: '0 20px 20px' }}>
-        <button
-          disabled={items.length === 0}
-          onClick={() => openPayModal('efectivo')}
-          style={{
-            width: '100%',
-            padding: '16px',
-            background: items.length === 0 ? 'rgba(163,212,131,0.3)' : 'var(--color-lime)',
-            color: 'var(--color-bg)',
-            fontSize: '15px',
-            fontWeight: 800,
-            textAlign: 'center',
-            borderRadius: '12px',
-            cursor: items.length === 0 ? 'not-allowed' : 'pointer',
-            border: 'none',
-            fontFamily: 'inherit',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px',
-            transition: 'filter 0.15s',
-          }}
-          onMouseEnter={(e) => { if (items.length > 0) e.currentTarget.style.filter = 'brightness(1.08)' }}
-          onMouseLeave={(e) => { e.currentTarget.style.filter = '' }}
-        >
-          {`Cobrar $ ${total.toFixed(2)} MXN`}
-        </button>
+      {/* Totales */}
+      <div className="shrink-0 space-y-1.5 border-t border-outline-variant px-5 pt-4 text-xs">
+        <TotalRow label="Subtotal" value={<Money value={subtotal} />} />
+        {activeRule && discount > 0 && (
+          <TotalRow
+            label={`${activeRule.nombre} (${activeRule.tipo === 'porcentaje' ? `${activeRule.valor}%` : `$${activeRule.valor}`})`}
+            value={<>−<Money value={discount} /></>}
+            accent="lime"
+          />
+        )}
+        <TotalRow label="IVA (16%)" value={<Money value={tax} />} />
+        <div className="flex items-baseline justify-between border-t border-outline-variant pt-2.5">
+          <span className="text-sm font-semibold text-on-surface">Total</span>
+          <span className="text-xl font-bold tabular-nums text-primary">
+            <Money value={total} />{' '}
+            <span className="text-xs font-normal text-on-surface-variant">MXN</span>
+          </span>
+        </div>
+      </div>
+
+      {/* Botones de pago */}
+      <div className="grid shrink-0 grid-cols-2 gap-2 px-5 pt-4">
+        <PayButton icon="cash" label="Efectivo" onClick={() => openPayModal('efectivo')} disabled={items.length === 0} />
+        <PayButton icon="card" label="Tarjeta" onClick={() => openPayModal('credito')} disabled={items.length === 0} />
+        <PayButton icon="split" label="Dividir pago" onClick={openSplitModal} disabled={items.length === 0} />
+        <PayButton icon="users" label="Dividir cuenta" onClick={openSplitAccountModal} disabled={items.length === 0} />
+      </div>
+
+      {/* Botón principal de cobro */}
+      <div className="shrink-0 px-5 pb-5 pt-3">
+        <Button variant="primary" size="lg" fullWidth disabled={items.length === 0} onClick={() => openPayModal('efectivo')}>
+          <span>Cobrar <Money value={total} /> MXN</span>
+        </Button>
       </div>
     </div>
   )
 }
 
 function TicketItemRow({ item, onUpdateQty, onRemove }: { item: TicketItem; onUpdateQty: (id: string, d: number) => void; onRemove: (id: string) => void }) {
-  const gradients: Record<string, string> = {
-    'img-coffee': 'linear-gradient(135deg, #8B7355, #D4C5B2)',
-    'img-water': 'linear-gradient(135deg, #7BA7BC, #B8D8E8)',
-    'img-paddle': 'linear-gradient(135deg, #6B8F7B, #A8C5B5)',
-    'img-balls': 'linear-gradient(135deg, #B5A67D, #D4C9A8)',
-    'img-food': 'linear-gradient(135deg, #C4956A, #E8C9A8)',
-    'img-drink': 'linear-gradient(135deg, #7B9CAF, #B8D0E0)',
-    'img-grip': 'linear-gradient(135deg, #8B8B8B, #C4C4C4)',
-    'img-rental': 'linear-gradient(135deg, #7D9B6B, #A8C596)',
-  }
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 0', borderBottom: '1px solid var(--color-border-subtle)' }}>
-      <div
-        style={{
-          width: '44px',
-          height: '44px',
-          borderRadius: '8px',
-          background: gradients[item.imgClass] ?? '#1a2213',
-          flexShrink: 0,
-        }}
-      />
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text)' }}>{item.name}</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 0, marginTop: '4px' }}>
-          <button onClick={() => onUpdateQty(item.id, -1)} style={qtyBtnStyle('left')}>
-            <Minus size={12} />
-          </button>
-          <div style={qtyValueStyle}>{item.qty}</div>
-          <button onClick={() => onUpdateQty(item.id, 1)} style={qtyBtnStyle('right')}>
-            <Plus size={12} />
+    <div className="flex items-center gap-3 rounded-lg border border-outline-variant bg-surface-container-high p-2.5">
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-medium text-on-surface">{item.name}</p>
+        <div className="mt-1.5 flex items-center gap-3">
+          <div className="flex items-center rounded border border-outline-variant bg-surface-container-highest">
+            <button
+              type="button"
+              aria-label="Quitar uno"
+              onClick={() => onUpdateQty(item.id, -1)}
+              className="flex h-6 w-6 items-center justify-center rounded-l text-on-surface-variant transition-colors hover:text-on-surface"
+            >
+              <Minus size={12} />
+            </button>
+            <span className="flex h-6 w-7 items-center justify-center border-x border-outline-variant text-xs font-medium tabular-nums text-on-surface">
+              {item.qty}
+            </span>
+            <button
+              type="button"
+              aria-label="Agregar uno"
+              onClick={() => onUpdateQty(item.id, 1)}
+              className="flex h-6 w-6 items-center justify-center rounded-r text-on-surface-variant transition-colors hover:text-on-surface"
+            >
+              <Plus size={12} />
+            </button>
+          </div>
+          <button
+            type="button"
+            onClick={() => onRemove(item.id)}
+            className="text-[10px] font-bold uppercase tracking-wide text-outline transition-colors hover:text-error"
+          >
+            Eliminar
           </button>
         </div>
-        <div
-          onClick={() => onRemove(item.id)}
-          style={{ fontSize: '10px', fontWeight: 700, color: 'var(--color-muted-dim)', cursor: 'pointer', marginTop: '2px', textTransform: 'uppercase', letterSpacing: '0.5px', transition: 'color 0.1s' }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = '#EF4444')}
-          onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--color-muted-dim)')}
-        >
-          Eliminar
-        </div>
       </div>
-      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', fontWeight: 600, color: 'var(--color-text)', flexShrink: 0 }}>
-        $ {(item.price * item.qty).toFixed(2)}
-      </div>
+      <Money value={item.price * item.qty} className="shrink-0 text-sm font-medium text-on-surface" />
     </div>
   )
 }
 
-const qtyBtnStyle = (side: 'left' | 'right'): React.CSSProperties => ({
-  width: '24px',
-  height: '24px',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  background: 'var(--color-bg)',
-  border: '1px solid var(--color-border)',
-  color: 'var(--color-text)',
-  cursor: 'pointer',
-  borderRadius: side === 'left' ? '4px 0 0 4px' : '0 4px 4px 0',
-  transition: 'all 0.1s',
-  fontFamily: 'inherit',
-})
-
-const qtyValueStyle: React.CSSProperties = {
-  width: '28px',
-  height: '24px',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  background: 'var(--color-bg)',
-  borderTop: '1px solid var(--color-border)',
-  borderBottom: '1px solid var(--color-border)',
-  fontFamily: 'var(--font-mono)',
-  fontSize: '12px',
-  fontWeight: 600,
-  color: 'var(--color-text)',
-}
-
-function TotalRow({ label, value, accent }: { label: string; value: string; accent?: 'lime' | 'red' }) {
+function TotalACobrar({ total }: { total: number }) {
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--color-muted)', padding: '3px 0', textTransform: 'uppercase', letterSpacing: '0.3px' }}>
-      <span style={{ color: accent === 'lime' ? 'var(--color-lime)' : 'var(--color-muted)' }}>{label}</span>
-      <span style={{ fontFamily: 'var(--font-mono)', color: accent === 'lime' ? 'var(--color-lime)' : 'var(--color-text)' }}>
-        {value}
-      </span>
+    <div className="flex items-center justify-between rounded-lg border border-outline-variant bg-background p-4">
+      <span className="text-xs font-semibold uppercase tracking-wide text-on-surface-variant">Total a Cobrar</span>
+      <Money value={total} className="text-2xl font-bold text-primary" />
     </div>
   )
 }
 
-function PayButton({ icon, label, onClick, disabled }: { icon: 'cash' | 'card' | 'split'; label: string; onClick: () => void; disabled?: boolean }) {
+function TotalRow({ label, value, accent }: { label: string; value: ReactNode; accent?: 'lime' | 'red' }) {
+  const lime = accent === 'lime'
   return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: '6px',
-        padding: '14px 8px',
-        background: 'var(--color-bg)',
-        border: '1px solid var(--color-border)',
-        borderRadius: '12px',
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        fontSize: '11px',
-        fontWeight: 700,
-        textTransform: 'uppercase',
-        letterSpacing: '0.3px',
-        color: disabled ? 'var(--color-muted-dim)' : 'var(--color-text)',
-        transition: 'all 0.15s',
-        fontFamily: 'inherit',
-        opacity: disabled ? 0.5 : 1,
-      }}
-      onMouseEnter={(e) => {
-        if (!disabled) {
-          e.currentTarget.style.borderColor = 'rgba(163,212,131,0.20)'
-          e.currentTarget.style.background = 'rgba(163,212,131,0.05)'
-        }
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = 'var(--color-border)'
-        e.currentTarget.style.background = 'var(--color-bg)'
-      }}
-    >
-      {icon === 'cash' ? (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <rect x="2" y="4" width="20" height="16" rx="2"/><circle cx="12" cy="12" r="3"/>
-        </svg>
-      ) : icon === 'card' ? (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>
-        </svg>
-      ) : (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <line x1="12" y1="2" x2="12" y2="22"/><rect x="2" y="5" width="9" height="14" rx="2"/><rect x="13" y="5" width="9" height="14" rx="2"/>
-        </svg>
-      )}
+    <div className="flex items-center justify-between text-on-surface-variant">
+      <span className={lime ? 'text-primary' : ''}>{label}</span>
+      <span className={`tabular-nums ${lime ? 'text-primary' : 'text-on-surface'}`}>{value}</span>
+    </div>
+  )
+}
+
+function PayButton({ icon, label, onClick, disabled }: { icon: 'cash' | 'card' | 'split' | 'users'; label: string; onClick: () => void; disabled?: boolean }) {
+  const Icon = icon === 'cash' ? Banknote : icon === 'card' ? CreditCard : icon === 'split' ? SplitSquareHorizontal : Users
+  return (
+    <Button variant="secondary" size="sm" fullWidth onClick={onClick} disabled={disabled}>
+      <Icon size={14} />
       {label}
-    </button>
+    </Button>
   )
 }
