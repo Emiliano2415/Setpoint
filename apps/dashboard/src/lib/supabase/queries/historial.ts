@@ -24,6 +24,8 @@ export interface RentaCancha {
   estado: string
   notas: string | null
   created_at: string
+  /** Se cobró con una cuenta ligada a la reserva: ese importe ya está en las ventas */
+  cobrada_en_cuenta: boolean
 }
 
 export interface MovimientoCajaHistorial {
@@ -69,6 +71,7 @@ export async function getHistorialVentas(
         cantidad,
         precio_unitario,
         subtotal,
+        concepto,
         productos ( nombre )
       )
     `)
@@ -96,10 +99,11 @@ export async function getHistorialVentas(
       cantidad: number
       precio_unitario: number
       subtotal: number
+      concepto: string | null
       productos: { nombre: string } | null
     }[]) ?? []).map((i) => ({
       id: i.id,
-      nombre: i.productos?.nombre ?? 'Producto',
+      nombre: i.productos?.nombre ?? i.concepto ?? 'Producto',
       cantidad: i.cantidad,
       precio_unitario: i.precio_unitario,
       subtotal: i.subtotal,
@@ -126,7 +130,8 @@ export async function getHistorialCanchas(
       notas,
       created_at,
       pistas ( nombre ),
-      clientes ( nombre )
+      clientes ( nombre ),
+      cuentas ( estado )
     `)
     .eq('club_id', clubId)
     .eq('estado', 'finalizada')
@@ -147,6 +152,8 @@ export async function getHistorialCanchas(
     estado: r.estado as string,
     notas: r.notas as string | null,
     created_at: r.created_at as string,
+    cobrada_en_cuenta: ((r.cuentas as unknown as { estado: string }[] | null) ?? [])
+      .some((c) => c.estado === 'pagada'),
   }))
 }
 
@@ -191,6 +198,15 @@ export async function getHistorialMovimientos(
   })
 }
 
+/**
+ * Ingresos por canchas que no están ya en las ventas. Una reserva cobrada con
+ * rpc_registrar_venta tiene su cuenta (cuentas.reserva_id) y su importe cuenta
+ * en las ventas; sumar también su precio la contaría dos veces.
+ */
+export function totalCanchasSinCuenta(canchas: RentaCancha[]): number {
+  return canchas.reduce((s, c) => (c.cobrada_en_cuenta ? s : s + c.precio), 0)
+}
+
 export async function getKPIsHistorial(
   supabase: SupabaseClient,
   clubId: string,
@@ -204,7 +220,7 @@ export async function getKPIsHistorial(
   ])
 
   const totalVentas = ventas.reduce((s, v) => s + v.total, 0)
-  const totalCanchas = canchas.reduce((s, c) => s + c.precio, 0)
+  const totalCanchas = totalCanchasSinCuenta(canchas)
 
   const netoCaja = movimientos.reduce((s, m) => {
     if (m.tipo === 'ingreso' || m.tipo === 'fondo') return s + m.monto

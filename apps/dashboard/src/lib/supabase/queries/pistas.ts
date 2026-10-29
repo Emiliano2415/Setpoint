@@ -136,6 +136,38 @@ export async function createPista(
   if (error) throw error
 }
 
+/** Horas entre hora_inicio y hora_fin de una reserva ('HH:MM:SS') */
+export function duracionReservaHoras(reserva: Pick<ReservaRow, 'hora_inicio' | 'hora_fin'>): number {
+  const min = (t: string) => {
+    const [h, m] = t.split(':').map(Number)
+    return (h || 0) * 60 + (m || 0)
+  }
+  return Math.max(0, min(reserva.hora_fin) - min(reserva.hora_inicio)) / 60
+}
+
+/** Concepto legible de la línea de alquiler en el ticket: 'Pista 2 · 1.5 h' */
+export function conceptoAlquiler(pistaNombre: string, horas: number): string {
+  return `${pistaNombre} · ${Number(horas.toFixed(2))} h`
+}
+
+/** ¿La reserva ya tiene una cuenta pagada (p. ej. se cobró en el check-in)? */
+export async function reservaYaCobrada(supabase: SupabaseClient, reservaId: string): Promise<boolean> {
+  const { data, error } = await supabase
+    .from('cuentas')
+    .select('id')
+    .eq('reserva_id', reservaId)
+    .eq('estado', 'pagada')
+    .limit(1)
+
+  if (error) throw error
+  return (data ?? []).length > 0
+}
+
+/**
+ * @deprecated Solo escribe un movimiento de caja: no deja cuenta, pago ni
+ * ticket. El cobro de canchas usa createCuenta (rpc_registrar_venta) con la
+ * reserva. La app ya no la llama (la RPC sigue en uso en supabase/seed.sql).
+ */
 export async function checkInWithPayment(
   supabase: SupabaseClient,
   reservaId: string,

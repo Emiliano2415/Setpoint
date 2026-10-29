@@ -11,6 +11,7 @@ import {
   getHistorialCanchas,
   getHistorialMovimientos,
   getReembolsosPeriodo,
+  totalCanchasSinCuenta,
   type VentaPOS,
   type RentaCancha,
   type MovimientoCajaHistorial,
@@ -127,7 +128,7 @@ export function HistorialPage() {
 
   // KPIs derived from state — no extra DB calls
   const totalVentas = ventas.reduce((s, v) => s + v.total, 0)
-  const totalCanchas = canchas.reduce((s, c) => s + c.precio, 0)
+  const totalCanchas = totalCanchasSinCuenta(canchas)
   const netoCaja = movimientos.reduce((s, m) => {
     return (m.tipo === 'ingreso' || m.tipo === 'fondo') ? s + m.monto : s - m.monto
   }, 0)

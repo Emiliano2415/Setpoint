@@ -6,11 +6,11 @@ import { toast } from 'sonner'
 import type { SupabaseClient } from '@/lib/supabase/client'
 import type { MetodoPago } from '@/lib/supabase/queries/caja'
 import type { ReservaRow } from '@/lib/supabase/queries/pistas'
-import { checkInWithPayment, updateReservaEstado } from '@/lib/supabase/queries/pistas'
-import { createCuenta } from '@/lib/supabase/queries/pos'
-import type { PagoInput } from '@/lib/supabase/queries/pos'
+import { conceptoAlquiler, duracionReservaHoras, updateReservaEstado } from '@/lib/supabase/queries/pistas'
+import { createCuenta, lineaAlquilerCancha } from '@/lib/supabase/queries/pos'
+import type { CobroReserva, CuentaItem, PagoInput } from '@/lib/supabase/queries/pos'
 import { SplitAccountModal } from '@/components/modules/pos/SplitAccountModal'
-import type { PersonSplit } from '@/components/modules/pos/SplitAccountModal'
+import type { PersonSplit, SplitMode } from '@/components/modules/pos/SplitAccountModal'
 import type { TicketItem } from '@/components/modules/pos/POSPage'
 import { useAppStore } from '@/store/useAppStore'
 
@@ -28,6 +28,8 @@ interface CheckInPaymentModalProps {
 }
 
 type PaymentOption = { value: MetodoPago; label: string; icon: string }
+const TAX_RATE = 0.16
+
 const PAYMENT_OPTIONS: PaymentOption[] = [
   { value: 'efectivo', label: 'Efectivo', icon: '💵' },
   { value: 'credito', label: 'Crédito', icon: '💳' },
@@ -82,18 +84,23 @@ export function CheckInPaymentModal({
     setSplitEfectivo('')
   }
 
-  function buildConcepto(): string {
-    return `${pistaNombre}${clienteNombre ? ` - ${clienteNombre}` : ''} - ${(reserva.hora_inicio ?? '').slice(0, 5)}`
-  }
+  // El cobro de la cancha es una línea sin producto con su concepto, ligada a
+  // la reserva; la reserva pasa a 'checkin' en la misma transacción del cobro
+  // (rpc_registrar_venta, 20261029000002_cobro_canchas.sql).
+  const conceptoLinea = conceptoAlquiler(pistaNombre, duracionReservaHoras(reserva))
+  const cobroReserva: CobroReserva = { reservaId: reserva.id, reservaEstado: 'checkin' }
+  const clienteId = reserva.cliente_id ?? undefined
 
   async function handleSinglePay() {
     if (!selectedMetodo || paying) return
     setPaying(true)
     try {
-      const concepto = buildConcepto()
       if (cajaId) {
-        await checkInWithPayment(supabase, reserva.id, reserva.precio ?? 0, selectedMetodo, cajaId, concepto)
+        const items = [lineaAlquilerCancha(conceptoLinea, reserva.precio ?? 0)]
+        const { error } = await createCuenta(supabase, clubId ?? '', items, selectedMetodo, clienteId, 0, cajaId, cobroReserva)
+        if (error) throw error
       } else {
+        // Sin turno de caja abierto: check-in sin cobro (se cobra al terminar)
         await updateReservaEstado(supabase, reserva.id, 'checkin')
       }
       toast.success('¡Check-in realizado!')
@@ -119,11 +126,10 @@ export function CheckInPaymentModal({
 
     setPaying(true)
     try {
-      const items = [{ producto_id: reserva.id, nombre: pistaNombre, precio_unitario: total, cantidad: 1 }]
-      const { error } = await createCuenta(supabase, clubId ?? '', items, pagos, undefined, 0, cajaId)
+      const items = [lineaAlquilerCancha(conceptoLinea, total)]
+      const { error } = await createCuenta(supabase, clubId ?? '', items, pagos, clienteId, 0, cajaId, cobroReserva)
       if (error) throw error
 
-      await updateReservaEstado(supabase, reserva.id, 'checkin')
       toast.success('¡Check-in realizado! Pago dividido registrado.')
       onSuccess()
     } catch (err) {
@@ -133,21 +139,30 @@ export function CheckInPaymentModal({
     }
   }
 
-  async function handleConfirmSplitAccount(splits: PersonSplit[]) {
+  /** La línea de la cancha en el modal de división lleva el id de la reserva: aquí pasa a línea sin producto */
+  function toCuentaItem(i: PersonSplit['items'][number]): CuentaItem {
+    return i.producto_id === reserva.id
+      ? { producto_id: null, nombre: i.nombre, concepto: conceptoLinea, precio_unitario: i.precio_unitario, cantidad: i.cantidad }
+      : { producto_id: i.producto_id, nombre: i.nombre, precio_unitario: i.precio_unitario, cantidad: i.cantidad }
+  }
+
+  async function handleConfirmSplitAccount(splits: PersonSplit[], modo: SplitMode) {
     if (splits.length === 0) return
     setPaying(true)
     try {
-      for (const split of splits) {
-        const splitItems = split.items.map((i) => ({
-          producto_id: i.producto_id,
-          nombre: i.nombre,
-          precio_unitario: i.precio_unitario,
-          cantidad: i.cantidad,
-        }))
-        const { error } = await createCuenta(supabase, clubId ?? '', splitItems, split.metodo, undefined, 0, cajaId)
+      // A partes iguales es UNA cuenta con un pago por persona (como en el POS);
+      // antes se creaba una cuenta por persona con la cancha completa en cada una.
+      // Por persona, cada quien con lo suyo (quien no tiene líneas no paga nada).
+      const cuentas: { items: CuentaItem[]; pagos: PagoInput[] | MetodoPago }[] =
+        modo === 'iguales'
+          ? [{ items: splits[0].items.map(toCuentaItem), pagos: splits.map((s) => ({ metodo: s.metodo, monto: s.total })) }]
+          : splits
+              .filter((s) => s.items.length > 0)
+              .map((s) => ({ items: s.items.map(toCuentaItem), pagos: s.metodo }))
+      for (const cuenta of cuentas) {
+        const { error } = await createCuenta(supabase, clubId ?? '', cuenta.items, cuenta.pagos, clienteId, 0, cajaId, cobroReserva)
         if (error) throw error
       }
-      await updateReservaEstado(supabase, reserva.id, 'checkin')
       toast.success('¡Check-in realizado! Cuenta dividida.')
       setSplitAccountOpen(false)
       onSuccess()
@@ -165,10 +180,12 @@ export function CheckInPaymentModal({
   const cambio = Math.max(0, efectivoNum - total)
   const splitPayValid = efectivoNum > 0 && efectivoNum <= total + 0.01
 
+  // El modal de división suma IVA al precio; el de la cancha ya lo incluye,
+  // así que entra sin IVA para que el total mostrado sea el precio de la reserva.
   const ticketItems: TicketItem[] = [{
     id: reserva.id,
     name: `${pistaNombre} (${fmtTime(reserva.hora_inicio)})`,
-    price: reserva.precio ?? 0,
+    price: (reserva.precio ?? 0) / (1 + TAX_RATE),
     qty: 1,
     category: 'cancha',
     imgClass: 'img-cancha',

@@ -54,11 +54,17 @@ interface CourtPOSModalProps {
   reserva: ReservaRow
   onClose: () => void
   onFinalize: () => void
+  /**
+   * Consumos controlados desde fuera (CourtAccountModal los cobra junto con la
+   * cancha). Sin ellos el modal guarda los suyos y se vacían al abrirlo.
+   */
+  items?: TicketItem[]
+  onItemsChange?: (items: TicketItem[]) => void
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function CourtPOSModal({ open, court, reserva, onClose, onFinalize }: CourtPOSModalProps) {
+export function CourtPOSModal({ open, court, reserva, onClose, onFinalize, items, onItemsChange }: CourtPOSModalProps) {
   const clubId = useAppStore((s) => s.clubId)
   const supabase = useMemo(() => createClient(), [])
 
@@ -66,7 +72,14 @@ export function CourtPOSModal({ open, court, reserva, onClose, onFinalize }: Cou
   const [activeCategory, setActiveCategory] = useState<string>(EXT_CATEGORY_ID)
   const [products, setProducts] = useState<Product[]>([])
   const [loadingProducts, setLoadingProducts] = useState(false)
-  const [ticketItems, setTicketItems] = useState<TicketItem[]>([])
+  const [localItems, setLocalItems] = useState<TicketItem[]>([])
+  const controlled = items !== undefined && onItemsChange !== undefined
+  const ticketItems = controlled ? items : localItems
+  function setTicketItems(update: TicketItem[] | ((prev: TicketItem[]) => TicketItem[])) {
+    const next = typeof update === 'function' ? update(ticketItems) : update
+    if (controlled) onItemsChange(next)
+    else setLocalItems(next)
+  }
   const [finalizeConfirm, setFinalizeConfirm] = useState(false)
   const [finalizing, setFinalizing] = useState(false)
 
@@ -75,7 +88,7 @@ export function CourtPOSModal({ open, court, reserva, onClose, onFinalize }: Cou
     if (!open) return
 
     setActiveCategory(EXT_CATEGORY_ID)
-    setTicketItems([])
+    if (!controlled) setLocalItems([])
     setFinalizeConfirm(false)
 
     if (!clubId) return
@@ -84,7 +97,7 @@ export function CourtPOSModal({ open, court, reserva, onClose, onFinalize }: Cou
         setDbCategories(data.map((c) => ({ id: c.id, label: c.nombre })))
       }
     }).catch(() => toast.error('Error cargando categorías'))
-  }, [open, supabase])
+  }, [open, supabase, controlled])
 
   // ── On category change: fetch products ────────────────────────────────────
   useEffect(() => {

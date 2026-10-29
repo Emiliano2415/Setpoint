@@ -3,11 +3,12 @@
 import { useState, useEffect } from 'react'
 import { X, Plus } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { updateReservaEstado } from '@/lib/supabase/queries/pistas'
-import { createCuenta, type MetodoPago, type CuentaItem } from '@/lib/supabase/queries/pos'
+import { conceptoAlquiler, reservaYaCobrada, updateReservaEstado } from '@/lib/supabase/queries/pistas'
+import { createCuenta, lineaAlquilerCancha, type MetodoPago, type CuentaItem } from '@/lib/supabase/queries/pos'
 import { toast } from 'sonner'
 import type { Court } from './PistasPage'
 import type { ReservaRow } from '@/lib/supabase/queries/pistas'
+import type { TicketItem } from '../pos/POSPage'
 import { CourtPOSModal } from './CourtPOSModal'
 
 import { useAppStore } from '@/store/useAppStore'
@@ -63,6 +64,17 @@ function fmt(n: number): string {
   return n.toFixed(2)
 }
 
+const TAX_RATE = 0.16
+
+function round2(n: number): number {
+  return Math.round(n * 100) / 100
+}
+
+/** Las extensiones de tiempo de CourtPOSModal no son productos del catálogo */
+function esExtension(item: TicketItem): boolean {
+  return item.id.startsWith('ext-')
+}
+
 export function CourtAccountModal({ court, reserva, onClose, onRefresh, onReservar, onCheckIn, cajaId }: Props) {
   const clubId = useAppStore((s) => s.clubId)
   const [updating, setUpdating] = useState(false)
@@ -70,11 +82,31 @@ export function CourtAccountModal({ court, reserva, onClose, onRefresh, onReserv
   const [canchaPayOpen, setCanchaPayOpen] = useState(false)
   const [canchaMetodo, setCanchaMetodo] = useState<MetodoPago>('efectivo')
   const [canchaPaying, setCanchaPaying] = useState(false)
+  // Consumos de la sesión (bar, tienda, extensiones): se cobran con la cancha
+  const [consumos, setConsumos] = useState<TicketItem[]>([])
+  // ¿La cancha ya se cobró en el check-in? Entonces al terminar no se vuelve a
+  // cobrar el tiempo. Se guarda junto con la reserva consultada para no
+  // arrastrar la respuesta de otra reserva.
+  const [cobroReserva, setCobroReserva] = useState<{ reservaId: string; pagada: boolean } | null>(null)
 
   // Fix 2: Reset courtPOSOpen when reserva becomes null
   useEffect(() => {
     if (!reserva) setCourtPOSOpen(false)
   }, [reserva])
+
+  const reservaId = reserva?.id
+  const reservaEnJuego = reserva?.estado === 'checkin'
+  useEffect(() => {
+    if (!reservaId || !reservaEnJuego) return
+    let ignore = false
+    reservaYaCobrada(createClient(), reservaId)
+      .then((pagada) => { if (!ignore) setCobroReserva({ reservaId, pagada }) })
+      .catch(() => { if (!ignore) toast.error('No se pudo comprobar si la cancha ya está pagada') })
+    return () => { ignore = true }
+  }, [reservaId, reservaEnJuego])
+  const tiempoPagado = cobroReserva !== null && cobroReserva.reservaId === reservaId && cobroReserva.pagada
+  // Mientras no se sepa, no se cobra (podría cobrarse dos veces la cancha)
+  const comprobandoCobro = reservaEnJuego && cobroReserva?.reservaId !== reservaId
 
   async function handleCheckin() {
     if (!reserva) return
@@ -130,16 +162,30 @@ export function CourtAccountModal({ court, reserva, onClose, onRefresh, onReserv
     ? (court.timer / 3600) * reserva.precio
     : 0
 
+  // Lo que se cobra por tiempo: nada si ya se pagó en el check-in
+  const tiempoACobrar = tiempoPagado ? 0 : round2(costoTiempo)
+  // Consumos con IVA: los productos llevan precio sin IVA (como en el POS); las
+  // extensiones son tiempo de cancha y su precio ya es el importe final.
+  const totalConsumos = round2(consumos.reduce(
+    (s, i) => s + i.price * i.qty * (esExtension(i) ? 1 : 1 + TAX_RATE),
+    0,
+  ))
+  const totalACobrar = round2(tiempoACobrar + totalConsumos)
+
   function buildCanchaItem(): CuentaItem | null {
-    if (!reserva || court.timer === undefined) return null
+    if (!reserva || court.timer === undefined || tiempoPagado) return null
     // Issue 1 — use court.timer / 3600 directly; avoids the toFixed(4) string round-trip
     const horas = court.timer / 3600
-    return {
-      producto_id: reserva.pista_id,
-      nombre: `Tiempo de cancha`,
-      precio_unitario: reserva.precio,
-      cantidad: horas,
-    }
+    // Una línea sin producto: 'Pista 2 · 1.5 h' por el importe del tiempo jugado
+    return lineaAlquilerCancha(conceptoAlquiler(court.name, horas), round2(costoTiempo))
+  }
+
+  function buildConsumoItems(): CuentaItem[] {
+    return consumos.map((i) =>
+      esExtension(i)
+        ? lineaAlquilerCancha(`${court.name} · ${i.name}${i.qty > 1 ? ` ×${i.qty}` : ''}`, i.price * i.qty)
+        : { producto_id: i.id, nombre: i.name, precio_unitario: i.price, cantidad: i.qty },
+    )
   }
 
   // Issue 2 — separate error handling for createCuenta and updateReservaEstado
@@ -151,37 +197,35 @@ export function CourtAccountModal({ court, reserva, onClose, onRefresh, onReserv
     const canchaItem = buildCanchaItem()
     const items: CuentaItem[] = [
       ...(canchaItem ? [canchaItem] : []),
+      ...buildConsumoItems(),
     ]
 
-    // 1. charge
-    if (items.length > 0) {
-      try {
+    // Cobro y fin de la sesión en una sola transacción (rpc_registrar_venta):
+    // la cuenta queda ligada a la reserva y la reserva pasa a 'finalizada'.
+    // Sin nada que cobrar solo se finaliza.
+    try {
+      if (items.length > 0) {
         const { error } = await createCuenta(
           supabase,
           clubId ?? '',
           items,
           canchaMetodo,
-          undefined,
+          reserva.cliente_id ?? undefined,
           0,
           cajaId,
+          { reservaId: reserva.id, reservaEstado: 'finalizada' },
         )
         if (error) throw error
-      } catch {
-        toast.error('Error al registrar el cobro')
-        setCanchaPaying(false)
-        return
+      } else {
+        await updateReservaEstado(supabase, reserva.id, 'finalizada')
       }
-    }
-
-    // 2. finalize session (payment already recorded — just try to update state)
-    try {
-      await updateReservaEstado(supabase, reserva.id, 'finalizada')
+      setConsumos([])
       setCanchaPayOpen(false)
       toast.success('Cancha cobrada ✓')
       onRefresh()
       onClose()
-    } catch {
-      toast.error('Cobro registrado pero no se pudo finalizar la sesión — ciérrala manualmente')
+    } catch (err) {
+      toast.error(err instanceof Error ? `Error al registrar el cobro: ${err.message}` : 'Error al registrar el cobro')
       setCanchaPaying(false)
     }
   }
@@ -337,11 +381,17 @@ export function CourtAccountModal({ court, reserva, onClose, onRefresh, onReserv
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 14px', borderBottom: '1px solid rgba(163,212,131,0.10)', fontSize: '12px' }}>
                     <span style={{ color: 'var(--color-muted)' }}>Tiempo</span>
-                    <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-muted)' }}>${fmt(costoTiempo)}</span>
+                    <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-muted)' }}>{tiempoPagado ? 'Pagado en check-in' : `$${fmt(costoTiempo)}`}</span>
                   </div>
+                  {consumos.length > 0 && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 14px', borderBottom: '1px solid rgba(163,212,131,0.10)', fontSize: '12px' }}>
+                      <span style={{ color: 'var(--color-muted)' }}>Consumos ({consumos.reduce((n, i) => n + i.qty, 0)})</span>
+                      <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-muted)' }}>${fmt(totalConsumos)}</span>
+                    </div>
+                  )}
                   <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 14px', fontSize: '14px', fontWeight: 800 }}>
                     <span style={{ color: 'var(--color-text)', textTransform: 'uppercase', letterSpacing: '0.3px', fontSize: '11px' }}>Total a Pagar</span>
-                    <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-lime)', fontSize: '18px' }}>${fmt(costoTiempo)} MXN</span>
+                    <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-lime)', fontSize: '18px' }}>${fmt(totalACobrar)} MXN</span>
                   </div>
                 </div>
 
@@ -354,10 +404,10 @@ export function CourtAccountModal({ court, reserva, onClose, onRefresh, onReserv
                   <button
                     type="button"
                     onClick={() => setCanchaPayOpen(true)}
-                    disabled={updating}
+                    disabled={updating || comprobandoCobro}
                     style={{ ...primaryBtnStyle, gridColumn: '2' }}
                   >
-                    Cobrar ${fmt(costoTiempo)}
+                    Cobrar ${fmt(totalACobrar)}
                   </button>
                 </div>
               </>
@@ -405,12 +455,18 @@ export function CourtAccountModal({ court, reserva, onClose, onRefresh, onReserv
             <div style={{ marginBottom: '16px', fontSize: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid var(--color-border-subtle)' }}>
                 <span style={{ color: 'var(--color-muted)' }}>Tiempo de cancha</span>
-                <span style={{ fontFamily: 'var(--font-mono)' }}>${fmt(costoTiempo)}</span>
+                <span style={{ fontFamily: 'var(--font-mono)' }}>{tiempoPagado ? 'Pagado' : `$${fmt(costoTiempo)}`}</span>
               </div>
+              {consumos.length > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid var(--color-border-subtle)' }}>
+                  <span style={{ color: 'var(--color-muted)' }}>Consumos</span>
+                  <span style={{ fontFamily: 'var(--font-mono)' }}>${fmt(totalConsumos)}</span>
+                </div>
+              )}
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', fontWeight: 800 }}>
                 <span>Total</span>
                 <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-lime)' }}>
-                  ${fmt(costoTiempo)}
+                  ${fmt(totalACobrar)}
                 </span>
               </div>
             </div>
@@ -445,10 +501,10 @@ export function CourtAccountModal({ court, reserva, onClose, onRefresh, onReserv
               <button
                 type="button"
                 onClick={handlePagarCancha}
-                disabled={canchaPaying}
+                disabled={canchaPaying || comprobandoCobro}
                 style={{ padding: '11px', background: canchaPaying ? 'rgba(163,212,131,0.3)' : 'var(--color-lime)', border: 'none', borderRadius: '8px', color: 'var(--color-bg)', fontSize: '12px', fontWeight: 800, cursor: canchaPaying ? 'not-allowed' : 'pointer', fontFamily: 'inherit' }}
               >
-                {canchaPaying ? 'Cobrando...' : `Cobrar $${fmt(costoTiempo)}`}
+                {canchaPaying ? 'Cobrando...' : `Cobrar $${fmt(totalACobrar)}`}
               </button>
             </div>
           </div>
@@ -460,6 +516,8 @@ export function CourtAccountModal({ court, reserva, onClose, onRefresh, onReserv
           open={courtPOSOpen}
           court={court}
           reserva={reserva}
+          items={consumos}
+          onItemsChange={setConsumos}
           onClose={() => setCourtPOSOpen(false)}
           onFinalize={() => {
             setCourtPOSOpen(false)
