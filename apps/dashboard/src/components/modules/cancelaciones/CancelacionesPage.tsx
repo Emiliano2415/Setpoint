@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo, useCallback, useSyncExternalStore } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef, useSyncExternalStore } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { poll } from '@/lib/poll'
 import { useAppStore } from '@/store/useAppStore'
@@ -33,25 +33,33 @@ export function CancelacionesPage() {
   const fecha = fechaElegida ?? hoy
   const [cancelaciones, setCancelaciones] = useState<CancelacionRow[]>([])
   const [stats, setStats] = useState<CancelacionStats>({ total_hoy: 0, pendientes_aprobacion: 0 })
-  const [selected, setSelected] = useState<CancelacionRow | null>(null)
+  // Solo el id: el detalle siempre muestra la fila de la última carga, así tras
+  // aprobar, rechazar o cada sondeo refleja el estado actual y no una copia vieja
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const selected = cancelaciones.find((c) => c.id === selectedId) ?? null
   const [loading, setLoading] = useState(true)
   const [cajaId, setCajaId] = useState<string | null>(null)
+  // Cada carga lleva un número; solo la más reciente escribe el estado. Evita que
+  // una respuesta lenta de otra fecha o pestaña pise a la actual.
+  const ultimaCarga = useRef(0)
 
   const reload = useCallback(async () => {
     if (!clubId || !fecha) return
+    const carga = ++ultimaCarga.current
     try {
       const [rows, s, caja] = await Promise.all([
         getCancelaciones(supabase, clubId, tab, fecha),
         getCancelacionStats(supabase, clubId),
         getCajaActiva(supabase, clubId).catch(() => null),
       ])
+      if (carga !== ultimaCarga.current) return
       setCancelaciones(rows)
       setStats(s)
       setCajaId(caja?.id ?? null)
     } catch {
-      toast.error('Error cargando cancelaciones')
+      if (carga === ultimaCarga.current) toast.error('Error cargando cancelaciones')
     } finally {
-      setLoading(false)
+      if (carga === ultimaCarga.current) setLoading(false)
     }
   }, [supabase, clubId, tab, fecha])
 
@@ -90,7 +98,7 @@ export function CancelacionesPage() {
                 type="date"
                 value={fecha}
                 max={hoy}
-                onChange={(e) => { setFechaElegida(e.target.value || null); setSelected(null) }}
+                onChange={(e) => { setFechaElegida(e.target.value || null); setSelectedId(null) }}
                 style={{
                   background: 'var(--color-bg2)',
                   border: '1px solid var(--color-border)',
@@ -111,7 +119,7 @@ export function CancelacionesPage() {
           {(['items', 'reservas'] as Tab[]).map((t) => (
             <button
               key={t}
-              onClick={() => { setTab(t); setSelected(null) }}
+              onClick={() => { setTab(t); setSelectedId(null) }}
               style={{
                 padding: '8px 18px',
                 background: 'none', border: 'none',
@@ -134,10 +142,12 @@ export function CancelacionesPage() {
           rows={cancelaciones}
           loading={loading}
           selected={selected}
-          onSelect={setSelected}
+          onSelect={(c) => setSelectedId(c.id)}
         />
         <div style={{ borderLeft: '1px solid var(--color-border)', overflow: 'hidden' }}>
+          {/* key: al cambiar de cancelación se descarta el formulario de rechazo a medias */}
           <CancelacionDetalle
+            key={selected?.id ?? 'ninguna'}
             cancelacion={selected}
             cajaId={cajaId}
             onAction={reload}

@@ -42,39 +42,61 @@ export interface CancelacionStats {
   pendientes_aprobacion: number
 }
 
+const CANCELACION_SELECT = `
+  *,
+  cuentas(numero_ticket),
+  reservas(fecha, hora_inicio, hora_fin, nombre_cliente, pistas(nombre), clientes(nombre)),
+  cuenta_items(notas),
+  cancelado_por_empleado:empleados!cancelaciones_cancelado_por_fkey(nombre),
+  autorizado_por_empleado:empleados!cancelaciones_autorizado_por_fkey(nombre)
+`
+
+/**
+ * Pestaña "items": las cancelaciones del día elegido más todas las pendientes de
+ * aprobación, sean del día que sean (una solicitud que nadie aprobó ese día no
+ * debe desaparecer al día siguiente). Las pendientes van primero.
+ * Pestaña "reservas": todas las cancelaciones de reservas.
+ */
 export async function getCancelaciones(
   supabase: SupabaseClient,
   clubId: string,
   tab: 'items' | 'reservas',
   fecha: string,
 ): Promise<CancelacionRow[]> {
-  let query = supabase
-    .from('cancelaciones')
-    .select(`
-      *,
-      cuentas(numero_ticket),
-      reservas(fecha, hora_inicio, hora_fin, nombre_cliente, pistas(nombre), clientes(nombre)),
-      cuenta_items(notas),
-      cancelado_por_empleado:empleados!cancelaciones_cancelado_por_fkey(nombre),
-      autorizado_por_empleado:empleados!cancelaciones_autorizado_por_fkey(nombre)
-    `)
-    .eq('club_id', clubId)
-    .order('created_at', { ascending: false })
+  const base = () =>
+    supabase
+      .from('cancelaciones')
+      .select(CANCELACION_SELECT)
+      .eq('club_id', clubId)
+      .order('created_at', { ascending: false })
 
-  if (tab === 'items') {
-    // Día local del club, no el día UTC: con límites UTC lo cancelado después
-    // de las 18:00 caía en "mañana" y no aparecía.
-    const dia = new Date(`${fecha}T12:00:00`)
-    query = query.not('cuenta_item_id', 'is', null)
-    query = query.gte('created_at', localDayStart(dia))
-    query = query.lte('created_at', localDayEnd(dia))
-  } else {
-    query = query.not('reserva_id', 'is', null)
+  if (tab === 'reservas') {
+    const { data, error } = await base().not('reserva_id', 'is', null)
+    if (error) throw error
+    return (data ?? []) as CancelacionRow[]
   }
 
-  const { data, error } = await query
-  if (error) throw error
-  return (data ?? []) as CancelacionRow[]
+  // Día local del club, no el día UTC: con límites UTC lo cancelado después
+  // de las 18:00 caía en "mañana" y no aparecía.
+  const dia = new Date(`${fecha}T12:00:00`)
+  const [delDia, pendientes] = await Promise.all([
+    base()
+      .not('cuenta_item_id', 'is', null)
+      .gte('created_at', localDayStart(dia))
+      .lte('created_at', localDayEnd(dia)),
+    base()
+      .not('cuenta_item_id', 'is', null)
+      .eq('estado', 'pendiente'),
+  ])
+  if (delDia.error) throw delDia.error
+  if (pendientes.error) throw pendientes.error
+
+  const filas = (pendientes.data ?? []) as CancelacionRow[]
+  const vistas = new Set(filas.map((r) => r.id))
+  for (const r of (delDia.data ?? []) as CancelacionRow[]) {
+    if (!vistas.has(r.id)) filas.push(r)
+  }
+  return filas
 }
 
 export async function getCancelacionStats(
