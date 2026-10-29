@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Setpoint PMS — Punto de Venta</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "on-secondary": "#38442f",
+            "outline": "#6d7871",
+            "inverse-surface": "#f6fbf5",
+            "tertiary-container": "#f6eda7",
+            "tertiary-fixed-dim": "#eee4a0",
+            "on-secondary-container": "#b6c4a8",
+            "on-primary": "#214906",
+            "surface-container-low": "#0e1511",
+            "tertiary-dim": "#eee4a0",
+            "tertiary-fixed": "#fcf3ad",
+            "primary-fixed": "#bff19c",
+            "on-primary-fixed-variant": "#3c6622",
+            "on-primary-fixed": "#204806",
+            "on-background": "#dde8df",
+            "inverse-on-surface": "#515652",
+            "on-secondary-fixed-variant": "#535f49",
+            "surface-variant": "#1e2822",
+            "on-surface": "#dde8df",
+            "surface-container": "#141b17",
+            "primary-dim": "#96c676",
+            "on-secondary-fixed": "#37432e",
+            "primary": "#a3d483",
+            "secondary-dim": "#afbda2",
+            "tertiary": "#fff9e6",
+            "on-error": "#450900",
+            "on-tertiary": "#666029",
+            "secondary-fixed": "#d9e7ca",
+            "on-tertiary-fixed": "#4e4914",
+            "surface-container-high": "#19211d",
+            "error": "#f97758",
+            "error-dim": "#c44f34",
+            "surface-dim": "#0a0f0c",
+            "secondary": "#bdcbaf",
+            "surface": "#0a0f0c",
+            "on-surface-variant": "#a2aea6",
+            "surface-tint": "#a3d483",
+            "secondary-container": "#333f2a",
+            "on-primary-container": "#bff29d",
+            "surface-container-lowest": "#000000",
+            "on-error-container": "#ff9b82",
+            "primary-fixed-dim": "#b1e38f",
+            "primary-container": "#335c19",
+            "on-tertiary-container": "#5e5822",
+            "surface-container-highest": "#1e2822",
+            "background": "#0a0f0c",
+            "on-tertiary-fixed-variant": "#6c662e",
+            "error-container": "#85230a",
+            "inverse-primary": "#3f6a25",
+            "surface-bright": "#242e28",
+            "outline-variant": "#404a44",
+            "secondary-fixed-dim": "#cbd9bc"
+          },
+          borderRadius: {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          fontFamily: {
+            headline: ["Inter", "sans-serif"],
+            display: ["Inter", "sans-serif"],
+            body: ["Inter", "sans-serif"],
+            label: ["Inter", "sans-serif"],
+            sans: ["Inter", "sans-serif"]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+      font-size: 20px;
+    }
+    .tabular-nums {
+      font-variant-numeric: tabular-nums;
+    }
+  </style>
+</head>
+<body class="flex h-screen w-full overflow-hidden bg-background text-on-surface font-sans antialiased">
+<!-- Left Sidebar (232px) -->
+<aside class="w-[232px] shrink-0 h-full bg-surface-container border-r border-outline-variant flex flex-col justify-between select-none z-10">
+<div class="flex flex-col h-full overflow-y-auto">
+<!-- Brand Header -->
+<div class="p-4 border-b border-outline-variant flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-surface-container-highest flex items-center justify-center border border-outline-variant text-primary font-semibold text-sm">
+          SP
+        </div>
+<div class="min-w-0">
+<h1 class="font-headline text-base font-semibold text-on-surface tracking-tight leading-tight">Setpoint PMS</h1>
+<p class="text-xs text-on-surface-variant truncate">Club Central</p>
+</div>
+</div>
+<!-- Navigation Menu -->
+<div class="px-3 py-4 space-y-6">
+<!-- Grupo OPERACIÓN -->
+<div>
+<div class="px-3 pb-2 text-[11px] font-semibold text-outline uppercase tracking-wider">Operación</div>
+<nav class="space-y-1">
+<!-- Active Item: Punto de Venta -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-surface-container-highest text-primary font-medium transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="point_of_sale">point_of_sale</span>
+<span class="text-sm">Punto de Venta</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="sports_tennis">sports_tennis</span>
+<span class="text-sm">Pistas</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
+<span class="text-sm">Comandas</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+<span class="text-sm">Inventario</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="text-sm">Clientes</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="point_of_sale">point_of_sale</span>
+<span class="text-sm">Caja</span>
+</a>
+</nav>
+</div>
+<!-- Grupo ADMINISTRACIÓN -->
+<div>
+<div class="px-3 pb-2 text-[11px] font-semibold text-outline uppercase tracking-wider">Administración</div>
+<nav class="space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="badge">badge</span>
+<span class="text-sm">Personal</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="bar_chart">bar_chart</span>
+<span class="text-sm">Reportes</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="percent">percent</span>
+<span class="text-sm">Descuentos</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span class="text-sm">Historial</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="cancel">cancel</span>
+<span class="text-sm">Cancelaciones</span>
+</a>
+</nav>
+</div>
+</div>
+</div>
+<!-- Sidebar Footer -->
+<div class="p-3 border-t border-outline-variant space-y-2">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="text-sm">Configuración</span>
+</a>
+<!-- Operator Card -->
+<div class="p-2.5 rounded-lg bg-surface-container-high flex items-center justify-between">
+<div class="flex items-center gap-2.5 min-w-0">
+<div class="w-7 h-7 rounded-full bg-surface-variant border border-outline-variant flex items-center justify-center text-xs font-semibold text-primary">
+            MT
+          </div>
+<div class="truncate">
+<div class="text-xs font-medium text-on-surface truncate">Mariana Treviño</div>
+<div class="text-[11px] text-on-surface-variant">Cajero en turno</div>
+</div>
+</div>
+<button class="text-on-surface-variant hover:text-error transition-colors p-1" title="Cerrar sesión">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+</button>
+</div>
+</div>
+</aside>
+<!-- Right Main Canvas Area -->
+<div class="flex-1 min-w-0 flex flex-col h-full overflow-hidden">
+<!-- Top Bar (56px) -->
+<header class="h-14 shrink-0 bg-surface-container border-b border-outline-variant px-6 flex items-center justify-between gap-4 select-none">
+<div class="flex items-center gap-6 min-w-0">
+<h2 class="font-headline text-lg font-semibold text-on-surface whitespace-nowrap">Punto de Venta</h2>
+<!-- Search bar -->
+<div class="relative w-72">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" data-icon="search">search</span>
+<input class="w-full bg-surface-container-high border border-outline-variant rounded-lg pl-9 pr-3 py-1.5 text-xs text-on-surface placeholder:text-outline focus:outline-none focus:border-primary transition-colors" placeholder="Buscar producto o cliente..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-3 shrink-0">
+<!-- Low Stock Chip -->
+<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container-high border border-outline-variant text-xs text-on-surface whitespace-nowrap">
+<span class="w-1.5 h-1.5 rounded-full bg-error"></span>
+<span class="font-medium text-error">3</span>
+<span class="text-on-surface-variant">con stock bajo</span>
+</div>
+<!-- Shift Info -->
+<div class="hidden lg:flex items-center gap-1.5 text-xs text-on-surface-variant px-2 border-l border-outline-variant">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+<span>Turno abierto · Mariana T. · desde 08:10</span>
+</div>
+<!-- Secondary Action -->
+<button class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-outline-variant hover:bg-surface-container-high text-xs font-medium text-on-surface transition-colors">
+<span class="material-symbols-outlined text-base" data-icon="history">history</span>
+<span>Historial</span>
+</button>
+</div>
+</header>
+<!-- Main Content Area: 3-col Products + Ticket Sidebar -->
+<main class="flex-1 min-w-0 flex overflow-hidden">
+<!-- Catalog Center View -->
+<section class="flex-1 flex flex-col min-w-0 p-6 overflow-hidden">
+<!-- Category Tabs -->
+<div class="flex items-center gap-2 pb-4 border-b border-outline-variant overflow-x-auto shrink-0 select-none">
+<button class="px-3 py-1.5 rounded-lg bg-surface-container-highest text-primary text-xs font-medium border border-outline-variant">Todos</button>
+<button class="px-3 py-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high text-xs font-medium transition-colors">Cafetería</button>
+<button class="px-3 py-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high text-xs font-medium transition-colors">Bebidas</button>
+<button class="px-3 py-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high text-xs font-medium transition-colors">Alquiler material</button>
+<button class="px-3 py-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high text-xs font-medium transition-colors">Bolas / Grips</button>
+</div>
+<!-- Product Grid (3-column layout) -->
+<div class="flex-1 overflow-y-auto pt-4 pr-1 grid grid-cols-3 gap-3 auto-rows-max">
+<!-- Card 1 -->
+<div class="p-3.5 rounded-lg bg-surface-container border border-outline-variant hover:border-outline transition-colors cursor-pointer flex flex-col justify-between group">
+<div>
+<div class="flex items-start justify-between gap-2">
+<span class="text-xs font-semibold text-on-surface group-hover:text-primary transition-colors">Agua Mineral 600ml</span>
+<span class="text-[11px] px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface-variant border border-outline-variant">Stock 42</span>
+</div>
+<p class="text-[11px] text-on-surface-variant mt-0.5">Bebidas embotelladas</p>
+</div>
+<div class="mt-4 flex items-center justify-between">
+<span class="text-sm font-semibold tabular-nums text-on-surface">$28.00</span>
+<span class="w-6 h-6 rounded bg-surface-container-high group-hover:bg-primary group-hover:text-surface flex items-center justify-center text-xs font-medium transition-colors">+</span>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="p-3.5 rounded-lg bg-surface-container border border-outline-variant hover:border-outline transition-colors cursor-pointer flex flex-col justify-between group">
+<div>
+<div class="flex items-start justify-between gap-2">
+<span class="text-xs font-semibold text-on-surface group-hover:text-primary transition-colors">Gatorade 500ml Mora</span>
+<span class="text-[11px] px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface-variant border border-outline-variant">Stock 18</span>
+</div>
+<p class="text-[11px] text-on-surface-variant mt-0.5">Electrolitos hidratación</p>
+</div>
+<div class="mt-4 flex items-center justify-between">
+<span class="text-sm font-semibold tabular-nums text-on-surface">$45.00</span>
+<span class="w-6 h-6 rounded bg-surface-container-high group-hover:bg-primary group-hover:text-surface flex items-center justify-center text-xs font-medium transition-colors">+</span>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="p-3.5 rounded-lg bg-surface-container border border-outline-variant hover:border-outline transition-colors cursor-pointer flex flex-col justify-between group">
+<div>
+<div class="flex items-start justify-between gap-2">
+<span class="text-xs font-semibold text-on-surface group-hover:text-primary transition-colors">Café Americano 12oz</span>
+<span class="text-[11px] px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface-variant border border-outline-variant">Cafetería</span>
+</div>
+<p class="text-[11px] text-on-surface-variant mt-0.5">Grano chiapaneco recién molido</p>
+</div>
+<div class="mt-4 flex items-center justify-between">
+<span class="text-sm font-semibold tabular-nums text-on-surface">$38.00</span>
+<span class="w-6 h-6 rounded bg-surface-container-high group-hover:bg-primary group-hover:text-surface flex items-center justify-center text-xs font-medium transition-colors">+</span>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="p-3.5 rounded-lg bg-surface-container border border-outline-variant hover:border-outline transition-colors cursor-pointer flex flex-col justify-between group">
+<div>
+<div class="flex items-start justify-between gap-2">
+<span class="text-xs font-semibold text-on-surface group-hover:text-primary transition-colors">Overgrip Pro Blanco</span>
+<span class="text-[11px] px-1.5 py-0.5 rounded bg-surface-container-high text-error border border-error/30">Stock 2</span>
+</div>
+<p class="text-[11px] text-on-surface-variant mt-0.5">Sensación húmeda y absorción</p>
+</div>
+<div class="mt-4 flex items-center justify-between">
+<span class="text-sm font-semibold tabular-nums text-on-surface">$60.00</span>
+<span class="w-6 h-6 rounded bg-surface-container-high group-hover:bg-primary group-hover:text-surface flex items-center justify-center text-xs font-medium transition-colors">+</span>
+</div>
+</div>
+<!-- Card 5 -->
+<div class="p-3.5 rounded-lg bg-surface-container border border-outline-variant hover:border-outline transition-colors cursor-pointer flex flex-col justify-between group">
+<div>
+<div class="flex items-start justify-between gap-2">
+<span class="text-xs font-semibold text-on-surface group-hover:text-primary transition-colors">Bote Bolas Head Pro (x3)</span>
+<span class="text-[11px] px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface-variant border border-outline-variant">Stock 15</span>
+</div>
+<p class="text-[11px] text-on-surface-variant mt-0.5">Presurizado oficial pádel</p>
+</div>
+<div class="mt-4 flex items-center justify-between">
+<span class="text-sm font-semibold tabular-nums text-on-surface">$165.00</span>
+<span class="w-6 h-6 rounded bg-surface-container-high group-hover:bg-primary group-hover:text-surface flex items-center justify-center text-xs font-medium transition-colors">+</span>
+</div>
+</div>
+<!-- Card 6 -->
+<div class="p-3.5 rounded-lg bg-surface-container border border-outline-variant hover:border-outline transition-colors cursor-pointer flex flex-col justify-between group">
+<div>
+<div class="flex items-start justify-between gap-2">
+<span class="text-xs font-semibold text-on-surface group-hover:text-primary transition-colors">Alquiler Pala Nox ML10</span>
+<span class="text-[11px] px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface-variant border border-outline-variant">90 mins</span>
+</div>
+<p class="text-[11px] text-on-surface-variant mt-0.5">Control intermedio/avanzado</p>
+</div>
+<div class="mt-4 flex items-center justify-between">
+<span class="text-sm font-semibold tabular-nums text-on-surface">$80.00</span>
+<span class="w-6 h-6 rounded bg-surface-container-high group-hover:bg-primary group-hover:text-surface flex items-center justify-center text-xs font-medium transition-colors">+</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Ticket Actual Side Panel (360px) -->
+<aside class="w-[360px] shrink-0 border-l border-outline-variant bg-surface-container flex flex-col justify-between overflow-hidden">
+<!-- Header -->
+<div class="p-4 border-b border-outline-variant flex items-center justify-between">
+<div>
+<div class="flex items-center gap-2">
+<span class="text-sm font-semibold text-on-surface">Ticket actual</span>
+<span class="text-xs font-medium px-2 py-0.5 rounded bg-surface-container-high border border-outline-variant text-primary">#SP-3160</span>
+</div>
+<span class="text-xs text-on-surface-variant">Cliente: Alejandro Garza</span>
+</div>
+<button class="text-on-surface-variant hover:text-error transition-colors p-1" title="Vaciar ticket">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</div>
+<!-- Ticket Line Items -->
+<div class="flex-1 overflow-y-auto p-4 space-y-3">
+<div class="flex items-center justify-between text-xs py-1 border-b border-outline-variant/40">
+<div class="flex-1 pr-2">
+<div class="font-medium text-on-surface">1x Gatorade Mora 500ml</div>
+<div class="text-[11px] text-on-surface-variant tabular-nums">$45.00 c/u</div>
+</div>
+<div class="tabular-nums font-semibold text-on-surface">$45.00</div>
+</div>
+<div class="flex items-center justify-between text-xs py-1 border-b border-outline-variant/40">
+<div class="flex-1 pr-2">
+<div class="font-medium text-on-surface">1x Overgrip Pro Blanco</div>
+<div class="text-[11px] text-on-surface-variant tabular-nums">$60.00 c/u</div>
+</div>
+<div class="tabular-nums font-semibold text-on-surface">$60.00</div>
+</div>
+<div class="flex items-center justify-between text-xs py-1 border-b border-outline-variant/40">
+<div class="flex-1 pr-2">
+<div class="font-medium text-on-surface">1x Café Americano 12oz</div>
+<div class="text-[11px] text-on-surface-variant tabular-nums">$38.00 c/u</div>
+</div>
+<div class="tabular-nums font-semibold text-on-surface">$38.00</div>
+</div>
+<div class="flex items-center justify-between text-xs py-1 border-b border-outline-variant/40">
+<div class="flex-1 pr-2">
+<div class="font-medium text-on-surface">1x Barrita de Proteína 60g</div>
+<div class="text-[11px] text-on-surface-variant tabular-nums">$28.68 c/u</div>
+</div>
+<div class="tabular-nums font-semibold text-on-surface">$28.68</div>
+</div>
+</div>
+<!-- Ticket Total and Buttons -->
+<div class="p-4 border-t border-outline-variant bg-surface-container-high/60 space-y-3">
+<div class="space-y-1.5 text-xs text-on-surface-variant">
+<div class="flex justify-between">
+<span>Subtotal</span>
+<span class="tabular-nums text-on-surface">$147.99</span>
+</div>
+<div class="flex justify-between">
+<span>IVA (16%)</span>
+<span class="tabular-nums text-on-surface">$23.69</span>
+</div>
+<div class="flex justify-between text-sm font-semibold text-on-surface pt-2 border-t border-outline-variant">
+<span>Total ticket</span>
+<span class="tabular-nums text-primary text-base">$171.68</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-2 pt-1">
+<button class="py-2 px-3 rounded-lg border border-outline-variant bg-surface-container hover:bg-surface-container-highest text-xs font-medium text-on-surface transition-colors">
+              Efectivo
+            </button>
+<button class="py-2 px-3 rounded-lg border border-outline-variant bg-surface-container hover:bg-surface-container-highest text-xs font-medium text-on-surface transition-colors">
+              Tarjeta
+            </button>
+</div>
+<button class="w-full py-2.5 px-4 rounded-lg bg-primary hover:bg-primary-dim text-surface font-semibold text-xs tracking-wide transition-colors">
+            Cobrar $171.68
+          </button>
+</div>
+</aside>
+</main>
+</div>
+<!-- OVERLAY / 60% SCRIM BACKDROP -->
+<div class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+<!-- CENTERED MODAL (w-[480px]) -->
+<div class="w-[480px] max-w-full rounded-xl bg-surface-container border border-outline-variant p-0 overflow-hidden shadow-2xl flex flex-col">
+<!-- Modal Header -->
+<div class="px-6 py-4 border-b border-outline-variant flex items-center justify-between">
+<div>
+<h3 class="font-headline font-semibold text-lg text-on-surface leading-snug">Pago dividido</h3>
+<p class="text-xs text-on-surface-variant mt-0.5">Ticket #SP-3160 · Efectivo + tarjeta</p>
+</div>
+<button class="w-7 h-7 rounded-lg flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" title="Cerrar">
+<span class="text-base leading-none">✕</span>
+</button>
+</div>
+<!-- Modal Body -->
+<div class="p-6 space-y-5">
+<!-- 1. Summary block: Total a cobrar -->
+<div class="p-3.5 rounded-lg bg-surface-container-high border border-outline-variant flex items-center justify-between">
+<div>
+<div class="text-xs text-on-surface-variant">Total a cobrar</div>
+<div class="text-[11px] text-outline">16% IVA incluido</div>
+</div>
+<div class="text-xl font-semibold tabular-nums text-on-surface tracking-tight">
+            $171.68
+          </div>
+</div>
+<!-- 2. Field: Monto en efectivo -->
+<div class="space-y-2">
+<label class="block text-xs font-medium text-on-surface">
+            Monto en efectivo
+          </label>
+<div class="relative">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-on-surface-variant font-medium">$</span>
+<input class="w-full bg-surface-container-highest border border-outline-variant rounded-lg pl-7 pr-3 py-2 text-sm font-medium text-on-surface tabular-nums focus:outline-none focus:border-primary transition-colors" type="text" value="100.00"/>
+</div>
+<!-- Quick chips -->
+<div class="flex items-center gap-2 pt-1">
+<button class="px-3 py-1 rounded-lg border border-outline-variant text-xs text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors tabular-nums">
+              $50
+            </button>
+<button class="px-3 py-1 rounded-lg border border-primary bg-primary/10 text-xs text-primary font-semibold transition-colors tabular-nums">
+              $100
+            </button>
+<button class="px-3 py-1 rounded-lg border border-outline-variant text-xs text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors tabular-nums">
+              $200
+            </button>
+<button class="px-3 py-1 rounded-lg border border-outline-variant text-xs text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors tabular-nums">
+              $500
+            </button>
+</div>
+</div>
+<!-- 3. Read-only row: Monto en tarjeta -->
+<div class="flex items-center justify-between py-2 border-t border-outline-variant">
+<div>
+<div class="text-xs text-on-surface font-medium">Monto en tarjeta</div>
+<div class="text-[11px] text-outline">Se calcula solo</div>
+</div>
+<div class="text-sm font-medium tabular-nums text-on-surface">
+            $71.68
+          </div>
+</div>
+<!-- 4. Calm result row in a subtly tinted block -->
+<div class="p-3 rounded-lg bg-surface-variant border border-outline-variant flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span class="text-xs font-medium text-on-surface">Cubierto por tarjeta</span>
+</div>
+<span class="text-sm font-semibold tabular-nums text-primary">
+            $71.68
+          </span>
+</div>
+</div>
+<!-- Modal Footer -->
+<div class="p-4 px-6 border-t border-outline-variant flex items-center justify-between bg-surface-container">
+<button class="px-4 py-2 rounded-lg text-xs font-medium text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors">
+          Cancelar
+        </button>
+<button class="px-5 py-2 rounded-lg bg-primary hover:bg-primary-dim text-surface text-xs font-semibold tracking-wide transition-colors">
+          Confirmar pago
+        </button>
+</div>
+</div>
+</div>
+</body></html>
